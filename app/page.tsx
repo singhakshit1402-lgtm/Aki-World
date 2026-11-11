@@ -107,7 +107,10 @@ type WindowView =
   | 'faculty'
   | 'placement'
   | 'chat'
-  | 'boss_intro';
+  | 'boss_intro'
+  | 'cabin'
+  | 'assignments'
+  | 'canteen';
 
 const ALL_PAPERS = [
   { id: 'maths', name: 'Fundamentals of Linear Algebra & Statistics', code: '25AS102', short: 'Maths / FLAS', icon: '📐', mt1: '/papers/sem1/maths_mt1.jpg', mt2: '/papers/sem1/maths_mt2.jpg' },
@@ -3116,6 +3119,9 @@ export default function CampusAIChat() {
               <button onClick={() => {setCurrentWindow('timetable'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'timetable' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>⏰</span> Class Time Table</button>
               <button onClick={() => {setCurrentWindow('docguide'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'docguide' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>📋</span> UP Scholarship Guide</button>
               <button onClick={() => {setCurrentWindow('marketplace'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'marketplace' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>🛒</span> P2P Marketplace</button>
+              <button onClick={() => {setCurrentWindow('cabin'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'cabin' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span className="flex items-center gap-2"><span>🧭</span> Cabin Navigator</span><span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">SOON</span></button>
+              <button onClick={() => {setCurrentWindow('assignments'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'assignments' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span className="flex items-center gap-2"><span>📝</span> Assignment Tracker</span><span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">SOON</span></button>
+              <button onClick={() => {setCurrentWindow('canteen'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'canteen' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span className="flex items-center gap-2"><span>🍔</span> Canteen Menu</span><span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">SOON</span></button>
             </div>
 
             <div className="space-y-1 pt-2 border-t border-white/[0.06]">
@@ -4179,6 +4185,50 @@ export default function CampusAIChat() {
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          )}
+        {/* VIEW: COMING SOON MODULES (CABIN NAVIGATOR, ASSIGNMENT TRACKER, CANTEEN MENU) */}
+          {(currentWindow === 'cabin' || currentWindow === 'assignments' || currentWindow === 'canteen') && (
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center w-full">
+              <div className={`w-full max-w-lg p-8 rounded-3xl ${themeClasses} border shadow-2xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200`}>
+                <div className="mx-auto w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-4xl shadow-[0_0_30px_rgba(220,38,38,0.25)] animate-bounce">
+                  {currentWindow === 'cabin' ? '🧭' : currentWindow === 'assignments' ? '📝' : '🍔'}
+                </div>
+
+                <div className="space-y-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-mono font-bold text-amber-300 uppercase tracking-widest">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                    🚧 Under Construction in ikA&apos;s Lab
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-wide">
+                    {currentWindow === 'cabin'
+                      ? 'Faculty Cabin Navigator'
+                      : currentWindow === 'assignments'
+                      ? 'CSE-2 Assignment Tracker'
+                      : 'Live ABES Canteen Menu'}
+                  </h3>
+                  <p className="text-lg font-extrabold text-red-400 tracking-widest uppercase animate-pulse">
+                    Coming Soon... ⚡
+                  </p>
+                </div>
+
+                <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                  {currentWindow === 'cabin'
+                    ? 'Exact block, floor, and cabin numbers for every ABES faculty member are being mapped into the neural matrix.'
+                    : currentWindow === 'assignments'
+                    ? 'Live submission deadlines, lab file alerts, and pending assignment checklists for Section CSE-2 will unlock here soon.'
+                    : 'Live samosa, chai, Maggi prices, and combo ratings from the ABES cafeteria are being brewed by Boss ikA.'}
+                </p>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => setCurrentWindow('home')}
+                    className={`px-6 py-2.5 rounded-xl ${accentBg} hover:opacity-90 text-white text-xs font-bold uppercase tracking-wider shadow-lg transition cursor-pointer`}
+                  >
+                    ← Back to Overview
+                  </button>
                 </div>
               </div>
             </div>
