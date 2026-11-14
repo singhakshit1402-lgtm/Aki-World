@@ -5354,7 +5354,7 @@ export default function CampusAIChat() {
       )}
 
       {/* =====================================================================
-          3. TELEPORTING "TO ikA" REQUEST BOX ORB (JUMPS LOCATION EVERY 11s!)
+          3. TELEPORTING "TO ikA" REQUEST BOX ORB (SQUARE ⛩️ ON MOBILE ONLY!)
          ===================================================================== */}
       {currentUser && isRequestBoxUnlocked && currentWindow !== 'boss_intro' && (
         <div
@@ -5365,10 +5365,11 @@ export default function CampusAIChat() {
               setRequestStatusMsg('');
               setIsRequestBoxModalOpen(true);
             }}
-            className="group relative px-3.5 py-2 rounded-2xl bg-gradient-to-r from-red-950/95 via-black to-amber-950/90 border-2 border-red-500/80 hover:border-amber-400 shadow-[0_0_30px_rgba(220,38,38,0.75)] flex items-center gap-2.5 cursor-pointer hover:scale-105 transition"
+            title={`To ikA Request Box • Jumps in ${teleportCountdown}s`}
+            className="group relative w-11 h-11 sm:w-auto sm:h-auto p-0 sm:px-3.5 sm:py-2 rounded-2xl bg-gradient-to-br from-red-950/95 via-black to-amber-950/90 border-2 border-red-500/80 hover:border-amber-400 shadow-[0_0_25px_rgba(220,38,38,0.8)] flex items-center justify-center sm: gap-2.5 cursor-pointer hover:scale-105 transition"
           >
             <span className="text-xl animate-bounce">⛩️</span>
-            <div className="text-left">
+            <div className="hidden sm:block text-left">
               <div className="text-[11px] font-black text-white tracking-wider uppercase flex items-center gap-1.5">
                 <span>To ikA Box</span>
                 {hasVipSecretCode && (
