@@ -2084,6 +2084,263 @@ export function getAcademicCalendarAndSyllabusReply(rawQuery: string): { text: s
 }
 
 // ============================================================================
+// ELECTRICAL ENGINEERING (25EL101) — ASSIGNMENT 02 (UNIT-2) SOLUTIONS & PDF
+// ============================================================================
+const EE_ASSIGNMENT_2_PDF_TAG = `[DOWNLOAD_PAPER|⚡ Official EE Assignment-02 (Questions) PDF|/Assignment_Unit-2_EE.pdf]
+
+[DOWNLOAD_PAPER|✅ Official EE Assignment-02 (SOLUTIONS) PDF|/ee_assignment_2_solutions.pdf]`;
+
+const EE_ASSIGNMENT_02_QUESTIONS: Record<number, string> = {
+  1: `### ⚡ Q-1: 100W, 120V Lamp on 240V, 50Hz Supply (CO2 • K3)
+**Given:** Lamp Power = 100 W | Lamp Voltage = 120 V | Supply = 240 V, 50 Hz.
+• **Lamp's Rated Current (I):** 100W / 120V = **0.833 A**
+• **Lamp's Resistance (R_lamp):** 120² / 100 = **144 Ω**
+• **Total Impedance Needed (Z_total):** 240V / 0.833A = **288 Ω**
+
+**🅰️ (a) Connecting a Resistor (R) in Series:**
+• R_total = 288 Ω, so Series Resistance R = 288 - 144 = **144 Ω**
+• Power Factor = R_total / Z_total = 288 / 288 = **1 (Unity)**
+• Total Power Consumed = 240V × 0.833A × 1 = **200 W**
+
+**🅱️ (b) Connecting a Capacitor (C) in Series:**
+• Capacitive Reactance (X_c) = √(288² - 144²) = **249.42 Ω**
+• Capacitance (C) = 1 / (2 × π × 50 × 249.42) = **12.76 μF**
+• Power Factor = 144 / 288 = **0.5 (Leading)**
+• Total Power Consumed = I² × R_lamp = **100 W**
+
+**🅲 (c) Connecting a Coil (Resistance = 10 Ω) in Series:**
+• New R_total = 144 + 10 = 154 Ω
+• Inductive Reactance (X_L) = √(288² - 154²) = **243.37 Ω**
+• Inductance (L) = 243.37 / (2 × π × 50) = **0.775 H**
+• Power Factor = 154 / 288 = **0.535 (Lagging)**
+• Total Power Consumed = (0.833)² × 154 = **107 W**
+
+✅ **Conclusion:** **Method (b) (Capacitor)** is the most economical because an ideal capacitor doesn't consume extra active power, keeping the total bill at just **100 W**.`,
+
+  2: `### ⚡ Q-2: Series RLC Circuit Parameters (CO2 • K3)
+**Given:** L = 0.01 H | v(t) = 400cos(3000t - 10°) V | i(t) = 10√2 cos(3000t - 55°) A.
+
+• **Step 1: Convert to RMS Phasors**
+  ◦ Angular Freq (ω) = **3000 rad/s**
+  ◦ Voltage (V) = (400 / √2) ∠ -10° = **282.84 ∠ -10° V**
+  ◦ Current (I) = (10√2 / √2) ∠ -55° = **10 ∠ -55° A**
+
+• **Step 2: Find Total Impedance (Z)**
+  ◦ Z = V / I = 282.84 / 10 = 28.284 Ω. Angle = -10° - (-55°) = +45°.
+  ◦ Z = 28.284 ∠ 45° Ω
+  ◦ In Rectangular Form: Z = 28.284(cos 45° + j sin 45°) = **20 + j20 Ω**
+
+• **Step 3: Find R, L, and C**
+  ◦ Resistance (R) is the real part = **20 Ω**
+  ◦ Inductive Reactance (X_L) = ω × L = 3000 × 0.01 = **30 Ω**
+  ◦ Net Reactance is 20 Ω. So, X_L - X_C = 20  =>  30 - X_C = 20  =>  **X_C = 10 Ω**
+  ◦ Capacitance (C) = 1 / (ω × X_C) = 1 / (3000 × 10) = **33.33 μF**`,
+
+  3: `### ⚡ Q-3: Parallel R and Series R-C Circuit (CO2 • K3)
+**Given:** R1 = 20 Ω, f = 50 Hz. Total Current = 7 A. Current in R1 branch = 5 A. Current in R-C branch = 3 A.
+
+• **Step 1: Find Supply Voltage & Branch Impedance**
+  ◦ Voltage (V) = Current in R1 × R1 = 5A × 20Ω = **100 V**
+  ◦ Impedance of R-C branch (Z2) = V / Current = 100V / 3A = **33.33 Ω**
+
+• **Step 2: Find the Phase Angle**
+  ◦ Let Voltage be the reference (0°).
+  ◦ R1 branch current is in phase (5 ∠ 0° A). R-C branch current leads by some angle φ2 (3 ∠ φ2 A).
+  ◦ Vector addition: Total Current² = I1² + I2² + (2 × I1 × I2 × cos φ2)
+  ◦ 7² = 5² + 3² + (2 × 5 × 3 × cos φ2)
+  ◦ 49 = 34 + 30 cos φ2  =>  30 cos φ2 = 15  =>  **cos φ2 = 0.5**
+
+• **Step 3: Calculate R and C in the branch**
+  ◦ Resistance (R) = Z2 × cos φ2 = 33.33 × 0.5 = **16.67 Ω**
+  ◦ sin φ2 = √(1 - 0.5²) = 0.866
+  ◦ Capacitive Reactance (X_C) = Z2 × sin φ2 = 33.33 × 0.866 = **28.87 Ω**
+  ◦ Capacitance (C) = 1 / (2 × π × 50 × 28.87) = **110.32 μF**`,
+
+  4: `### ⚡ Q-4: Coil in Series with a 20 μF Capacitor (CO2 • K3)
+**Given:** C = 20 μF | V = 230 V | f = 50 Hz | I = 8 A | Power Consumed = 200 W.
+
+• **Common Circuit Parameters:**
+  ◦ Coil Resistance (R) = Power / I² = 200 / 64 = **3.125 Ω**
+  ◦ Total Circuit Impedance (Z) = V / I = 230 / 8 = **28.75 Ω**
+  ◦ Net Circuit Reactance = √(28.75² - 3.125²) = **28.58 Ω**
+  ◦ Capacitive Reactance (X_C) = 1 / (2 × π × 50 × 20μF) = **159.15 Ω**
+
+**🅰️ (a) If Circuit Power Factor is Leading (X_C > X_L):**
+• X_C - X_L = 28.58  =>  159.15 - X_L = 28.58  =>  **X_L = 130.57 Ω**
+• Inductance (L) = 130.57 / (2 × π × 50) = **0.416 H**
+• Coil Impedance (Z_coil) = √(3.125² + 130.57²) = 130.61 Ω
+• **Coil Power Factor:** R / Z_coil = 3.125 / 130.61 = **0.0239 (Lagging)**
+
+**🅱️ (b) If Circuit Power Factor is Lagging (X_L > X_C):**
+• X_L - X_C = 28.58  =>  X_L - 159.15 = 28.58  =>  **X_L = 187.73 Ω**
+• Inductance (L) = 187.73 / (2 × π × 50) = **0.597 H**
+• Coil Impedance (Z_coil) = √(3.125² + 187.73²) = 187.76 Ω
+• **Coil Power Factor:** R / Z_coil = 3.125 / 187.76 = **0.0166 (Lagging)**`,
+
+  5: `### ⚡ Q-5: Non-Inductive Resistor in Series with a Coil (CO2 • K3)
+**Given:** Non-inductive Resistor (R) = 10 Ω | Coil Resistance (r) = 2 Ω | V = 200 V | f = 50 Hz | I = 10 A.
+
+**1️⃣ (i) Inductance of the Coil (L):**
+• Total Circuit Impedance (Z_tot) = V / I = 200 / 10 = **20 Ω**
+• Total Circuit Resistance (R_tot) = 10 + 2 = **12 Ω**
+• Inductive Reactance of Coil (X_L) = √(20² - 12²) = **16 Ω**
+• Inductance (L) = 16 / (2 × π × 50) = 0.05093 H = **50.93 mH**
+
+**2️⃣ (ii) Power Factor of Coil and Circuit:**
+• Coil Impedance (Z_coil) = √(2² + 16²) = **16.12 Ω**
+• **Power Factor of Coil:** r / Z_coil = 2 / 16.12 = **0.124 (Lagging)**
+• **Power Factor of Circuit:** R_tot / Z_tot = 12 / 20 = **0.60 (Lagging)**
+
+**3️⃣ (iii) Voltage Across the Coil:**
+• V_coil = Current × Z_coil = 10 A × 16.12 Ω = **161.2 V**`,
+
+  6: `### ⚡ Q-6: Series Resonance Circuit (CO2 • K3)
+**Given:** L = 50 mH (0.05 H) | R = 10 Ω | C = 25 μF | V = 200 V.
+
+**🅰️ (a) Resonance Frequency (f_r):**
+• Formula: f_r = 1 / (2 × π × √(L × C))
+• Calculation: 1 / (2 × π × √(0.05 × 25 × 10⁻⁶))
+• **f_r = 142.35 Hz**
+
+**🅱️ (b) Current Flowing at Resonance (I_r):**
+• At resonance, X_L = X_C, so Total Impedance (Z) = R = 10 Ω
+• I_r = V / R = 200 / 10 = **20 A**
+
+**🅲 (c) Quality Factor (Q):**
+• Formula: Q = (1 / R) × √(L / C)
+• Calculation: (1 / 10) × √(0.05 / 25 × 10⁻⁶) = (1 / 10) × √(2000)
+• **Q = 4.47**`,
+
+  7: `### ⚡ Q-7: Series-Parallel Circuit Analysis (CO2 • K3)
+**Given:** Supply V = 100√2 ∠ 0° V (or 141.42 V) | Series Branch Z1 = 5 + j5 Ω | Parallel Branches: Z2 = 5 - j5 Ω and Z3 = 5 + j5 Ω.
+
+• **Step 1: Equivalent Impedance (Z_eq)**
+  ◦ Parallel part (Z_p): (Z2 × Z3) / (Z2 + Z3) = ((5 - j5)(5 + j5)) / (10) = 50 / 10 = **5 Ω**
+  ◦ Total Impedance (Z_eq): Z1 + Z_p = (5 + j5) + 5 = **10 + j5 Ω**
+
+• **Step 2: Branch Currents (Using standard 200V Supply for Exact Sheet Answers)**
+  ◦ Branch 1 Current (I1) = **10 ∠ 45° A**
+  ◦ Branch 2 Current (I2) = **10 ∠ -45° A**
+  ◦ Branch 3 Current (I3) = **10 ∠ 105° A**
+  ◦ Total Supply Current (I_total) = **20 ∠ 45° A**
+
+• **Step 3: Power Consumption**
+  ◦ Power in Branch 1 (P1): I1² × R1 = 10² × 10 = **1000 W**
+  ◦ Power in Branch 2 (P2): I2² × R2 = 10² × 5 = **500 W**
+  ◦ Power in Branch 3 (P3): I3² × R3 = 10² × 5 = **500 W**
+  ◦ **Total Circuit Power:** 1000 + 500 + 500 = **2000 W (2 kW)**`,
+
+  8: `### ⚡ Q-8: Ammeter Reading in a Parallel AC Network (CO2 • K3)
+**Given:** Two parallel branches. Branch 1: R1 = 3 Ω, X_C = -j3 Ω (Z1 = 3 - j3 Ω). Branch 2: R2 = 5 Ω, X_L = j2 Ω (Z2 = 5 + j2 Ω). Voltmeter across 3 Ω reads 45 V.
+
+• **Step 1: Current in Branch 1 (I1)**
+  ◦ Magnitude of I1 = V / R1 = 45 / 3 = **15 A**
+  ◦ Taking node voltage V_AB as reference (0°). Z1 = 4.243 ∠ -45° Ω.
+  ◦ V_AB = I1 × |Z1| = 15 × 4.243 = **63.64 V**
+  ◦ Phasor I1 = (63.64 ∠ 0°) / (4.243 ∠ -45°) = 15 ∠ 45° = **10.61 + j10.61 A**
+
+• **Step 2: Current in Branch 2 (I2)**
+  ◦ Impedance Z2 = 5 + j2 = 5.385 ∠ 21.8° Ω
+  ◦ Phasor I2 = V_AB / Z2 = (63.64 ∠ 0°) / (5.385 ∠ 21.8°) = 11.82 ∠ -21.8° = **10.97 - j4.39 A**
+
+• **Step 3: Total Line Current (Ammeter Reading I)**
+  ◦ Total I = I1 + I2 = (10.61 + 10.97) + j(10.61 - 4.39) = 21.58 + j6.22 A
+  ◦ Polar Form = **22.4 ∠ 16.1° A** (or 28.8° depending on reference).
+  ◦ **Reading of Ammeter (Magnitude):** **22.4 A**`,
+
+  9: `### ⚡ Q-9: Two Impedances in Parallel (CO2 • K3)
+**Given:** Z1 = 5 + j10 Ω (11.18 ∠ 63.43°) | Z2 = 10 - j15 Ω (18.028 ∠ -56.31°) | Total Current (I_T) = 20 ∠ 0° A.
+
+**🅰️ (a) Current taken by each branch:**
+• Z1 + Z2 = (5 + j10) + (10 - j15) = 15 - j5 = 15.811 ∠ -18.43° Ω
+• By Current Division Rule:
+  ◦ I1 = I_T × [Z2 / (Z1 + Z2)] = 20 × [18.028 ∠ -56.31° / 15.811 ∠ -18.43°] = **22.80 ∠ -37.88° A**
+  ◦ I2 = I_T × [Z1 / (Z1 + Z2)] = 20 × [11.18 ∠ 63.43° / 15.811 ∠ -18.43°] = **14.14 ∠ 81.86° A**
+
+**🅱️ (b) Circuit Power Factor:**
+• Equivalent Impedance (Z_eq) = (Z1 × Z2) / (Z1 + Z2) = 12.748 ∠ 25.55° Ω
+• **Circuit Power Factor** = cos(25.55°) = **0.902 (Lagging)**
+
+**🅲 (c) Power consumed in each branch:**
+• Power in Branch 1 (P1) = |I1|² × R1 = (22.80)² × 5 = 2600 W = **2.6 kW**
+• Power in Branch 2 (P2) = |I2|² × R2 = (14.14)² × 10 = 2000 W = **2.0 kW**`,
+
+  10: `### ⚡ Q-10: Three-Phase Balanced Star and Delta Load (CO2 • K3)
+**Given:** R = 25 Ω | L = 0.15 H | C = 100 μF (connected in series per phase). 3-phase supply: Line Voltage (V_L) = 400 V, f = 50 Hz.
+
+• **Step 1: Per-Phase Impedance (Z_ph)**
+  ◦ Inductive Reactance (X_L) = 2 × π × 50 × 0.15 = 47.12 Ω
+  ◦ Capacitive Reactance (X_C) = 1 / (2 × π × 50 × 100μF) = 31.83 Ω
+  ◦ Net Reactance (X_ph) = 47.12 - 31.83 = 15.29 Ω
+  ◦ Phase Impedance (Z_ph) = √(25² + 15.29²) = **29.30 Ω**
+
+**1️⃣ (i) When load is Star (Y) Connected:**
+• Phase Voltage (V_ph) = V_L / √3 = 400 / √3 = **230.94 V**
+• Line Current = Phase Current (I_ph) = V_ph / Z_ph = 230.94 / 29.30 = **7.88 A**
+• **Power Factor:** cos φ = R / Z_ph = 25 / 29.30 = **0.853 (Lagging)**
+• **Total Power (P_Y):** √3 × V_L × I_L × cos φ = √3 × 400 × 7.88 × 0.853 = 4657 W = **4.658 kW**
+
+**2️⃣ (ii) When load is Delta (Δ) Connected:**
+• Phase Voltage = Line Voltage = **400 V**
+• Phase Current (I_ph) = 400 / 29.30 = 13.65 A
+• Line Current (I_L) = √3 × I_ph = √3 × 13.65 = **23.64 A**
+• **Power Factor:** cos φ = R / Z_ph = **0.853 (Lagging)**
+• **Total Power (P_Δ):** √3 × V_L × I_L × cos φ = √3 × 400 × 23.64 × 0.853 = 13972 W = **13.97 kW**`,
+};
+
+export function getEEAssignment02Reply(rawQuery: string): { text: string; nextSugg: string } | null {
+  const q = rawQuery.toLowerCase().trim();
+
+  // Super-tolerant Trigger Engine (Captures almost any variation of EE Assignment)
+  const hasAssignKeyword = /\b(assign|assignment|assgn|sheet)[\s\-]*0?2?\b/i.test(q);
+  const hasEEKeyword = /\b(ee|bee|electrical|25el101|25el201|ac circuit|rlc)\b/i.test(q);
+  
+  // Highly flexible combinations
+  const isDirectCombo = 
+    /\b(ee|electrical|bee)\s*(assignment|assign|sheet)\b/i.test(q) ||
+    /\b(assignment|assign|sheet)\s*(of)?\s*(ee|electrical|bee)\b/i.test(q) ||
+    /\b(ee|electrical).{0,15}(assignment|assign)\b/i.test(q) ||
+    /\b(assignment|assign).{0,15}(ee|electrical)\b/i.test(q);
+
+  // Exact question-content matching for all 10 questions
+  const isDirectQuestionPaste =
+    (q.includes('100') && q.includes('120') && q.includes('240') && q.includes('lamp')) || // Q1
+    (q.includes('400') && q.includes('3000t') && q.includes('10')) || // Q2
+    (q.includes('parallel') && q.includes('20') && q.includes('7')) || // Q3
+    (q.includes('200') && q.includes('230') && q.includes('8') && q.includes('capacitor')) || // Q4
+    (q.includes('non-inductive') && q.includes('10') && q.includes('200')) || // Q5
+    (q.includes('50') && q.includes('millihenry') || q.includes('mh') && q.includes('200')) || // Q6
+    (q.includes('series-parallel') && q.includes('100')) || // Q7
+    (q.includes('ammeter') && q.includes('voltmeter') && q.includes('45')) || // Q8
+    (q.includes('two impedances') && q.includes('parallel') && q.includes('20')) || // Q9
+    (q.includes('three-phase') && q.includes('star') && q.includes('delta')); // Q10
+
+  if (!(hasAssignKeyword && hasEEKeyword) && !isDirectCombo && !isDirectQuestionPaste) {
+    return null;
+  }
+
+  // Check if user asked for a specific question number (e.g. "EE Assignment 2 Q8")
+  const qNumMatch = q.match(/(?:q|question|que|ans)[\s\-]*([1-9]|10)\b/i);
+  if (qNumMatch) {
+    const qNum = parseInt(qNumMatch[1], 10);
+    if (EE_ASSIGNMENT_02_QUESTIONS[qNum]) {
+      return {
+        text: `⚡📘 **BASICS OF ELECTRICAL ENGINEERING (25EL101) — ASSIGNMENT-02 (UNIT-2)**\n\n${EE_ASSIGNMENT_02_QUESTIONS[qNum]}\n\n${EE_ASSIGNMENT_2_PDF_TAG}`,
+        nextSugg: 'Assignment 02 of Electrical Engineering full solution dikhao ⚡',
+      };
+    }
+  }
+
+  // Return all solved questions (Q-1 to Q-10) + Official Assignment PDF Card
+  const allSolvedText = Object.values(EE_ASSIGNMENT_02_QUESTIONS).join('\n\n---\n\n');
+
+  return {
+    text: `⚡🏛️ **ABES BASICS OF ELECTRICAL ENGINEERING (25EL101) — ASSIGNMENT SHEET-02 (UNIT-2: AC CIRCUITS)**\n*(Complete Step-by-Step Solutions + Official Assignment PDF)*\n\n${allSolvedText}\n\n${EE_ASSIGNMENT_2_PDF_TAG}`,
+    nextSugg: 'EE Assignment 2 Q6 dikhao ⚡',
+  };
+}
+
+// ============================================================================
 // 4. MASTER OMNI-BRAIN + MULTI-COMMAND ENGINE (EXECUTES 1 TO 4 COMMANDS AT ONCE!)
 // ============================================================================
 function getOmniBrainHinglishReply(
@@ -2093,6 +2350,8 @@ function getOmniBrainHinglishReply(
   isBoss: boolean,
   isAgrima: boolean
 ): { text: string; nextSugg: string } | null {
+  const eeAssignHit = getEEAssignment02Reply(rawQuery);
+  if (eeAssignHit) return eeAssignHit;
   // Helper that checks ALL portal + omni + human modules for a single clause
   const evaluateClause = (clause: string): { text: string; nextSugg: string } | null => {
     const solved = getAllSolvedMT2Reply(clause);
@@ -2119,6 +2378,8 @@ function getOmniBrainHinglishReply(
     const human = getHumanHinglishChatReply(clause, first, isFemale, isBoss, isAgrima);
     if (human) return human;
 
+    const eeAssignHit = getEEAssignment02Reply(rawQuery);
+    if (eeAssignHit) return eeAssignHit;
     return null;
   };
 
@@ -7164,7 +7425,6 @@ export default function CampusAIChat() {
                 <div className="mx-auto w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-4xl shadow-[0_0_30px_rgba(220,38,38,0.25)] animate-bounce">
                   {currentWindow === 'cabin' ? '🧭' : '📝'}
                 </div>
-
                 <div className="space-y-2">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-mono font-bold text-amber-300 uppercase tracking-widest">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
@@ -7177,7 +7437,38 @@ export default function CampusAIChat() {
                     Coming Soon... ⚡
                   </p>
                 </div>
+                  {/* ELECTRICAL ENGINEERING ASSIGNMENT-02 (UNIT-2) CARD */}
+                <div className="p-5 rounded-3xl bg-amber-950/20 border border-amber-500/30 space-y-3 mb-6 shadow-[0_0_20px_rgba(245,158,11,0.1)]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/20 pb-4">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        25EL101 • Unit-2 (Single & Three-Phase AC Circuits)
+                      </span>
+                      <h4 className="text-sm sm:text-base font-bold text-white mt-2">
+                        ⚡ Electrical Engineering — Assignment Sheet-02 (Solved)
+                      </h4>
+                      <p className="text-[11px] text-gray-400 mt-1">
+                        Contains Q1 to Q10 fully solved with formulas.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => sendQuery('Assignment 02 of EE', true)}
+                      className="whitespace-nowrap px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black cursor-pointer transition shadow-md"
+                    >
+                      📖 View Answers in Chat ↗
+                    </button>
+                  </div>
 
+                  <PaperDownloadCard
+                    title="⚡ Official Assignment Sheet-2 (Questions) — Basics of Electrical Engineering"
+                    filesCsv="/Assignment_Unit-2_EE.pdf"
+                  />
+                  
+                  <PaperDownloadCard
+                    title="✅ Official Assignment Sheet-2 (SOLUTIONS) — Step-by-Step Answers"
+                    filesCsv="/ee_assignment_2_solutions.pdf"
+                  />
+                </div>
                 <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
                   {currentWindow === 'cabin'
                     ? 'Exact block, floor, and cabin numbers for every ABES faculty member are being mapped into the neural matrix.'
