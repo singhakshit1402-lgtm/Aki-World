@@ -510,7 +510,9 @@ Kindness personified! 🌷 Ma'am lecture hall me aati hain toh aadha exam anxiet
 • ✅ **The Golden Rule:** PPT ki standard definitions ratta maar lo word-for-word, aur answer sheet me exact textbook lines likh ke aao—full marks pakke! 📝💯
 • ❌ **Fatal Mistake:** Mid-lecture unscripted edge-case coding doubts ya complex pointer arithmetic puchna jo PPT slide par na ho! 🙅‍♂️⚡`,
 
-  rahul: `✨ **MEET MR. RAHUL SINGH (RS)** ✨
+  rahul: `![Mr. Rahul Singh](/rahul_singh.jpeg)
+    
+✨ **MEET MR. RAHUL SINGH (RS)** ✨
 *Assistant Professor (Artificial Intelligence) | ABES Engineering College* 🤖🐍
 
 > *"AI human developers ko replace nahi karega, par AI smartly use karne wale engineer sabse aage rahenge."* 🧠⚡
@@ -7139,23 +7141,34 @@ export default function CampusAIChat() {
                 </div>
 
                 {/* 7. MR. RAHUL SINGH */}
-                <div className={`p-6 rounded-3xl ${themeClasses} border shadow-2xl space-y-3`}>
-                  <div className="inline-flex px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase">Artificial Intelligence • Essentials of AI (25AI101)</div>
-                  <h4 className="text-xl font-bold text-white">Mr. Rahul Singh (RS)</h4>
-                  <p className="text-xs text-gray-300">Assistant Professor | Computer Science &amp; Engineering</p>
-                  <p className="text-xs text-blue-200/90 italic bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20">
-                    &ldquo;AI human developers ko replace nahi karega, par AI smartly use karne wale engineer sabse aage rahenge.&rdquo; 🧠🤖
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
-                    <div>🐍 <strong>Core Stack:</strong> Python &amp; Intelligent Agents</div>
-                    <div>🔍 <strong>Algorithms:</strong> A*, BFS/DFS &amp; State-Space Search</div>
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/30 via-white/[0.04] to-white/[0.02] border border-blue-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                  <div className="w-full md:w-52 h-60 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 overflow-hidden shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                    <img src="/rahul_singh.jpeg" alt="Mr. Rahul Singh" className="w-full h-full object-cover object-top" />
                   </div>
-                  <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
-                    💡 <strong>Survival Tip:</strong> Python practicals aur search algorithm graphs step-by-step solve karo—internals me full marks milenge!
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-start justify-between flex-wrap gap-2">
+                      <div>
+                        <div className="inline-flex px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase">Featured Faculty • Essentials of AI (25AI101)</div>
+                        <h4 className="text-xl font-bold text-white mt-1">Mr. Rahul Singh (RS)</h4>
+                        <p className="text-xs text-gray-400">Assistant Professor | Artificial Intelligence</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-blue-200/90 italic bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20">
+                      &ldquo;AI human developers ko replace nahi karega, par AI smartly use karne wale engineer sabse aage rahenge.&rdquo; 🧠🤖
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+                      <div>🐍 <strong>Core Stack:</strong> Python &amp; Intelligent Agents</div>
+                      <div>🔍 <strong>Algos:</strong> A*, BFS/DFS &amp; State-Space</div>
+                      <div>🧠 <strong>Focus:</strong> Knowledge Representation</div>
+                      <div>🚀 <strong>Domain:</strong> Autonomous AI Agents</div>
+                    </div>
+                    <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
+                      💡 <strong>Survival Tip:</strong> Python practicals aur search algorithm graphs step-by-step solve karo—internals me full marks milenge!
+                    </div>
+                    <button onClick={() => sendQuery('Mr. Rahul Singh ke baare me batao', true)} className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow cursor-pointer transition">
+                      View Classroom Survival Guide 💬
+                    </button>
                   </div>
-                  <button onClick={() => sendQuery('Mr. Rahul Singh ke baare me batao', true)} className={`px-4 py-2 rounded-xl ${accentBg} text-white text-xs font-semibold shadow cursor-pointer`}>
-                    View Complete Dossier in Chat 💬
-                  </button>
                 </div>
 
                 {/* MORE COMING SOON AT THE END OF FACULTY DOSSIERS */}
@@ -7419,26 +7432,28 @@ export default function CampusAIChat() {
           )}
 
           {/* VIEW: COMING SOON MODULES (CABIN NAVIGATOR & ASSIGNMENT TRACKER) */}
-          {(currentWindow === 'cabin' || currentWindow === 'assignments') && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center w-full">
-              <div className={`w-full max-w-lg p-8 rounded-3xl ${themeClasses} border shadow-2xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200`}>
-                <div className="mx-auto w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-4xl shadow-[0_0_30px_rgba(220,38,38,0.25)] animate-bounce">
-                  {currentWindow === 'cabin' ? '🧭' : '📝'}
-                </div>
-                <div className="space-y-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-mono font-bold text-amber-300 uppercase tracking-widest">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                    🚧 Under Construction in ikA&apos;s Lab
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-wide">
-                    {currentWindow === 'cabin' ? 'Faculty Cabin Navigator' : 'CSE-2 Assignment Tracker'}
-                  </h3>
-                  <p className="text-lg font-extrabold text-red-400 tracking-widest uppercase animate-pulse">
-                    Coming Soon... ⚡
-                  </p>
-                </div>
-                  {/* ELECTRICAL ENGINEERING ASSIGNMENT-02 (UNIT-2) CARD */}
-                <div className="p-5 rounded-3xl bg-amber-950/20 border border-amber-500/30 space-y-3 mb-6 shadow-[0_0_20px_rgba(245,158,11,0.1)]">
+        {(currentWindow === 'cabin' || currentWindow === 'assignments') && (
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center w-full">
+            <div className={`w-full max-w-lg p-8 rounded-3xl ${themeClasses} border shadow-2xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200`}>
+              <div className="mx-auto w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-4xl shadow-[0_0_30px_rgba(220,38,38,0.25)] animate-bounce">
+                {currentWindow === 'cabin' ? '🧭' : '📝'}
+              </div>
+              <div className="space-y-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-mono font-bold text-amber-300 uppercase tracking-widest">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                  🚧 Under Construction in ikA&apos;s Lab
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-wide">
+                  {currentWindow === 'cabin' ? 'Faculty Cabin Navigator' : 'CSE-2 Assignment Tracker'}
+                </h3>
+                <p className="text-lg font-extrabold text-red-400 tracking-widest uppercase animate-pulse">
+                  Coming Soon... ⚡
+                </p>
+              </div>
+
+              {/* ONLY SHOW ASSIGNMENTS CARD ON THE ASSIGNMENTS TAB */}
+              {currentWindow === 'assignments' && (
+                <div className="p-5 rounded-3xl bg-amber-950/20 border border-amber-500/30 space-y-3 mb-6 shadow-[0_0_20px_rgba(245,158,11,0.1)] text-left">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/20 pb-4">
                     <div>
                       <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
@@ -7452,10 +7467,13 @@ export default function CampusAIChat() {
                       </p>
                     </div>
                     <button
-                      onClick={() => sendQuery('Assignment 02 of EE', true)}
+                      onClick={() => {
+                        sendQuery('Assignment 02 of EE', true);
+                        setCurrentWindow('home');
+                      }}
                       className="whitespace-nowrap px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black cursor-pointer transition shadow-md"
                     >
-                      📖 View Answers in Chat ↗
+                      📖 View Answers ↗
                     </button>
                   </div>
 
@@ -7469,24 +7487,26 @@ export default function CampusAIChat() {
                     filesCsv="/ee_assignment_2_solutions.pdf"
                   />
                 </div>
-                <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
-                  {currentWindow === 'cabin'
-                    ? 'Exact block, floor, and cabin numbers for every ABES faculty member are being mapped into the neural matrix.'
-                    : 'Live submission deadlines, lab file alerts, and pending assignment checklists for Section CSE-2 will unlock here soon.'}
-                </p>
+              )}
 
-                <div className="pt-2">
-                  <button
-                    onClick={() => setCurrentWindow('home')}
-                    className={`px-6 py-2.5 rounded-xl ${accentBg} hover:opacity-90 text-white text-xs font-bold uppercase tracking-wider shadow-lg transition cursor-pointer`}
-                  >
-                    ← Back to Overview
-                  </button>
-                </div>
+              <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                {currentWindow === 'cabin'
+                  ? 'Exact block, floor, and cabin numbers for every ABES faculty member are being mapped into the neural matrix.'
+                  : 'Live submission deadlines, lab file alerts, and pending assignment checklists for Section CSE-2 will unlock here soon.'}
+              </p>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => setCurrentWindow('home')}
+                  className={`px-6 py-2.5 rounded-xl ${accentBg} hover:opacity-90 text-white text-xs font-bold uppercase tracking-wider shadow-lg transition cursor-pointer`}
+                >
+                  ← Back to Overview
+                </button>
               </div>
             </div>
-          )}
-        </main>
+          </div>
+        )}
+      </main>
 
         {/* LOCKED BOTTOM CHAT BAR */}
         <footer className={`flex-shrink-0 ${globalBgColor} border-t border-white/[0.08] p-3 sm:p-4 z-30 h-16 sm:h-20 flex items-center w-full`}>
