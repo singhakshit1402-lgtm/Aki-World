@@ -7469,7 +7469,7 @@ export default function CampusAIChat() {
                     <button
                       onClick={() => {
                         sendQuery('Assignment 02 of EE', true);
-                        setCurrentWindow('home');
+                        setCurrentWindow('chat');
                       }}
                       className="whitespace-nowrap px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black cursor-pointer transition shadow-md"
                     >
