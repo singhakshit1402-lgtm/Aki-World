@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  getPushSubscriberCount,
+  sendAnnouncementPushToAllDevices,
+} from '@/lib/pushService';
 
 // ============================================================================
 // INTERFACES & TYPES
@@ -75,8 +79,18 @@ interface PaperDef {
   mt2Files: string[];
 }
 
+interface MarketplaceItem {
+  id: string;
+  title: string;
+  price: string;
+  seller: string;
+  sellerId?: string;
+  seized?: boolean;
+  [key: string]: unknown;
+}
+
 interface ShinigamiMatrixStore {
-  marketplace: any[];
+  marketplace: MarketplaceItem[];
   broadcast: string;
   broadcastId: number;
   bans: BannedEntry[];
@@ -440,10 +454,42 @@ export async function POST(req: NextRequest) {
         puppetTargets: MATRIX.puppetTargets,
         ikaRequests: MATRIX.ikaRequests,
         requestBoxSecretCode: MATRIX.requestBoxSecretCode,
+        pushSubscriberCount: isBoss ? getPushSubscriberCount() : 0,
       });
     }
 
-    // 2. SHINIGAMI EYES GOD COMMANDS
+    // 2. SHINIGAMI EYES GOD COMMANDS (SERVER-ENFORCED BOSS AUTHORIZATION)
+    const BOSS_ONLY_ACTIONS = new Set([
+      'SET_STEALTH_CLOAK',
+      'SET_REQUEST_BOX_CODE',
+      'RESOLVE_IKA_REQUEST',
+      'SET_BLOCK_ALL_AT_ONCE',
+      'TRIGGER_HEART_ATTACK_TIMER',
+      'CANCEL_HEART_ATTACK_TIMER',
+      'TOGGLE_GASLIGHT_500',
+      'TOGGLE_EVAPORATE_CURSE',
+      'TOGGLE_PUPPET_MODE',
+      'SUBMIT_PUPPET_REPLY',
+      'TRIGGER_AUDIO_STINGER',
+      'SET_CURSED_SPOOF',
+      'SEIZE_MARKETPLACE_ITEM',
+      'DICTATE_MARKETPLACE_PRICE',
+      'CLEAR_DIRECT_CHAT',
+      'SET_REALM_FREEZE',
+      'KICK_USER',
+      'FORCE_USER_COMMAND',
+      'SET_BROADCAST',
+      'ADD_BAN',
+      'REMOVE_BAN',
+    ]);
+
+    if (typeof body.action === 'string' && BOSS_ONLY_ACTIONS.has(body.action) && !isBoss) {
+      return NextResponse.json(
+        { error: 'Forbidden: Supreme Boss ikA authorization required.' },
+        { status: 403 }
+      );
+    }
+
     if (body.action === 'SET_STEALTH_CLOAK') {
       MATRIX.stealthCloak = !!body.stealth;
       return NextResponse.json({ success: true, stealthCloak: MATRIX.stealthCloak });
@@ -589,10 +635,10 @@ export async function POST(req: NextRequest) {
     if (body.action === 'SEND_DIRECT_CHAT' && body.studentAdmissionNo && body.text) {
       const msg: DirectChatMessage = {
         id: `dm-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        studentAdmissionNo: body.studentAdmissionNo.toUpperCase().trim(),
-        studentName: body.studentName || body.studentAdmissionNo,
-        sender: body.sender === 'ikA' ? 'ikA' : 'student',
-        text: body.text.trim(),
+        studentAdmissionNo: String(body.studentAdmissionNo).toUpperCase().trim().slice(0, 32),
+        studentName: String(body.studentName || body.studentAdmissionNo).trim().slice(0, 80),
+        sender: isBoss && body.sender === 'ikA' ? 'ikA' : 'student',
+        text: String(body.text).trim().slice(0, 1000),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       MATRIX.directChats.push(msg);
@@ -628,18 +674,27 @@ export async function POST(req: NextRequest) {
     }
 
     if (body.action === 'DELETE_MARKETPLACE_ITEM' && body.id) {
+      const targetItem = MATRIX.marketplace.find((i) => i.id === body.id);
+      if (targetItem && !isBoss && targetItem.sellerId && targetItem.sellerId !== currentAdm) {
+        return NextResponse.json({ error: 'Forbidden: Only the seller or Boss ikA can delete this listing.' }, { status: 403 });
+      }
       MATRIX.marketplace = MATRIX.marketplace.filter((i) => i.id !== body.id);
       return NextResponse.json({ success: true, marketplace: MATRIX.marketplace });
     }
 
-    // Broadcast with unique ID so clients trigger the Flying Letter Assembly + Bell Sound
+    // Broadcast with unique ID + real Web Push notification to all subscribed devices
     if (body.action === 'SET_BROADCAST') {
-      MATRIX.broadcast = (body.broadcast || '').trim();
+      MATRIX.broadcast = String(body.broadcast || '').trim().slice(0, 500);
       MATRIX.broadcastId = MATRIX.broadcast ? Date.now() : 0;
+      const pushStats = MATRIX.broadcast
+        ? await sendAnnouncementPushToAllDevices(MATRIX.broadcast, MATRIX.broadcastId)
+        : { sent: 0, failed: 0, total: getPushSubscriberCount(), configured: true };
       return NextResponse.json({
         success: true,
         broadcast: MATRIX.broadcast,
         broadcastId: MATRIX.broadcastId,
+        pushStats,
+        pushSubscriberCount: getPushSubscriberCount(),
       });
     }
 
@@ -729,12 +784,12 @@ export async function POST(req: NextRequest) {
     // Fallback conversational response on server
     return NextResponse.json({
       reply: formatRoleReply(
-        `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Main **ikA's World** ka Shinigami AI Oracle hu! 👁️🍎\n\nMujhse tum bilkul insaano ki tarah Hinglish me baat kar sakte ho, ya fir yeh sab puch sakte ho:\n• 🍔 **Live Canteen Menus:** *"Boys hostel waali canteen ka menu"* (K.J Cafe) ya *"College upper waali canteen"* (Tea Men's Cafe)\n• 📄 **All 10 Solved MT-2 Papers:** *"Solve full AI MT2 paper"*, *"Physics MT2 Q.1"*, *"C++ MT2 Section C"*\n• 👩‍🏫 **Faculty Dossiers:** Prerana Ma'am, Divyanshi Ma'am, Shivam Sir, Vimal Sir, Kartika Ma'am, Shailja Ma'am\n• 🛡️🧮 **Bunk & SGPA Suite:** Safe Bunk + Autonomous SGPA Predictor!`,
-        'Boys hostel waali canteen ka menu dikhao 🍔',
-        'Solve full AI MT2 paper'
+        `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Main **ikA's World** ka Shinigami AI Oracle hu! 👁️🍎\n\nMujhse tum bilkul insaano ki tarah Hinglish me baat kar sakte ho, ya fir yeh sab puch sakte ho:\n• 🐍📊 **10 HCLTech Data Analytics Python Projects:** *"All 10 Data Analytics projects"*, *"Budget Tracker"*, *"IPL Analysis"*, *"Spotify"*, *"Project 1"*–*"Project 10"*\n• 🍔 **Live Canteen Menus:** *"Boys hostel waali canteen ka menu"* (K.J Cafe) ya *"College upper waali canteen"* (Tea Men's Cafe)\n• 📄 **All 10 Solved MT-2 Papers:** *"Solve full AI MT2 paper"*, *"Physics MT2 Q.1"*, *"C++ MT2 Section C"*\n• 👩‍🏫 **Faculty Dossiers:** Prerana Ma'am, Divyanshi Ma'am, Shivam Sir, Vimal Sir, Kartika Ma'am, Shailja Ma'am\n• 🛡️🧮 **Bunk & SGPA Suite:** Safe Bunk + Autonomous SGPA Predictor!`,
+        'All 10 HCLTech Data Analytics Python projects dikhao 🐍📊',
+        'Boys hostel waali canteen ka menu dikhao 🍔'
       ),
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

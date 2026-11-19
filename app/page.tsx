@@ -1,13 +1,43 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import RegisterModal from '@/components/RegisterModal';
+import RegisterModal, { CSE8_ROSTER } from '@/components/RegisterModal';
+import DataAnalyticsProjectCard from '@/components/DataAnalyticsProjectCard';
+import CyberProjectCard from '@/components/CyberProjectCard';
+import PaperDownloadCard from '@/components/PaperDownloadCard';
+import {
+  DATA_ANALYTICS_SUGGESTIONS,
+  getDataAnalyticsProjectsReply,
+} from '@/lib/dataAnalyticsProjects';
+import {
+  CYBER_PROJECTS_SUGGESTIONS,
+  getCyberProjectsReply,
+} from '@/lib/cyberSecurityProjects';
+import {
+  trySolveMathQuerySafe,
+  extractMT2SubQuestionKey,
+  hasMT2SolutionIntent,
+  isRoyalEnfieldDTCaseStudy,
+  detectCanteenIntent,
+  detectEEAssignmentQuestionNumber,
+  splitMultiCommands,
+  isSafeHrefOrSrc,
+  unlockMobileAudioSafe,
+  playHorrorAudioStingerSafe,
+  playPanicBeepSafe,
+} from '@/lib/portalFixes';
+import {
+  registerAnnouncementServiceWorker,
+  syncExistingPushSubscription,
+  showDeviceAnnouncementNotification,
+} from '@/lib/clientPush';
 
 export interface StudentUser {
   name: string;
   email: string;
   admissionNo: string;
   rollNo?: number;
+  section?: 'CSE-2' | 'CSE-8';
   group?: string;
   gender?: 'M' | 'F';
   residency?: 'Hosteller' | 'Day Scholar';
@@ -145,7 +175,8 @@ type WindowView =
   | 'boss_intro'
   | 'canteen'
   | 'cabin'
-  | 'assignments';
+  | 'assignments'
+  | 'data_analytics';
 
 const ALL_PAPERS = [
   { id: 'maths', name: 'Fundamentals of Linear Algebra & Statistics', code: '25AS102', short: 'Maths / FLAS', icon: '📐', mt1: '/papers/sem1/maths_mt1.jpg', mt2: '/papers/sem1/maths_mt2.jpg' },
@@ -311,14 +342,7 @@ export const ALL_CANTEEN_ITEMS: CanteenMenuItem[] = [
 
 export function getCanteenMenuReply(rawQuery: string): { text: string; nextSugg: string } | null {
   const q = rawQuery.toLowerCase().trim();
-  const isHostel = q.includes('hostel') || q.includes('kj cafe') || q.includes('k.j') || q.includes('boys hostel');
-  const isTeaMen = q.includes('tea men') || q.includes('teamen') || q.includes('upper') || q.includes('college waali');
-  const isFoodQuery =
-    isHostel || isTeaMen || q.includes('canteen') || q.includes('menu') || q.includes('maggi') ||
-    q.includes('momos') || q.includes('samosa') || q.includes('parantha') || q.includes('paratha') ||
-    q.includes('chole') || q.includes('chhole') || q.includes('shake') || q.includes('cold coffee') ||
-    q.includes('shikanji') || q.includes('biryani') || q.includes('chaap') || q.includes('omelette') ||
-    q.includes('egg') || q.includes('patties') || q.includes('bhookh') || q.includes('khana');
+  const { isFoodQuery, isHostel, isTeaMen } = detectCanteenIntent(rawQuery);
 
   if (!isFoodQuery) return null;
 
@@ -341,7 +365,7 @@ export function getCanteenMenuReply(rawQuery: string): { text: string; nextSugg:
 
   if (isTeaMen && !isHostel) {
     return {
-      text: `![Tea Men's Cafe - College Upper Canteen Menu](/tea%20men's%20cafe.jpeg)
+      text: `![Tea Men's Cafe - College Upper Canteen Menu](/tea%20men%27s%20cafe.jpeg)
 
 ☕ **TEA MEN'S CAFE — COLLEGE MEI UPPER WAALI CANTEEN (OFFICIAL MENU)** 🏫✨
 
@@ -524,6 +548,132 @@ Kindness personified! 🌷 Ma'am lecture hall me aati hain toh aadha exam anxiet
 • **Classroom Survival Tip:** Practical Python implementation samjho aur state-space graph numericals step-by-step solve karo—full marks milenge! 💯`,
 };
 
+// ============================================================================
+// SECTION CSE-8 OFFICIAL FACULTY DOSSIERS (FROM CSE-8 TIMETABLE w.e.f 28.10.2026)
+// ============================================================================
+const CSE8_FACULTY_DOSSIERS: Record<string, string> = {
+  mayank_kushwaha: `✨ **MEET MR. MAYANK KUSHWAHA (MYK)** ✨
+*Assistant Professor & CSE-8 Class Mentor-1 | Applied Sciences & Mechanical Engg.* ⚙️🔩
+📚 **Subjects:** Basics of Mechanical & Automation Engg. (25ME101) • Digital Manufacturing Lab (25ME151) • Mentor-Mentee (RJ-204)
+
+> *"Workshop precision pe zero compromise, but concept samjhane ka style ekdum crystal clear!"* ⚙️🔧
+
+---
+⚙️ **THE VIBE & LAB EXPERTISE**
+• **Classroom Energy:** Highly practical, structured aur concept-first! Machines aur mechanisms ko textbook diagrams se bahar nikal kar real-world industrial automation se relate karte hain.
+• **Core Domain:** Digital Manufacturing, Automation Systems, CAD/CAM, Lathe & 3D Prototyping.
+• **Class Mentor Role:** CSE-8 ke Mentor-1 hain—attendance problems, lab file deadlines, aur academic queries ko patiently resolve karte hain.
+
+💡 **CLASSROOM SURVIVAL GUIDE**
+• ✅ **The Golden Rule:** Digital Mfg Lab (VB Block) me safety protocols follow karo, workshop files time pe check karao, aur mechanical diagrams clean banao!
+• ❌ **Fatal Mistake:** Lab session late join karna ya workshop machines ke sath careless hona!`,
+
+  bhanumati_panda: `✨ **MEET DR. BHANUMATI PANDA (BP)** ✨
+*Professor & CSE-8 Class Mentor-2 | Applied Sciences & Humanities* 📐♾️
+📚 **Subjects:** Fundamentals of Linear Algebra and Statistics (25AS102 • FLAS) • Class Mentor-2
+
+> *"Matrices aur Eigenvalues ka step-by-step masterclass—endlessly patient aur har student ka doubt clear karti hain!"* 📐✨
+
+---
+🎓 **THE VIBE & ACADEMIC MASTERY**
+• **Teaching Aura:** Extremely calm, graceful, aur methodical. Row echelon form ho, vector spaces hon ya statistical distributions, board pe har derivation step-by-step likhti hain taaki backbencher ko bhi samajh aaye.
+• **Domain:** Linear Algebra, Matrix Decompositions, Probability & Engineering Statistics.
+• **Mentorship:** Class Mentor-2 for CSE-8—academic counseling aur subject doubts me 100% approachable!
+
+💡 **CLASSROOM SURVIVAL GUIDE**
+• ✅ **The Golden Rule:** Class me alert raho, derivations step-by-step notebook me utaaro, aur doubts poochne me jhijhako mat.
+• ❌ **Fatal Mistake:** Regular practice miss karna aur last night cramming pe depend hona—matrices me practice hi marks dilati hai!`,
+
+  shahbaz_alam: `✨ **MEET MR. SHAHBAZ ALAM (SA)** ✨
+*Assistant Professor | Electronics & Communication Engineering* ⚡🔌
+📚 **Subjects:** Basics of Electronics Engg. (25EC101) • Basic Electronics Lab (25EC151 in BH-115 & BH-216)
+
+> *"PN-junction se lekar Op-Amps tak, circuit diagrams board pe ekdum neat aur crystal sharp!"* ⚡🔬
+
+---
+🔌 **THE VIBE & ELECTRONICS MASTERY**
+• **Teaching Style:** Circuit-first clarity! Diode characteristics, BJT biasing, aur logic gates ko step-by-step derivations aur circuit wave diagrams se live illustrate karte hain.
+• **Lab Presence:** BH-115 & BH-216 labs me breadboard wiring, multimeter readings aur CRO wave observation ko khud guide karte hain.
+
+💡 **CLASSROOM SURVIVAL GUIDE**
+• ✅ **The Golden Rule:** Diode & Op-Amp formulas neat pen se likho, circuit diagrams me arrows aur polarities clear rakho, aur lab breadboard connections khud banao!
+• ❌ **Fatal Mistake:** Formula me signs (+ / -) galat likhna aur lab CRO readings me tukka lagana!`,
+
+  aditya_vats: `✨ **MEET MR. ADITYA VATS (AV)** ✨
+*Assistant Professor | Computer Science & Engineering* 💻🚀
+📚 **Subjects:** Programming in C++ (25CS101) • C++ Lab Group-1 (25CS151 in KCLG-05)
+
+> *"Pointers, dynamic memory aur OOPs concepts ko real-world scenarios se connect karke code karwate hain!"* 🖥️🔥
+
+---
+💻 **THE VIBE & CODING MASTERY**
+• **Classroom Dynamic:** Modern, developer-centric approach! C++ syntax ke saath-saath memory pointers, constructor overloading, aur inheritance hierarchy ko logic-first samjhate hain.
+• **Lab Focus:** KCLG-05 me practical debugging, segmentation fault handling, aur direct compiler errors fix karne me master guide hain.
+
+💡 **CLASSROOM SURVIVAL GUIDE**
+• ✅ **The Golden Rule:** Code ko khud type karke compile karo, dry-run tracer table banao, aur lab evaluations me code logic confident explain karo!
+• ❌ **Fatal Mistake:** Code copy-paste karke logic na samajhna—viva me cross-questioning me fas jaoge!`,
+
+  shruti_singh: `✨ **MEET DR. SHRUTI SINGH (SRS)** ✨
+*Assistant Professor | Applied Sciences & Humanities* 🎙️🌟
+📚 **Subjects:** Soft Skills (25HU101) • Professional Communication Lab (25HU151 in KC-510)
+
+> *"Corporate presentation ethics aur confident speaking skills sikhane me unmatched guidance!"* 🗣️✨
+
+---
+🌟 **THE VIBE & COMMUNICATION EXCELLENCE**
+• **Aura:** Energetic, encouraging aur motivating! Interview etiquette, GD strategies, aur professional voice modulation ko interactive activities se sikhate hain.
+• **Lab Guidance:** KC Block 5th Floor (KC-510) lab me speech drills aur phonetic articulation sessions conduct karti hain.
+
+💡 **CLASSROOM SURVIVAL GUIDE**
+• ✅ **The Golden Rule:** Hesitation chhodo aur speaking activities me volunteer karo. Formal vocabulary aur confidence improve karne ka best platform hai!
+• ❌ **Fatal Mistake:** Group discussion me silent baithna ya unprofessional body language dikhana!`,
+
+  shweta_sharma: `✨ **MEET DR. SHWETA SHARMA (SSH)** ✨
+*Associate Professor & Academic Program Coordinator (APC) | Humanities* 💡🎨
+📚 **Subjects:** Design Thinking, Innovation & Entrepreneurship (25HU102)
+
+> *"Problem-solving beyond the textbook—har prototype me student creativity ko spotlight karti hain!"* 🚀🧠
+
+---
+💡 **THE VIBE & INNOVATION LEADERSHIP**
+• **Role:** Academic Program Coordinator (APC) for 1st Year.
+• **Domain:** Human-Centered Design, Empathy Mapping, Ideation & Startup Prototyping.
+• **Classroom Dynamic:** Brainstorming workshops, sticky note canvases, aur out-of-the-box thinking challenges!
+
+💡 **CLASSROOM SURVIVAL GUIDE**
+• ✅ **The Golden Rule:** Empathy map aur problem statement sheets me genuine observations likho; creative prototypes ko full credit milta hai!
+• ❌ **Fatal Mistake:** Generic, copy-pasted business ideas submit karna!`,
+
+  rohit_pratap: `✨ **MEET MR. ROHIT PRATAP SINGH (RPS)** ✨
+*Workshop Instructor | Applied Computing* 🌐🎨
+📚 **Subjects:** Web Designing Workshop I (25VA151 in KC-509)
+
+> *"HTML5, modern CSS styling aur responsive UI layout building ka hands-on studio experience!"* 💻✨
+
+---
+🌐 **THE VIBE & WEB DESIGN EXCELLENCE**
+• **Teaching Approach:** Hands-on frontend development! Flexbox, Grid, semantic HTML5 tags aur responsive layouts live browser me build karwate hain.
+• **Lab Location:** KC-509 Computer Lab.
+
+💡 **CLASSROOM SURVIVAL GUIDE**
+• ✅ **The Golden Rule:** Clean visual hierarchy banao, mobile responsiveness check karo, aur mini-portfolio project ready rakho!`,
+
+  mayank_mittal: `✨ **MEET MR. MAYANK MITTAL (MML)** ✨
+*Assistant Professor | Computer Science & Engineering* 🖥️⚡
+📚 **Subjects:** Programming in C++ Lab Group-2 (25CS151 in KCLG-06)
+
+> *"KCLG-06 lab me har student ke terminal pe jakar bug solve karne wale dedicated guide!"* 🔍💻
+
+---
+⚡ **THE VIBE & LAB PROFICIENCY**
+• **Focus:** Practical coding drills, algorithmic edge cases, aur error analysis.
+• **Lab Guide:** KCLG-06 Lab session coordinator for Group-2 students.
+
+💡 **CLASSROOM SURVIVAL GUIDE**
+• ✅ **The Golden Rule:** Syntax errors se ghabrao mat, terminal par code run karke check karo, aur code comments add karo!`,
+};
+
 const CORE_CAMPUS_JOKES: string[] = [
   "ABES me attendance 74.9% hona aur Titanic ka doobna... dono me dard bilkul barabar hota hai! 💀🚢",
   "8:50 AM lecture ka eternal rule: Aankhein khuli hain par aatma abhi bhi rajai ke andar so rahi hai! 😴🛌",
@@ -589,6 +739,8 @@ function build250JokesCatalog(): string[] {
 const ALL_250_JOKES = build250JokesCatalog();
 
 const MASTER_SUGGESTION_POOL: string[] = [
+  ...CYBER_PROJECTS_SUGGESTIONS,
+  ...DATA_ANALYTICS_SUGGESTIONS,
   'Main kaun hu?', 'Tum kaise ho?', 'Ye website kya hai? 🤔', 'Boys hostel waali canteen ka menu dikhao 🍔',
   "Tea Men's Cafe (College Upper Canteen) ka menu dikhao ☕", 'Ek mast campus joke sunao 😂',
   'Dr. Prerana Mohapatra ka profile dikhao', 'Solve full AI MT2 paper', 'Solve full C++ MT2 paper',
@@ -1046,7 +1198,7 @@ function getAllSolvedMT2Reply(rawQuery: string): { text: string; nextSugg: strin
   if (q.includes('break') && q.includes('continue')) return { text: MT2_MASTER_VAULT.ds.q['2b'], nextSugg: 'Solve full C++ MT2 paper' };
   if (q.includes('shadowing')) return { text: MT2_MASTER_VAULT.dt.q['1a'], nextSugg: 'Solve full DT MT2 paper' };
   if (q.includes('scamper')) return { text: MT2_MASTER_VAULT.dt.q['2b'], nextSugg: 'Solve full DT MT2 paper' };
-  if (q.includes('royal enfield')) return { text: MT2_MASTER_VAULT.dt.q['3a'], nextSugg: 'Solve full DT MT2 paper' };
+  if (isRoyalEnfieldDTCaseStudy(q)) return { text: MT2_MASTER_VAULT.dt.q['3a'], nextSugg: 'Solve full DT MT2 paper' };
   if (q.includes('vscan') || q.includes('ideo')) return { text: `${MT2_MASTER_VAULT.dt.q['3b']}\n\n---\n\n${MT2_MASTER_VAULT.dt.q['4a']}`, nextSugg: 'Solve full DT MT2 paper' };
   if (q.includes('hysteresis')) return { text: MT2_MASTER_VAULT.bee.q['1a'], nextSugg: 'Solve full Electrical MT2 paper' };
   if (q.includes('emf equation')) return { text: MT2_MASTER_VAULT.bee.q['2a'], nextSugg: 'Solve full Electrical MT2 paper' };
@@ -1073,24 +1225,19 @@ function getAllSolvedMT2Reply(rawQuery: string): { text: string; nextSugg: strin
   else if (q.includes('25as103') || q.includes('evs') || q.includes('environment')) subjKey = 'evs';
   else if (q.includes('25as102') || q.includes('math') || q.includes('flas') || q.includes('linear algebra')) subjKey = 'maths';
   else if (q.includes('25me101') || q.includes('mech')) subjKey = 'mech';
-  else if (q.includes('25as101') || q.includes('physics') || q.includes('phy')) subjKey = 'physics';
+  else if (q.includes('25as101') || q.includes('physics') || /\bphy\b/.test(q)) subjKey = 'physics';
   else if (q.includes('25hu101') || q.includes('soft skill') || q.includes('softskill')) subjKey = 'softskills';
 
-  const isSolutionIntent =
-    q.includes('solve') || q.includes('solution') || q.includes('answer') || q.includes('ans') ||
-    q.includes('section') || /q\.?\s*[1-4]/i.test(q) || /question\s*[1-4]/i.test(q) || /\b[1-4]\s*\(\s*[a-e]\s*\)/i.test(q);
+  const isSolutionIntent = hasMT2SolutionIntent(q);
 
   if (!subjKey || !isSolutionIntent) return null;
 
   const vault = MT2_MASTER_VAULT[subjKey];
   const qMap = vault.q;
 
-  const subMatch = q.match(/([1-4])\s*\(?\s*([a-e])\s*\)?/i);
-  if (subMatch) {
-    const key = `${subMatch[1]}${subMatch[2].toLowerCase()}`;
-    if (qMap[key]) {
-      return { text: `### 🏆 ${vault.title} (${vault.code}) — MT-2 Solution\n\n${qMap[key]}`, nextSugg: `Solve full ${vault.title} MT2 paper` };
-    }
+  const subKey = extractMT2SubQuestionKey(q);
+  if (subKey && qMap[subKey]) {
+    return { text: `### 🏆 ${vault.title} (${vault.code}) — MT-2 Solution\n\n${qMap[subKey]}`, nextSugg: `Solve full ${vault.title} MT2 paper` };
   }
 
   if (q.includes('section a') || /q\.?\s*1\b/.test(q) || /question\s*1\b/.test(q)) {
@@ -1145,125 +1292,7 @@ function normalizeHinglishInput(raw: string): string {
 // 1. LIVE MATHS, ALGEBRA, NUMBER CONVERSIONS & BODMAS ENGINE
 // ============================================================================
 function trySolveMathQuery(rawQuery: string, buddy: string): { text: string; nextSugg: string } | null {
-  const q = rawQuery.toLowerCase().trim();
-
-  // Do not trigger on ABES subject codes (e.g. 25AI101) or Admission IDs (2026B...)
-  if (/25[a-z]{2}\d{3}|2026b/i.test(q)) return null;
-
-  // 1. Percentage Calculation: e.g. "18% of 2500" or "2500 ka 18%"
-  const pctMatch =
-    q.match(/(\d+(?:\.\d+)?)\s*%\s*(?:of|ka|ki)\s*(\d+(?:\.\d+)?)/i) ||
-    q.match(/(\d+(?:\.\d+)?)\s*(?:ka|ki)\s*(\d+(?:\.\d+)?)\s*%/i);
-  if (pctMatch) {
-    const isFirstPct = q.indexOf('%') < q.indexOf(pctMatch[2]);
-    const pct = parseFloat(isFirstPct ? pctMatch[1] : pctMatch[2]);
-    const total = parseFloat(isFirstPct ? pctMatch[2] : pctMatch[1]);
-    const ans = Number(((pct / 100) * total).toFixed(4));
-    return {
-      text: `🧮 **Live Maths Calculator for ${buddy}!** ⚡✨\n\n• **Question:** ${pct}% of ${total}\n• **Step-by-Step:** (${pct} ÷ 100) × ${total} = **\`${ans}\`** ✅\n\n*Bhai, attendance ki percentage nikal rahe ho ya canteen bill ka discount?* 😎📐`,
-      nextSugg: 'Safe bunk & SGPA kaise check karu? 🧮',
-    };
-  }
-
-  // 2. Square Root / Cube Root / Factorial / Binary Conversion
-  const sqrtMatch = q.match(/(?:sqrt|square root of|under root|√)\s*\(?(\d+(?:\.\d+)?)\)?/i);
-  if (sqrtMatch) {
-    const val = parseFloat(sqrtMatch[1]);
-    const ans = Number(Math.sqrt(val).toFixed(6));
-    return {
-      text: `🧮 **Square Root Solved!** ⚡\n\n• **√${val}** = **\`${ans}\`** ✅\n• **Check:** ${ans} × ${ans} = ${val} 🎯`,
-      nextSugg: 'Solve full Maths MT2 paper',
-    };
-  }
-
-  const cbrtMatch = q.match(/(?:cbrt|cube root of|∛)\s*\(?(\d+(?:\.\d+)?)\)?/i);
-  if (cbrtMatch) {
-    const val = parseFloat(cbrtMatch[1]);
-    const ans = Number(Math.cbrt(val).toFixed(6));
-    return {
-      text: `🧮 **Cube Root Solved!** ⚡\n\n• **∛${val}** = **\`${ans}\`** ✅`,
-      nextSugg: 'Solve full Maths MT2 paper',
-    };
-  }
-
-  const factMatch = q.match(/factorial(?:\s+of)?\s+(\d+)|(\d+)\s*!/i);
-  if (factMatch) {
-    const n = parseInt(factMatch[1] || factMatch[2], 10);
-    if (n >= 0 && n <= 20) {
-      let f = 1;
-      for (let i = 2; i <= n; i++) f *= i;
-      return {
-        text: `🧮 **Factorial Solved!** ⚡\n\n• **${n}!** = **\`${f.toLocaleString('en-IN')}\`** ✅\n• **Concept:** 1 × 2 × ... × ${n} = ${f.toLocaleString('en-IN')} 🎯`,
-        nextSugg: 'Solve full Maths MT2 paper',
-      };
-    }
-  }
-
-  const binMatch = q.match(/(\d+)\s+(?:in|to)\s+binary|binary\s+of\s+(\d+)/i);
-  if (binMatch) {
-    const dec = parseInt(binMatch[1] || binMatch[2], 10);
-    if (!Number.isNaN(dec)) {
-      return {
-        text: `🔢 **Number System Conversion for ${buddy}:** ⚡\n\n• **Decimal:** \`${dec}\`\n• **Binary (Base 2):** \`${dec.toString(2)}\` ✅\n• **Octal (Base 8):** \`${dec.toString(8)}\`\n• **Hexadecimal (Base 16):** \`${dec.toString(16).toUpperCase()}\``,
-        nextSugg: 'Solve full Electronics MT2 paper',
-      };
-    }
-  }
-
-  // 3. Quadratic Equation Solver: ax^2 + bx + c = 0
-  const quadMatch = q.match(/([+-]?\s*\d*)\s*x\^?2\s*([+-]\s*\d+)\s*x\s*([+-]\s*\d+)\s*=\s*0/i);
-  if (quadMatch) {
-    const aStr = quadMatch[1].replace(/\s+/g, '');
-    const a = aStr === '' || aStr === '+' ? 1 : aStr === '-' ? -1 : parseFloat(aStr);
-    const b = parseFloat(quadMatch[2].replace(/\s+/g, ''));
-    const c = parseFloat(quadMatch[3].replace(/\s+/g, ''));
-    const d = b * b - 4 * a * c;
-    if (d >= 0) {
-      const r1 = Number(((-b + Math.sqrt(d)) / (2 * a)).toFixed(4));
-      const r2 = Number(((-b - Math.sqrt(d)) / (2 * a)).toFixed(4));
-      return {
-        text: `📐 **Quadratic Equation Solved (${a}x² + ${b}x + ${c} = 0):**\n\n• **Discriminant (D = b² - 4ac):** \`${d}\`\n• **Roots:** **x₁ = \`${r1}\`**, **x₂ = \`${r2}\`** ✅`,
-        nextSugg: 'Solve full Maths MT2 paper',
-      };
-    }
-  }
-
-  // 4. General BODMAS Arithmetic (+, -, *, /, ^, %, parentheses)
-  const cleanedExpr = q
-    .replace(/(?:what is|calculate|solve|kitna hota hai|kitna hoga|batao|value of|ans of|equals|equal to|=|\?)/gi, '')
-    .replace(/×|x(?=\s*\d)/gi, '*')
-    .replace(/÷/g, '/')
-    .replace(/\bpi\b/g, '3.14159265')
-    .trim();
-
-  const extractedExpr =
-    /^[0-9+\-*/().^\s%]+$/.test(cleanedExpr)
-      ? cleanedExpr
-      : (q.match(/([0-9]+(?:\.[0-9]+)?(?:\s*[+\-*/^%×÷]\s*\(?[0-9]+(?:\.[0-9]+)?\)?)+)/)?.[1] || '')
-          .replace(/×/g, '*')
-          .replace(/÷/g, '/')
-          .trim();
-
-  if (
-    extractedExpr &&
-    /^[0-9+\-*/().^\s%]+$/.test(extractedExpr) &&
-    /[+\-*/^%]/.test(extractedExpr) &&
-    /\d/.test(extractedExpr)
-  ) {
-    try {
-      const jsExpr = extractedExpr.replace(/\^/g, '**');
-      const result = Function(`"use strict"; return (${jsExpr});`)();
-      if (typeof result === 'number' && !Number.isNaN(result)) {
-        const formatted = Number.isInteger(result) ? result : Number(result.toFixed(6));
-        return {
-          text: `🧮 **ikA's Instant Maths Engine!** ⚡📐\n\n• **Expression:** \`${extractedExpr}\`\n• **Final Answer:** **\`${formatted}\`** ✅\n\n*Vimal Sir style me bolu toh—**"Are you getting it?!"** Koi aur calculation ya equation hai toh phenko!* 😂🔥`,
-          nextSugg: 'Solve full Maths MT2 paper',
-        };
-      }
-    } catch {}
-  }
-
-  return null;
+  return trySolveMathQuerySafe(rawQuery, buddy);
 }
 
 // ============================================================================
@@ -1320,9 +1349,11 @@ function getHumanHinglishChatReply(
   if (
     clean.includes('tum kaun ho') ||
     clean.includes('tu kaun hai') ||
+    clean.includes('kaun are you') ||
     clean.includes('who are you') ||
     clean.includes('aap kaun ho') ||
     clean.includes('kisne banaya') ||
+    clean.includes('kaun made you') ||
     clean.includes('who made you') ||
     clean.includes('creator kaun') ||
     clean.includes('tera naam kya')
@@ -1336,7 +1367,7 @@ function getHumanHinglishChatReply(
   // 4. Casual Greetings: "Hi", "Hello", "Hey", "Hlo", "Aur bhai", "Namaste", "Ram ram", "Pranaam"
   if (
     /^(hello|hola|yo+|sup|namaste|pranaam|ram ram|jai shree ram|radhe radhe|jai mata di|salam|assalamualaikum|aur bhai|kya bolti public|haan bhai|listen|suno|oye|bro|bhai|yaar|dost)$/i.test(clean) ||
-    (words.length <= 3 && (words.includes('hello') || words.includes('namaste') || words.includes('pranaam') || words.includes('ram')))
+    (words.length <= 3 && (words.includes('hello') || words.includes('namaste') || words.includes('pranaam') || clean.includes('ram ram') || clean.includes('shree ram')))
   ) {
     if (isBoss) {
       return {
@@ -1459,16 +1490,14 @@ function getHumanHinglishChatReply(
   // 11. Goodbyes / Good Night / Good Morning
   if (
     clean.includes('good morning') ||
-    clean.includes('gm ') ||
-    clean === 'gm' ||
+    /\bgm\b/.test(clean) ||
     clean.includes('good night') ||
-    clean === 'gn' ||
-    clean === 'bye' ||
-    clean.includes('bye bye') ||
+    /\bgn\b/.test(clean) ||
+    /\bbye\b/.test(clean) ||
     clean.includes('chalta hu') ||
     clean.includes('sone ja raha')
   ) {
-    const isMorning = clean.includes('morning') || clean === 'gm';
+    const isMorning = clean.includes('morning') || /\bgm\b/.test(clean);
     return {
       text: isMorning
         ? `☀️☕ **Good Morning ${buddy}!** Utho aur chamko—8:50 AM ka lecture aur **Tea Men's Cafe** ki ₹10 wali garma-garam chai tumhara wait kar rahi hai! Aaj ka din ekdum productive jayega! 🚀✨`
@@ -1536,7 +1565,7 @@ function matchSingleOmniTopic(
   }
 
   // 2. GOLDEN ERA CARTOONS (BEYBLADE, POKEMON, BEN 10, TRANSFORMERS, DORAEMON, SHINCHAN)
-  if (clean.includes('beyblade') || clean.includes('tyson') || clean.includes('kai ') || clean.includes('dranzer') || clean.includes('dragoon') || clean.includes('let it rip')) {
+  if (clean.includes('beyblade') || clean.includes('tyson') || clean.includes('kai hiwatari') || clean.includes('dranzer') || clean.includes('dragoon') || clean.includes('let it rip')) {
     return {
       text: `🌪️🔥 **BEYBLADE GOLDEN ERA — "3... 2... 1... Ho Jaaye Shuru (Let It Rip)!"** ⚡🐉\n\nArre **${buddy}**, बचपन ki sabse legendary yaad chhed di tumne! Shaam ko 5 baje Cartoon Network pe **Bladebreakers** ka craze alag hi level pe tha:\n\n• 🐉 **Tyson Granger (Takao) & Dragoon:** Wind Bit-Beast! Har haari hui baazi ko aakhiri second me *Galaxy Storm* se पलटने wala hero!\n• 🔥 **Kai Hiwatari & Dranzer:** The OG Lone Wolf! Jab Kai ne **Black Dranzer** uthaya tha aur aakhiri me Dranzer ne apni jaan di thi—pure goosebumps! 🦅🩸\n• 🐯 **Ray Kon (Driger)** & 🐢 **Max Tate (Draciel):** Ultimate attack aur ultimate defense ka combo!\n• 💡 **Real Life Memory:** Plastic ke tip wale beyblade me lohe ka weight ring lagana aur mummy ki kadhai/parat ko Beystadium banana! 😂🏆`,
       nextSugg: 'Pokemon aur Ben 10 ki yaadein batao ⚡',
@@ -1557,7 +1586,14 @@ function matchSingleOmniTopic(
     };
   }
 
-  if (clean.includes('transformer') || clean.includes('optimus prime') || clean.includes('bumblebee') || clean.includes('megatron') || clean.includes('autobots')) {
+  if (
+    (clean.includes('transformers') ||
+      (clean.includes('transformer') && !/\b(emf|kva|copper|iron|winding|primary|secondary|electrical|25el101|efficiency|hysteresis)\b/.test(clean))) ||
+    clean.includes('optimus prime') ||
+    clean.includes('bumblebee') ||
+    clean.includes('megatron') ||
+    clean.includes('autobots')
+  ) {
     return {
       text: `🤖🚛 **TRANSFORMERS — "Autobots, Roll Out!"** ⚡🌌\n\n**${buddy}**, Cybertron ki jung aur **Optimus Prime** ki bhaari aawaz sunte hi rongte khade ho jate hain! 🔥\n\n• 🚛 **Optimus Prime:** Leader of the Autobots! Unki speeches (*"I am Optimus Prime..."*) sunke lagta tha abhi jaake duniya bacha lein!\n• 🐝 **Bumblebee:** Yellow Camaro jo radio se baat karta hai aur loyalty me #1 hai!\n• ✈️ **Megatron & Starscream (Decepticons):** Pure ruthless villains!\n• 🎬 **Best Era:** *Transformers Prime* animated series aur Michael Bay ki 2007 wali pehli movie ka transformation scene = Pure Cinema! 🍿✨`,
       nextSugg: 'Beyblade aur Tyson/Kai ki yaadein batao 🌪️',
@@ -1610,10 +1646,8 @@ function matchSingleOmniTopic(
   // 5. ALL PROGRAMMING LANGUAGES, AI & CYBERSECURITY
   if (
     clean.includes('programming language') || clean.includes('all languages') ||
-    clean.includes('java ') || clean === 'java' || clean.includes('javascript') ||
-    clean.includes('typescript') || clean.includes('rust') || clean.includes('golang') ||
-    clean.includes('sql') || clean.includes('html') || clean.includes('react') ||
-    clean.includes('nextjs') || clean.includes('cybersecurity') || clean.includes('ethical hacking') || clean.includes('kali linux')
+    /\b(java|javascript|typescript|rust|golang|sql|html|react|nextjs)\b/.test(clean) ||
+    clean.includes('cybersecurity') || clean.includes('ethical hacking') || clean.includes('kali linux')
   ) {
     return {
       text: `💻🚀 **ALL PROGRAMMING LANGUAGES, AI & CYBERSECURITY CHEAT-SHEET!** ⚡🧠\n\nYeh lo **${buddy}**, duniya ki top programming languages aur tech domains ka crisp breakdown:\n\n• ⚙️ **C / C++ (25CS101):** Fast, hardware-close & memory-efficient (Pointers + STL). **Use:** Competitive Programming (DSA), Game Engines, OS kernels.\n• 🐍 **Python (25AI101):** English jaisa simple syntax, huge libraries (NumPy, PyTorch). **Use:** Artificial Intelligence, Machine Learning, Data Science & Automation.\n• ☕ **Java:** *"Write Once, Run Anywhere"* (JVM + strict OOPs). **Use:** Enterprise Backends (Spring Boot), Android Apps & Placement Interviews.\n• 🌐 **JavaScript & TypeScript:** Web ki dhadkan! **Use:** Full-Stack Web Apps (**React, Next.js, Node.js** — jaise **Boss ikA** ne yeh portal TypeScript + Next.js me banaya hai!).\n• 🦀 **Rust & Go (Golang):** Memory-safe systems programming (Rust) aur ultra-fast cloud microservices/Docker (Go).\n• 🗄️ **SQL & Databases:** PostgreSQL, MySQL & MongoDB.\n• 🛡️ **Cybersecurity & Ethical Hacking:** Kali Linux, Networking (TCP/IP), Penetration Testing, Cryptography & OSINT!\n\nKis language ya tech stack ka roadmap chahiye, **${first}**? 👇🔥`,
@@ -1623,8 +1657,8 @@ function matchSingleOmniTopic(
 
   // 6. BASICS OF ELECTRICAL, EVS, PHYSICS, ELECTRONICS & MECHANICAL
   if (
-    (clean.includes('basic') || clean.includes('concept') || clean.includes('samjhao') || clean.includes('tell me about') || clean.includes('explain')) &&
-    (clean.includes('electrical') || clean.includes('bee') || clean.includes('evs') || clean.includes('environment') || clean.includes('physics') || clean.includes('electronics') || clean.includes('mechanical'))
+    (clean.includes('basic') || clean.includes('concept') || clean.includes('samjhao') || clean.includes('batao me about') || clean.includes('tell me about') || clean.includes('explain')) &&
+    (clean.includes('electrical') || /\bbee\b/.test(clean) || /\bevs\b/.test(clean) || clean.includes('environment') || clean.includes('physics') || clean.includes('electronics') || clean.includes('mechanical'))
   ) {
     if (clean.includes('electrical') || clean.includes('bee')) {
       return {
@@ -1661,9 +1695,9 @@ function matchSingleOmniTopic(
     clean.includes('cricket') || clean.includes('virat') || clean.includes('kohli') ||
     clean.includes('dhoni') || clean.includes('thala') || clean.includes('mahi') ||
     clean.includes('rohit sharma') || clean.includes('hitman') || clean.includes('bumrah') ||
-    clean.includes('ipl') || clean.includes('rcb') || clean.includes('csk') || clean.includes('mi ') ||
+    /\b(ipl|rcb|csk|mi|f1|cr7)\b/.test(clean) ||
     clean.includes('football') || clean.includes('messi') || clean.includes('ronaldo') ||
-    clean.includes('cr7') || clean.includes('chess') || clean.includes('gukesh') || clean.includes('f1')
+    clean.includes('chess') || clean.includes('gukesh')
   ) {
     return {
       text: `🏏🔥 **SPORTS, CRICKET & CHAMPIONS ARENA — CSE-2 STADIUM DEBATE!** 🏆⚡\n\nArre **${buddy}**, hostel TV room me IPL aur World Cup ki screening ka mahaul hi alag hota hai:\n\n• 👑 **Virat Kohli (The Chase Master / King):** 80+ International Centuries, MCG 82* vs Pak, 2024 T20 WC Final knock, aur **RCB** ka unmatched craze!\n• 🚁 **MS Dhoni (Thala For A Reason = 7):** Captain Cool! 2007 T20 WC, 2011 ODI WC (*"Dhoni finishes off in style!"*), 2013 CT, aur **CSK** ki 5 IPL trophies!\n• 🚀 **Rohit Sharma (Hitman) & Jasprit Bumrah:** ODI 264 record, World Cup & Champions Trophy winning captain, aur **Bumrah** = GOAT fast bowler!\n• ⚽ **Football & Global Icons:** **Lionel Messi** (8 Ballon d'Ors & 2022 World Cup) vs **Cristiano Ronaldo (CR7 - Siuuu!)** (900+ goals), **Chess World Champion D. Gukesh**, **Neeraj Chopra (Golden Arm)**, & **F1 (Max Verstappen / Lewis Hamilton)**!\n\nBatao ${first}, tumhari IPL team aur GOAT player kaun hai? 👇🏆`,
@@ -1693,7 +1727,7 @@ function matchSingleOmniTopic(
     clean.includes('arijit') || clean.includes('sidhu') || clean.includes('moose wala') ||
     clean.includes('karan aujla') || clean.includes('diljit') || clean.includes('honey singh') ||
     clean.includes('badshah') || clean.includes('raftaar') || clean.includes('krsna') ||
-    clean.includes('seedhe maut') || clean.includes('divine') || clean.includes('rap') || clean.includes('hip hop')
+    clean.includes('seedhe maut') || clean.includes('divine') || /\brap\b/.test(clean) || clean.includes('hip hop')
   ) {
     return {
       text: `🎧🎤 **MUSIC, BOLLYWOOD & DESI HIP-HOP (DHH) PLAYLIST HUB!** 🔥🎵\n\nArre **${buddy}**, coding karte waqt ya metro/bus me earphones laga ke inhi ka toh raaj chalta hai:\n\n• 💔 **Melody & Soul Kings:** **Arijit Singh**, **KK** (Forever in our hearts — *Yaaron Dosti*), **Atif Aslam**, **Shreya Ghoshal** & **A.R. Rahman**.\n• 🚜 **Punjabi Wave:** **Sidhu Moose Wala** (*295, So High* — Legends Never Die 🏆), **Karan Aujla** (*Winning Speech, Making Memories*), **Diljit Dosanjh** & **AP Dhillon**.\n• 🔥 **Desi Hip-Hop (DHH) & OG Rap:**\n  ↳ **Seedhe Maut (Encore ABJ & Calm):** *Nayaab, Lunch Break, Khatta Flow* — **"TBSM4L!"** ⚔️\n  ↳ **KR$NA, Raftaar, Divine & Talha Anjum:** Lyrical god-tier bars!\n  ↳ **Yo Yo Honey Singh:** *Brown Rang, Blue Eyes, Desi Kalakaar* — The Bluetooth Era King! 👑`,
@@ -1716,9 +1750,10 @@ function matchSingleOmniTopic(
 
   // 11. SPACE, ISRO, ASTRONOMY, QUANTUM PHYSICS & TIME TRAVEL
   if (
-    clean.includes('space') || clean.includes('isro') || clean.includes('nasa') ||
+    (/\bspace\b/.test(clean) && !/\b(vector|null|state|sub|complexity|disk|storage)\s*space\b|space\s*complexity/.test(clean)) ||
+    clean.includes('isro') || clean.includes('nasa') ||
     clean.includes('black hole') || clean.includes('universe') || clean.includes('galaxy') ||
-    clean.includes('chandrayaan') || clean.includes('mars') || clean.includes('time travel') ||
+    clean.includes('chandrayaan') || /\bmars\b/.test(clean) || clean.includes('time travel') ||
     clean.includes('alien') || clean.includes('multiverse') || clean.includes('astronomy')
   ) {
     return {
@@ -1755,11 +1790,11 @@ function matchSingleOmniTopic(
 
   // 14. FINANCE, STOCKS, CRYPTO, STARTUPS & SIDE HUSTLES
   if (
-    clean.includes('finance') || clean.includes('stock') || clean.includes('share market') ||
-    clean.includes('nifty') || clean.includes('sensex') || clean.includes('sip') ||
+    clean.includes('finance') || /\bstocks?\b/.test(clean) || clean.includes('share market') ||
+    clean.includes('nifty') || clean.includes('sensex') || /\bsip\b/.test(clean) ||
     clean.includes('mutual fund') || clean.includes('crypto') || clean.includes('bitcoin') ||
     clean.includes('freelancing') || clean.includes('side hustle') || clean.includes('paisa kaise kamaye') ||
-    clean.includes('startup') || clean.includes('invest')
+    clean.includes('startup') || /\binvest/.test(clean)
   ) {
     return {
       text: `📈💰 **STUDENT FINANCE, INVESTING & COLLEGE SIDE-HUSTLE GUIDE!** 🚀🏦\n\n• 💻 **Top 4 College Side-Hustles (₹10k–₹50k/month):**\n  1️⃣ **Full-Stack Web/App Freelancing** (React, Next.js, Tailwind).\n  2️⃣ **Video Editing & Motion Graphics**.\n  3️⃣ **Mathematics / Coding Tutoring** (Class 9–10th & JEE basics).\n  4️⃣ **Paid Internships & Hackathons (SIH, GSoC, Unstop)**.\n• 📊 **Investing 101:** F&O gambling se door raho! **Nifty 50 Index Funds / Mutual Fund SIP** se compounding seekho (**Rule of 72:** \`72 ÷ Return % = Years to Double Money\`).`,
@@ -1769,18 +1804,18 @@ function matchSingleOmniTopic(
 
   // 15. SHAYARI, LOVE/CRUSH, PAISA/BROKE, ROAST & RIDDLES
   if (
-    clean.includes('gf') || clean.includes('girlfriend') || clean.includes('bf') ||
+    /\b(gf|bf)\b/.test(clean) || clean.includes('girlfriend') ||
     clean.includes('boyfriend') || clean.includes('crush') || clean.includes('bandi') ||
     clean.includes('single') || clean.includes('pyaar') || clean.includes('mohabbat') ||
     clean.includes('dil toot') || clean.includes('breakup') || clean.includes('shadi')
   ) {
     return {
-      text: `💘😂 **Arre ${buddy}, Engineering aur Ishq ka purana choli-daaman ka saath hai!** 🌹⚡\n\n> *"Dil lagana hi hai toh C++ ke pointers aur DSA ke trees se lagao... کم se कम segmentation fault dekar sach toh bolte hain, dhokha nahi dete!"* 😭💔\n\nWaise tension mat lo **${first}**, pehle **15+ LPA ka package** phodte hain, fir dekho kaise rishte waalon ki line lagti hai! 🚀😎`,
+      text: `💘😂 **Arre ${buddy}, Engineering aur Ishq ka purana choli-daaman ka saath hai!** 🌹⚡\n\n> *"Dil lagana hi hai toh C++ ke pointers aur DSA ke trees se lagao... kam se kam segmentation fault dekar sach toh bolte hain, dhokha nahi dete!"* 😭💔\n\nWaise tension mat lo **${first}**, pehle **15+ LPA ka package** phodte hain, fir dekho kaise rishte waalon ki line lagti hai! 🚀😎`,
       nextSugg: 'Ek mast campus joke sunao 😂',
     };
   }
 
-  if (clean.includes('shayari') || clean.includes('sher ') || clean.includes('quote') || clean.includes('dialogue') || clean.includes('status')) {
+  if (clean.includes('shayari') || /\bsher\b/.test(clean) || clean.includes('quote') || clean.includes('dialogue')) {
     return {
       text: `🎙️🔥 **Irshaad फरमाइए ${buddy} — Boss ikA's Special Engineering & Death Note Shayari:** 🥀⚡\n\n> *"Kitabon ke panno me kismat dhoondhne nikle the,* 📚\n> *75% attendance ke chakkar me subah 8:50 pe uthne nikle the!* 😴\n> *Duniya darti hogi exam ke red pen se,* ✍️\n> *Hum CSE-2 ke parinde hain—Boss ikA ke samrajya me toofan banne nikle the!"* 👑🔥🍎`,
       nextSugg: 'Ek mast campus joke sunao 😂',
@@ -1803,7 +1838,7 @@ function matchSingleOmniTopic(
 
   if (clean.includes('riddle') || clean.includes('paheli') || clean.includes('puzzle') || clean.includes('dimag')) {
     return {
-      text: `🧩🧠 **Shinigami IQ Riddle for ${buddy}:** 🍎👁️\n\n> **Paheli:** *"Mere paas keys (चाबियां) bohot hain par main koi taala nahi kholta. Mere paas space (जगह) hai par koi kamra nahi. Tum mere andar enter kar sakte ho par bahar nahi جا sakte. Batao main kaun hu?"* 🤔\n\n• **✅ Jawab:** **Ek Computer Keyboard!** ⌨️😂 *(Kyunki uspe Keys, Spacebar, aur Enter button teeno hote hain!)*`,
+      text: `🧩🧠 **Shinigami IQ Riddle for ${buddy}:** 🍎👁️\n\n> **Paheli:** *"Mere paas keys (चाबियां) bohot hain par main koi taala nahi kholta. Mere paas space (जगह) hai par koi kamra nahi. Tum mere andar enter kar sakte ho par bahar nahi ja sakte. Batao main kaun hu?"* 🤔\n\n• **✅ Jawab:** **Ek Computer Keyboard!** ⌨️😂 *(Kyunki uspe Keys, Spacebar, aur Enter button teeno hote hain!)*`,
       nextSugg: 'Ek mast campus joke sunao 😂',
     };
   }
@@ -1980,21 +2015,22 @@ export function getAcademicCalendarAndSyllabusReply(rawQuery: string): { text: s
   // ==========================================================================
   // PART A: OFFICIAL ODD SEMESTER 2026-27 ACADEMIC CALENDAR ENGINE
   // ==========================================================================
+  const hasAcademicTimeContext = /\b(exam|mt1|mt-1|mt2|mt-2|st-1|st-2|pue|class|sem|semester|holiday|chhutti|vacation|practical|result|evaluation)\b/i.test(q);
   const isCalendarQuery =
     q.includes('academic calendar') || q.includes('calender') || q.includes('calendar') ||
     q.includes('holiday') || q.includes('chhutti') || q.includes('vacation') ||
     q.includes('diwali') || q.includes('dussehra') || q.includes('guru nanak') ||
-    q.includes('christmas') || q.includes('kab hai') || q.includes('kab se') ||
+    q.includes('christmas') || ((q.includes('kab hai') || q.includes('kab se')) && hasAcademicTimeContext) ||
     q.includes('date sheet') || q.includes('exam date') || q.includes('mt1 date') ||
     q.includes('mt-1 date') || q.includes('mt2 date') || q.includes('mt-2 date') ||
-    q.includes('st-1') || q.includes('st-2') || q.includes('pue') ||
+    q.includes('st-1') || q.includes('st-2') || /\bpue\b/.test(q) ||
     q.includes('make-up') || q.includes('makeup') || q.includes('end sem') ||
     q.includes('end term') || q.includes('even sem') || q.includes('practical assessment') ||
     q.includes('project review') || q.includes('assessment 1') || q.includes('assessment 2') ||
     q.includes('assessment 3') || q.includes('assessment 4') || q.includes('assessment 5') ||
     q.includes('evaluation of') || q.includes('5th sem') || q.includes('7th sem') ||
     q.includes('3rd sem') || q.includes('m.tech') || q.includes('mtech') ||
-    q.includes('bca') || q.includes('mca') || q.includes('exam pattern') ||
+    /\b(bca|mca)\b/.test(q) || q.includes('exam pattern') ||
     q.includes('aktu vs autonomy') || q.includes('re-test') || q.includes('retest');
 
   if (isCalendarQuery) {
@@ -2064,13 +2100,15 @@ export function getAcademicCalendarAndSyllabusReply(rawQuery: string): { text: s
   if (sKey && SYLLABUS_VAULT[sKey]) {
     const s = SYLLABUS_VAULT[sKey];
     const unitMatch = q.match(/unit[\s\-]*([1-5])/i);
-    if (unitMatch) {
+    if (unitMatch && sKey !== 'web') {
       const uIdx = parseInt(unitMatch[1], 10) - 1;
-      const singleUnit = s.units[uIdx] || s.units[0];
-      return {
-        text: `📘 **${s.title} (${s.code}) — Official Unit ${unitMatch[1]} Syllabus:**\n\n${singleUnit}\n\n• **📚 Prescribed Books:** ${s.books}\n• **⚖️ Marking:** ${s.credits}\n\n${SYLLABUS_PDF_TAG}`,
-        nextSugg: `${s.title} ka full syllabus dikhao 📘`,
-      };
+      const singleUnit = s.units[uIdx];
+      if (singleUnit) {
+        return {
+          text: `📘 **${s.title} (${s.code}) — Official Unit ${unitMatch[1]} Syllabus:**\n\n${singleUnit}\n\n• **📚 Prescribed Books:** ${s.books}\n• **⚖️ Marking:** ${s.credits}\n\n${SYLLABUS_PDF_TAG}`,
+          nextSugg: `${s.title} ka full syllabus dikhao 📘`,
+        };
+      }
     }
 
     return {
@@ -2293,47 +2331,29 @@ const EE_ASSIGNMENT_02_QUESTIONS: Record<number, string> = {
 export function getEEAssignment02Reply(rawQuery: string): { text: string; nextSugg: string } | null {
   const q = rawQuery.toLowerCase().trim();
 
-  // Super-tolerant Trigger Engine (Captures almost any variation of EE Assignment)
   const hasAssignKeyword = /\b(assign|assignment|assgn|sheet)[\s\-]*0?2?\b/i.test(q);
   const hasEEKeyword = /\b(ee|bee|electrical|25el101|25el201|ac circuit|rlc)\b/i.test(q);
-  
-  // Highly flexible combinations
-  const isDirectCombo = 
+
+  const isDirectCombo =
     /\b(ee|electrical|bee)\s*(assignment|assign|sheet)\b/i.test(q) ||
     /\b(assignment|assign|sheet)\s*(of)?\s*(ee|electrical|bee)\b/i.test(q) ||
     /\b(ee|electrical).{0,15}(assignment|assign)\b/i.test(q) ||
     /\b(assignment|assign).{0,15}(ee|electrical)\b/i.test(q);
 
-  // Exact question-content matching for all 10 questions
-  const isDirectQuestionPaste =
-    (q.includes('100') && q.includes('120') && q.includes('240') && q.includes('lamp')) || // Q1
-    (q.includes('400') && q.includes('3000t') && q.includes('10')) || // Q2
-    (q.includes('parallel') && q.includes('20') && q.includes('7')) || // Q3
-    (q.includes('200') && q.includes('230') && q.includes('8') && q.includes('capacitor')) || // Q4
-    (q.includes('non-inductive') && q.includes('10') && q.includes('200')) || // Q5
-    (q.includes('50') && q.includes('millihenry') || q.includes('mh') && q.includes('200')) || // Q6
-    (q.includes('series-parallel') && q.includes('100')) || // Q7
-    (q.includes('ammeter') && q.includes('voltmeter') && q.includes('45')) || // Q8
-    (q.includes('two impedances') && q.includes('parallel') && q.includes('20')) || // Q9
-    (q.includes('three-phase') && q.includes('star') && q.includes('delta')); // Q10
+  const directQNum = detectEEAssignmentQuestionNumber(q);
 
-  if (!(hasAssignKeyword && hasEEKeyword) && !isDirectCombo && !isDirectQuestionPaste) {
+  if (!(hasAssignKeyword && hasEEKeyword) && !isDirectCombo && directQNum === null) {
     return null;
   }
 
-  // Check if user asked for a specific question number (e.g. "EE Assignment 2 Q8")
-  const qNumMatch = q.match(/(?:q|question|que|ans)[\s\-]*([1-9]|10)\b/i);
-  if (qNumMatch) {
-    const qNum = parseInt(qNumMatch[1], 10);
-    if (EE_ASSIGNMENT_02_QUESTIONS[qNum]) {
-      return {
-        text: `⚡📘 **BASICS OF ELECTRICAL ENGINEERING (25EL101) — ASSIGNMENT-02 (UNIT-2)**\n\n${EE_ASSIGNMENT_02_QUESTIONS[qNum]}\n\n${EE_ASSIGNMENT_2_PDF_TAG}`,
-        nextSugg: 'Assignment 02 of Electrical Engineering full solution dikhao ⚡',
-      };
-    }
+  // If a specific question number or question text was matched, return that exact question
+  if (directQNum !== null && EE_ASSIGNMENT_02_QUESTIONS[directQNum]) {
+    return {
+      text: `⚡📘 **BASICS OF ELECTRICAL ENGINEERING (25EL101) — ASSIGNMENT-02 (UNIT-2)**\n\n${EE_ASSIGNMENT_02_QUESTIONS[directQNum]}\n\n${EE_ASSIGNMENT_2_PDF_TAG}`,
+      nextSugg: 'Assignment 02 of Electrical Engineering full solution dikhao ⚡',
+    };
   }
 
-  // Return all solved questions (Q-1 to Q-10) + Official Assignment PDF Card
   const allSolvedText = Object.values(EE_ASSIGNMENT_02_QUESTIONS).join('\n\n---\n\n');
 
   return {
@@ -2352,10 +2372,17 @@ function getOmniBrainHinglishReply(
   isBoss: boolean,
   isAgrima: boolean
 ): { text: string; nextSugg: string } | null {
-  const eeAssignHit = getEEAssignment02Reply(rawQuery);
-  if (eeAssignHit) return eeAssignHit;
-  // Helper that checks ALL portal + omni + human modules for a single clause
   const evaluateClause = (clause: string): { text: string; nextSugg: string } | null => {
+    // 0. HCLTech Career Shaper Python Projects (Cyber Analysis 14 tools & Data Analytics 10 projects)
+    const cyberProj = getCyberProjectsReply(clause, first);
+    if (cyberProj) return cyberProj;
+
+    const daProj = getDataAnalyticsProjectsReply(clause, first);
+    if (daProj) return daProj;
+
+    const eeAssign = getEEAssignment02Reply(clause);
+    if (eeAssign) return eeAssign;
+
     const solved = getAllSolvedMT2Reply(clause);
     if (solved) return solved;
 
@@ -2366,6 +2393,17 @@ function getOmniBrainHinglishReply(
     if (calOrSyllabus) return calOrSyllabus;
 
     const c = clause.toLowerCase();
+    // CSE-8 Faculty Dossiers
+    if (c.includes('mayank kushwaha') || c.includes('myk')) return { text: CSE8_FACULTY_DOSSIERS.mayank_kushwaha, nextSugg: 'Dr. Bhanumati Panda ke baare me batao' };
+    if (c.includes('bhanumati') || c.includes('bp')) return { text: CSE8_FACULTY_DOSSIERS.bhanumati_panda, nextSugg: 'Mr. Shahbaz Alam ke baare me batao' };
+    if (c.includes('shahbaz') || (c.includes('sa') && c.includes('faculty'))) return { text: CSE8_FACULTY_DOSSIERS.shahbaz_alam, nextSugg: 'Mr. Aditya Vats ke baare me batao' };
+    if (c.includes('aditya vats') || c.includes('av')) return { text: CSE8_FACULTY_DOSSIERS.aditya_vats, nextSugg: 'Dr. Shruti Singh ke baare me batao' };
+    if (c.includes('shruti singh') || (c.includes('shruti') && !c.includes('shweta'))) return { text: CSE8_FACULTY_DOSSIERS.shruti_singh, nextSugg: 'Dr. Shweta Sharma ke baare me batao' };
+    if (c.includes('shweta sharma') || c.includes('ssh')) return { text: CSE8_FACULTY_DOSSIERS.shweta_sharma, nextSugg: 'Mr. Rohit Pratap Singh ke baare me batao' };
+    if (c.includes('rohit pratap') || c.includes('rps')) return { text: CSE8_FACULTY_DOSSIERS.rohit_pratap, nextSugg: 'Mr. Mayank Mittal ke baare me batao' };
+    if (c.includes('mayank mittal') || c.includes('mml')) return { text: CSE8_FACULTY_DOSSIERS.mayank_mittal, nextSugg: 'Mr. Mayank Kushwaha ke baare me batao' };
+
+    // CSE-2 Faculty Dossiers
     if (c.includes('prerna') || c.includes('prerana') || c.includes('mohapatra')) return { text: LOCAL_FACULTY_DOSSIERS.prerna, nextSugg: 'Dr. Divyanshi Sharma ke baare me batao' };
     if (c.includes('divyanshi') || c.includes('dsh')) return { text: LOCAL_FACULTY_DOSSIERS.divyanshi, nextSugg: 'Prof. Shivam Mittal ki lore batao' };
     if (c.includes('shivam') || c.includes('mittal')) return { text: LOCAL_FACULTY_DOSSIERS.shivam, nextSugg: 'Prof. Vimal Srivastava ke baare me batao' };
@@ -2377,208 +2415,59 @@ function getOmniBrainHinglishReply(
     const omni = matchSingleOmniTopic(clause, first, isFemale, isBoss, isAgrima);
     if (omni) return omni;
 
-    const human = getHumanHinglishChatReply(clause, first, isFemale, isBoss, isAgrima);
-    if (human) return human;
-
-    const eeAssignHit = getEEAssignment02Reply(rawQuery);
-    if (eeAssignHit) return eeAssignHit;
-    return null;
+    return getHumanHinglishChatReply(clause, first, isFemale, isBoss, isAgrima);
   };
 
-  // Check if user chained 2 or 3 commands using "aur", "and", ",", "plus", "phir", "also", "then"
-  const hasMultiConnectors =
-    /\b(?:aur|and|plus|also|phir|fir|then|saath me|sath me)\b|,|&/i.test(rawQuery);
+  // Multi-command execution (up to 4 commands chained with "aur", "and", "&", ";", "saath me", etc.)
+  const clauses = splitMultiCommands(rawQuery);
+  if (clauses.length >= 2) {
+    const results: string[] = [];
+    let finalSugg = 'All 10 HCLTech Data Analytics Python projects dikhao 🐍📊';
 
-  if (hasMultiConnectors) {
-    const clauses = rawQuery
-      .split(/\b(?:aur\s+saath\s+me|aur\s+bhi|aur|and\s+also|and\s+then|and|plus|also|phir|fir|then)\b|,|&|;/i)
-      .map((s) => s.trim())
-      .filter((s) => s.length >= 2);
-
-    if (clauses.length >= 2) {
-      const results: string[] = [];
-      let finalSugg = 'Boys hostel waali canteen ka menu dikhao 🍔';
-
-      for (const cl of clauses.slice(0, 4)) {
-        const matched = evaluateClause(cl);
-        if (matched && !results.includes(matched.text)) {
-          results.push(matched.text);
-          finalSugg = matched.nextSugg;
-        }
-      }
-
-      if (results.length >= 2) {
-        const combined = results
-          .map((r, i) => `### ⚡ Command #${i + 1} Executed:\n${r}`)
-          .join('\n\n---\n\n');
-        return {
-          text: `🧠🔥 **Multi-Command Omni-Brain Activated! Maine tumhare saare ${results.length} commands ek saath solve kar diye hain, ${first}:** 👇✨\n\n${combined}`,
-          nextSugg: finalSugg,
-        };
+    for (const cl of clauses.slice(0, 4)) {
+      const matched = evaluateClause(cl);
+      if (matched && !results.includes(matched.text)) {
+        results.push(matched.text);
+        finalSugg = matched.nextSugg;
       }
     }
+
+    if (results.length >= 2) {
+      const combined = results
+        .map((r, i) => `### ⚡ Command #${i + 1} Executed:\n${r}`)
+        .join('\n\n---\n\n');
+      return {
+        text: `🧠🔥 **Multi-Command Omni-Brain Activated! Maine tumhare saare ${results.length} commands ek saath solve kar diye hain, ${first}:** 👇✨\n\n${combined}`,
+        nextSugg: finalSugg,
+      };
+    }
   }
+
+  // Single command checks
+  const singleCyber = getCyberProjectsReply(rawQuery, first);
+  if (singleCyber) return singleCyber;
+
+  const singleDA = getDataAnalyticsProjectsReply(rawQuery, first);
+  if (singleDA) return singleDA;
+
+  const singleEE = getEEAssignment02Reply(rawQuery);
+  if (singleEE) return singleEE;
 
   const singleCalOrSyllabus = getAcademicCalendarAndSyllabusReply(rawQuery);
   if (singleCalOrSyllabus) return singleCalOrSyllabus;
 
-  // Single command check
   return matchSingleOmniTopic(rawQuery, first, isFemale, isBoss, isAgrima);
 }
 
 // ============================================================================
-// MOBILE AUDIO UNLOCK + HORROR AUDIO STINGER ENGINE
+// MOBILE AUDIO UNLOCK + HORROR AUDIO STINGER (SINGLETON SAFE ENGINE)
 // ============================================================================
-let isMobileAudioUnlocked = false;
 function unlockMobileAudio() {
-  if (isMobileAudioUnlocked || typeof window === 'undefined') return;
-  isMobileAudioUnlocked = true;
-  try {
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (AudioCtx) {
-      const ctx = new AudioCtx();
-      if (ctx.state === 'suspended') ctx.resume();
-      const buffer = ctx.createBuffer(1, 1, 22050);
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.connect(ctx.destination);
-      source.start(0);
-    }
-  } catch {}
+  void unlockMobileAudioSafe();
 }
 
 function playHorrorAudioStinger(type: string) {
-  try {
-    const fileMap: Record<string, string> = {
-      ryuk_laugh: '/ryuk_laugh.mp3',
-      bell: '/death_note_bell.mp3',
-      thunder: '/thunder.mp3',
-    };
-    const fileUrl = fileMap[type] || '/ryuk_laugh.mp3';
-    const audio = new Audio(fileUrl);
-    audio.volume = 1.0;
-
-    let playCount = 0;
-    const maxPlays = type === 'bell' ? 3 : type === 'ryuk_laugh' ? 3 : 1;
-
-    audio.onended = () => {
-      playCount++;
-      if (playCount < maxPlays) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      }
-    };
-
-    audio.play().catch(() => {});
-
-    const cutoffMs = type === 'bell' ? 11000 : type === 'ryuk_laugh' ? 21000 : 20000;
-    setTimeout(() => {
-      audio.pause();
-      audio.currentTime = 0;
-    }, cutoffMs);
-  } catch {}
-
-  try {
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new AudioCtx();
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type === 'bell' ? 'sine' : 'sawtooth';
-    osc.frequency.setValueAtTime(type === 'bell' ? 146.8 : 65, now);
-    osc.frequency.exponentialRampToValueAtTime(28, now + 2.5);
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 2.6);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 2.7);
-  } catch {}
-}
-
-function PaperDownloadCard({ title, filesCsv }: { title: string; filesCsv: string }) {
-  const [showPreview, setShowPreview] = useState(false);
-  const files = filesCsv.split(',').map((f) => f.trim()).filter(Boolean);
-  const isPdf = files.some((f) => f.toLowerCase().endsWith('.pdf'));
-
-  const handleDownloadAll = () => {
-    files.forEach((fileUrl, index) => {
-      setTimeout(() => {
-        const link = document.createElement('a');
-        link.href = fileUrl;
-        link.download = fileUrl.split('/').pop() || (isPdf ? `document_${index + 1}.pdf` : `paper_${index + 1}.jpg`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, index * 200);
-    });
-  };
-
-  return (
-    <div className="my-4 rounded-2xl bg-white/[0.06] backdrop-blur-md border border-white/10 hover:border-red-500/40 transition shadow-lg overflow-hidden max-w-2xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 border-b border-white/[0.04]">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl ${isPdf ? 'bg-amber-500/15 border-amber-500/30 text-amber-300' : 'bg-red-500/10 border-red-500/20 text-red-400'} border flex items-center justify-center font-bold text-xs flex-shrink-0`}>
-            {isPdf ? 'PDF' : files.length > 1 ? `${files.length}P` : 'IMG'}
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-white">{title}</h4>
-            <p className="text-xs text-gray-400">
-              {isPdf ? 'Official ABES Autonomous PDF Document' : `Official Autonomous Paper • ${files.length} ${files.length > 1 ? 'Pages' : 'Page'}`}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium transition border border-white/10 cursor-pointer"
-          >
-            {showPreview ? '🙈 Hide' : '👁️ View'}
-          </button>
-          {isPdf && (
-            <a
-              href={files[0]}
-              target="_blank"
-              rel="noreferrer"
-              className="px-3 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white text-xs font-medium transition border border-blue-500/30"
-            >
-              ↗ Full Tab
-            </a>
-          )}
-          <button
-            onClick={handleDownloadAll}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition shadow-md cursor-pointer"
-          >
-            <span>📥</span> Download
-          </button>
-        </div>
-      </div>
-      {showPreview && (
-        <div className="p-3 bg-black/60 space-y-3">
-          {files.map((fileUrl, idx) => (
-            <div key={idx} className="space-y-1">
-              {fileUrl.toLowerCase().endsWith('.pdf') ? (
-                <iframe
-                  src={fileUrl}
-                  title={`${title} Preview`}
-                  className="w-full h-[460px] rounded-xl border border-white/15 bg-zinc-900"
-                />
-              ) : (
-                <>
-                  {files.length > 1 && (
-                    <span className="text-[11px] text-gray-400 font-medium">
-                      Page {idx + 1} of {files.length}
-                    </span>
-                  )}
-                  <img src={fileUrl} alt={`${title} - Page ${idx + 1}`} className="w-full rounded-xl border border-white/10" />
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  playHorrorAudioStingerSafe(type);
 }
 
 function FormattedMessage({
@@ -2595,15 +2484,21 @@ function FormattedMessage({
     const parts = line.split(/(!?\[.*?\]\(.*?\)|\*\*.*?\*\*|\*.*?\*)/g);
     return parts.map((part, idx) => {
       const imgMatch = part.match(/^!\[(.*?)\]\((.*?)\)$/);
-      if (imgMatch) {
+      if (imgMatch && isSafeHrefOrSrc(imgMatch[2])) {
         return (
           <span key={idx} className="inline-block my-2 max-w-[220px] rounded-2xl overflow-hidden border border-white/15 shadow-xl bg-black/40 align-middle">
-            <img src={imgMatch[2]} alt={imgMatch[1]} className="w-full h-auto object-cover" />
+            <img src={imgMatch[2]} alt={imgMatch[1]} loading="lazy" className="w-full h-auto object-cover" />
           </span>
         );
       }
       const linkMatch = part.match(/^\[(.*?)\]\((.*?)\)$/);
-      if (linkMatch) return <a key={idx} href={linkMatch[2]} target="_blank" rel="noreferrer" className="text-blue-400 underline hover:text-blue-300 font-medium">{linkMatch[1]} ↗</a>;
+      if (linkMatch && isSafeHrefOrSrc(linkMatch[2])) {
+        return (
+          <a key={idx} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300 font-medium">
+            {linkMatch[1]} ↗
+          </a>
+        );
+      }
       if (part.startsWith('**') && part.endsWith('**')) return <strong key={idx} className="text-white font-semibold">{part.slice(2, -2)}</strong>;
       if (part.startsWith('*') && part.endsWith('*')) return <em key={idx} className="text-gray-300 italic">{part.slice(1, -1)}</em>;
       return part;
@@ -2613,17 +2508,25 @@ function FormattedMessage({
   return (
     <div className="space-y-3 text-[14px] leading-relaxed">
       {lines.map((line, i) => {
-        const imageMatches = Array.from(line.matchAll(/!\[(.*?)\]\((.*?)\)/g));
+        const imageMatches = Array.from(line.matchAll(/!\[(.*?)\]\((.*?)\)/g)).filter((m) => isSafeHrefOrSrc(m[2]));
         if (imageMatches.length > 0) {
           return (
             <div key={i} className="my-3 flex flex-wrap gap-3 items-center">
               {imageMatches.map((img, imgIdx) => (
                 <div key={imgIdx} className="w-40 sm:w-56 rounded-2xl overflow-hidden border border-white/15 shadow-xl bg-black/40 flex-shrink-0">
-                  <img src={img[2]} alt={img[1]} className="w-full h-auto object-cover" />
+                  <img src={img[2]} alt={img[1]} loading="lazy" className="w-full h-auto object-cover" />
                 </div>
               ))}
             </div>
           );
+        }
+        const daProjectMatch = line.trim().match(/^\[DA_PROJECT\|([a-z0-9-]+)\]$/i);
+        if (daProjectMatch) {
+          return <DataAnalyticsProjectCard key={`da-${i}`} projectId={daProjectMatch[1]} />;
+        }
+        const cyberProjectMatch = line.trim().match(/^\[CYBER_PROJECT\|([a-z0-9-]+)\]$/i);
+        if (cyberProjectMatch) {
+          return <CyberProjectCard key={`cyber-${i}`} projectId={cyberProjectMatch[1]} />;
         }
         const suggestionMatch = line.match(/^\[SUGGESTIONS\|(.*)\|(.*)\]$/);
         if (suggestionMatch && onSelectSuggestion) {
@@ -2631,12 +2534,14 @@ function FormattedMessage({
             <div key={i} className="pt-3 pb-1 flex flex-wrap gap-2.5 items-center">
               <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1">✨ Agla topic:</span>
               <button
+                type="button"
                 onClick={() => onSelectSuggestion(suggestionMatch[1], true)}
                 className="px-3.5 py-1.5 rounded-full bg-red-500/15 hover:bg-red-500/30 text-red-300 text-xs font-semibold border border-red-500/30 transition shadow-sm hover:scale-105 cursor-pointer"
               >
                 👉 {suggestionMatch[1]}
               </button>
               <button
+                type="button"
                 onClick={() => onSelectSuggestion(suggestionMatch[2], true)}
                 className="px-3.5 py-1.5 rounded-full bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 text-xs font-semibold border border-purple-500/30 transition shadow-sm hover:scale-105 cursor-pointer"
               >
@@ -2795,7 +2700,14 @@ export default function CampusAIChat() {
   const lastSuggestionClickedRef = useRef<string>('');
   const lastStingerTimestampRef = useRef<number>(0);
   const lastSeenBroadcastTextRef = useRef<string>('');
+  const lastSeenBroadcastIdRef = useRef<number>(0);
   const pendingPostIntroBroadcastRef = useRef<string>('');
+  const streamIntervalRef = useRef<number | null>(null);
+  const keystrokeDebounceRef = useRef<number | null>(null);
+
+  // DEVICE PUSH NOTIFICATION STATES (Permission requested automatically on Login click!)
+  const [pushSubscriberCount, setPushSubscriberCount] = useState<number>(0);
+  const [broadcastDeliveryNote, setBroadcastDeliveryNote] = useState<string>('');
 
   const activeSession = sessions.find((s) => s.id === activeSessionId) || sessions[0];
   const isAgrima = currentUser?.admissionNo === '2026B01010219';
@@ -2809,16 +2721,48 @@ export default function CampusAIChat() {
     return !isBoss && currentUser?.admissionNo === '2026B01010274';
   }, [currentUser, isBoss]);
 
-  // Unlock mobile audio on first interaction anywhere on the page
+  // SECTION CSE-2 VS CSE-8 DETECTION & BOSS OVERRIDE
+  const [bossSectionOverride, setBossSectionOverride] = useState<'CSE-2' | 'CSE-8'>('CSE-2');
+  const [careerShaperTrack, setCareerShaperTrack] = useState<'data_analytics' | 'cyber_security'>('data_analytics');
+
+  const studentSection = useMemo<'CSE-2' | 'CSE-8'>(() => {
+    if (currentUser?.section === 'CSE-8') return 'CSE-8';
+    if (currentUser?.admissionNo && CSE8_ROSTER[currentUser.admissionNo]) return 'CSE-8';
+    return 'CSE-2';
+  }, [currentUser]);
+
+  const activeSection: 'CSE-2' | 'CSE-8' = isBoss ? bossSectionOverride : studentSection;
+  const isCSE8 = activeSection === 'CSE-8';
+
+  useEffect(() => {
+    if (studentSection === 'CSE-8') {
+      setCareerShaperTrack('cyber_security');
+    } else {
+      setCareerShaperTrack('data_analytics');
+    }
+  }, [studentSection]);
+
+  // Unlock mobile audio on first interaction + register Service Worker for Device Notifications
   useEffect(() => {
     const handleFirstTouch = () => unlockMobileAudio();
     window.addEventListener('click', handleFirstTouch, { once: true });
     window.addEventListener('touchstart', handleFirstTouch, { once: true });
+
+    void registerAnnouncementServiceWorker();
+
     return () => {
       window.removeEventListener('click', handleFirstTouch);
       window.removeEventListener('touchstart', handleFirstTouch);
+      if (streamIntervalRef.current !== null) window.clearInterval(streamIntervalRef.current);
+      if (keystrokeDebounceRef.current !== null) window.clearTimeout(keystrokeDebounceRef.current);
     };
   }, []);
+
+  // Auto-sync device Web Push subscription whenever an authorized user session loads
+  useEffect(() => {
+    if (!currentUser) return;
+    void syncExistingPushSubscription(currentUser);
+  }, [currentUser]);
 
   const scrollChatToBottom = useCallback((container: HTMLDivElement | null) => {
     if (!container) return;
@@ -2835,15 +2779,22 @@ export default function CampusAIChat() {
     scrollChatToBottom(bossChatContainerRef.current);
   }, [directChatMessages.length, selectedDirectTarget, isStudentWhisperBoxOpen, scrollChatToBottom]);
 
-  // Launch Flying Letter Assembly + Bell Sound for Sovereign Announcements
-  const triggerFlyingAnnouncement = useCallback((announcementText: string) => {
-    if (!announcementText.trim()) return;
-    playHorrorAudioStinger('bell');
-    setActiveBroadcastOverlay(announcementText.trim());
-    setTimeout(() => {
-      setActiveBroadcastOverlay(null);
-    }, 9500);
-  }, []);
+  // Launch Flying Letter Assembly + Bell Sound + Device OS Notification for Sovereign Announcements
+  const triggerFlyingAnnouncement = useCallback(
+    (announcementText: string, options?: { notifyDevice?: boolean; broadcastId?: number }) => {
+      const clean = announcementText.trim();
+      if (!clean) return;
+      playHorrorAudioStinger('bell');
+      setActiveBroadcastOverlay(clean);
+      if (options?.notifyDevice !== false) {
+        void showDeviceAnnouncementNotification(clean, options?.broadcastId);
+      }
+      setTimeout(() => {
+        setActiveBroadcastOverlay(null);
+      }, 9500);
+    },
+    []
+  );
 
   // Trigger Full Horror Visual + Audio Sequence (21s Ryuk Laugh / 11s Death Bell / 20s Thunder Storm)
   const launchHorrorExperience = useCallback((stingerType: 'ryuk_laugh' | 'bell' | 'thunder') => {
@@ -3042,22 +2993,34 @@ export default function CampusAIChat() {
           localStorage.setItem(MARKETPLACE_STORAGE_KEY, JSON.stringify(data.marketplace));
         }
 
-        // Check for new Sovereign Broadcast -> Trigger Flying Animation + Bell (or queue if in boss_intro)
+        // Check for new Sovereign Broadcast -> Trigger Flying Animation + Bell + Device Notification
         if (typeof data.broadcast === 'string') {
           const incomingText = data.broadcast.trim();
+          const incomingId = typeof data.broadcastId === 'number' ? data.broadcastId : 0;
           setSovereignBroadcast(incomingText);
           localStorage.setItem(BOSS_BROADCAST_KEY, incomingText);
 
-          if (incomingText && incomingText !== lastSeenBroadcastTextRef.current) {
+          const isNewBroadcast =
+            Boolean(incomingText) &&
+            (incomingText !== lastSeenBroadcastTextRef.current ||
+              (incomingId > 0 && incomingId !== lastSeenBroadcastIdRef.current));
+
+          if (isNewBroadcast) {
             lastSeenBroadcastTextRef.current = incomingText;
+            if (incomingId > 0) lastSeenBroadcastIdRef.current = incomingId;
             if (currentWindow === 'boss_intro') {
               pendingPostIntroBroadcastRef.current = incomingText;
+              void showDeviceAnnouncementNotification(incomingText, incomingId || undefined);
             } else {
-              triggerFlyingAnnouncement(incomingText);
+              triggerFlyingAnnouncement(incomingText, { notifyDevice: true, broadcastId: incomingId || undefined });
             }
           } else if (!incomingText) {
             lastSeenBroadcastTextRef.current = '';
+            lastSeenBroadcastIdRef.current = 0;
           }
+        }
+        if (typeof data.pushSubscriberCount === 'number' && isBoss) {
+          setPushSubscriberCount(data.pushSubscriberCount);
         }
 
         if (Array.isArray(data.bans)) {
@@ -3193,31 +3156,13 @@ export default function CampusAIChat() {
     return () => clearInterval(fillInterval);
   }, [myGaslight500, isBoss]);
 
-  // Persistent Horror Siren & Heartbeat Pulse while user navigates in 'haunted' mode
+  // Persistent Horror Siren & Heartbeat Pulse while user navigates in 'haunted' mode (uses singleton AudioContext!)
   useEffect(() => {
     if (!myGaslight500 || isBoss) return;
 
-    const triggerPanicBeep = (freq1 = 880, freq2 = 440) => {
-      try {
-        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(freq1, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(freq2, ctx.currentTime + 0.18);
-        gain.gain.setValueAtTime(0.14, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.26);
-      } catch {}
-    };
-
-    triggerPanicBeep(620, 110);
+    playPanicBeepSafe(620, 110);
     const interval = setInterval(() => {
-      triggerPanicBeep(880, 220);
+      playPanicBeepSafe(880, 220);
     }, 2400);
 
     return () => clearInterval(interval);
@@ -3407,16 +3352,17 @@ export default function CampusAIChat() {
     return () => clearInterval(tick);
   }, [isRequestBoxUnlocked, isRequestBoxModalOpen]);
 
-  // Live 1-Second Client Clock (Fixes Next.js 16 Date.now() error & powers Puppet AI Countdown Timer!)
+  // Adaptive Client Clock (1s only when live timers are open, 15s idle to prevent wasted full-page re-renders!)
   const [clientNowMs, setClientNowMs] = useState<number>(0);
 
   useEffect(() => {
     setClientNowMs(Date.now());
+    const tickMs = pendingIntercepts.length > 0 || isRequestBoxModalOpen ? 1000 : 15000;
     const clock = setInterval(() => {
       setClientNowMs(Date.now());
-    }, 1000);
+    }, tickMs);
     return () => clearInterval(clock);
-  }, []);
+  }, [pendingIntercepts.length, isRequestBoxModalOpen]);
 
   // Calculate Quota (3/day + 8h gap normally, OR 11/day + 0h gap with Secret Code!)
   const requestBoxQuotaInfo = useMemo(() => {
@@ -3542,7 +3488,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'SET_REQUEST_BOX_CODE', newCode: clean }),
+      body: JSON.stringify({ action: 'SET_REQUEST_BOX_CODE', newCode: clean, user: currentUser }),
     });
     syncWithServer();
   };
@@ -3556,6 +3502,7 @@ export default function CampusAIChat() {
         action: 'RESOLVE_IKA_REQUEST',
         id,
         status,
+        user: currentUser,
         bossReply:
           customReply ||
           (status === 'granted'
@@ -3571,17 +3518,22 @@ export default function CampusAIChat() {
     setInput(val);
     latestInputRef.current = val;
     if (currentUser && !isBoss) {
-      fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'UPDATE_DRAFT_KEYSTROKES',
-          user: currentUser,
-          currentWindow,
-          lastSuggestion: lastSuggestionClickedRef.current,
-          draftKeystrokes: val,
-        }),
-      }).catch(() => {});
+      if (keystrokeDebounceRef.current !== null) {
+        window.clearTimeout(keystrokeDebounceRef.current);
+      }
+      keystrokeDebounceRef.current = window.setTimeout(() => {
+        fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'UPDATE_DRAFT_KEYSTROKES',
+            user: currentUser,
+            currentWindow,
+            lastSuggestion: lastSuggestionClickedRef.current,
+            draftKeystrokes: val,
+          }),
+        }).catch(() => {});
+      }, 350);
     }
   };
 
@@ -3845,39 +3797,87 @@ export default function CampusAIChat() {
       return matchYear && h.month === month && date >= h.startDay && date <= h.endDay;
     });
 
-    let classData = { status: 'Live', text: 'Academic Hours Active', room: 'RJ-102' };
+    let classData = { status: 'Live', text: 'Academic Hours Active', room: isCSE8 ? 'RJ-204' : 'RJ-102' };
     if (currentHoliday) classData = { status: 'Holiday', text: `Holiday: ${currentHoliday.name}`, room: 'Campus Closed' };
     else if (day === 0 || day === 6) classData = { status: 'Weekend', text: 'No lectures scheduled today 🎉', room: '' };
-    else if (currentMins < 8 * 60 + 50) classData = { status: 'Upcoming', text: 'First lecture starts at 08:50 AM', room: 'RJ-102' };
+    else if (currentMins < 8 * 60 + 50) classData = { status: 'Upcoming', text: 'First lecture starts at 08:50 AM', room: isCSE8 ? (day === 1 ? 'RJ-204' : day === 2 ? 'RJ-205' : 'RJ-207') : 'RJ-102' };
     else if (currentMins >= 16 * 60 + 30) classData = { status: 'Over', text: 'All lectures concluded for today 📚', room: '' };
-    else if (currentMins >= 12 * 60 + 20 && currentMins < 13 * 60 + 10) classData = { status: 'Break', text: 'Lunch Break (12:20 - 01:10 PM)', room: 'Cafeteria / Ground' };
-    else if (day === 1) {
-      if (currentMins < 9 * 60 + 40) classData = { status: 'Live', text: 'Essentials of AI (Mr. Rahul Singh)', room: 'RJ-102' };
-      else if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Applied Physics (Dr. Kartika M.)', room: 'RJ-102' };
-      else if (currentMins < 11 * 60 + 30) classData = { status: 'Live', text: 'Maths / FLAS (Dr. Vimal S.)', room: 'RJ-102' };
-      else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'Electrical BEE (Dr. Prerna M.)', room: 'RJ-102' };
-      else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'Prog in C & Maths Tutorial', room: 'RJ-101' };
-      else classData = { status: 'Live', text: 'Applied Physics Lab (KC-310)', room: 'KC Block 3rd Flr' };
-    } else if (day === 2) {
-      if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Web Design & Maths FLAS', room: 'RJ-102' };
-      else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'Essentials of AI & EVS', room: 'RJ-102' };
-      else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'C++ Lab (Groups 1 & 2)', room: 'KCLG Lab' };
-      else classData = { status: 'Live', text: 'Applied Physics & Electrical BEE', room: 'RJ-101' };
-    } else if (day === 3) {
-      if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Electrical BEE & Prog in C', room: 'RJ-102' };
-      else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'Maths FLAS & Physics', room: 'RJ-102' };
-      else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'Basic Electrical Engg Lab', room: 'RJ-Basement' };
-      else classData = { status: 'Live', text: 'Mentor-Mentee Counseling', room: 'RJ-Basement' };
-    } else if (day === 4) {
-      if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Maths FLAS & Electrical BEE', room: 'RJ-102' };
-      else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'CAD Lab', room: 'RJ-109 (1st Flr)' };
-      else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'Applied Physics & EVS', room: 'RJ-102' };
-      else classData = { status: 'Live', text: 'Programming in C & Maths', room: 'RJ-102' };
-    } else if (day === 5) {
-      if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Prog in C & Applied Physics', room: 'RJ-102' };
-      else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'Web Designing Workshop I', room: 'KCLG-03/04' };
-      else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'Maths FLAS & EVS', room: 'RJ-102' };
-      else classData = { status: 'Live', text: 'Electrical BEE & AI', room: 'RJ-102' };
+    else if (isCSE8) {
+      // SECTION CSE-8 OFFICIAL TIMETABLE (w.e.f. 28.10.2026)
+      if (currentMins >= 13 * 60 + 10 && currentMins < 14 * 60) {
+        classData = { status: 'Break', text: 'Lunch Break (01:10 - 02:00 PM)', room: 'Cafeteria / Ground' };
+      } else if (day === 1) { // Monday (RJ-204)
+        if (currentMins < 9 * 60 + 40) classData = { status: 'Live', text: 'ME-BMEA (Mr. Mayank Kushwaha)', room: 'RJ-204' };
+        else if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'ME-BMEA (Mr. Mayank Kushwaha)', room: 'RJ-204' };
+        else if (currentMins < 11 * 60 + 30) classData = { status: 'Live', text: 'AS-FLAS (Dr. Bhanumati Panda)', room: 'RJ-204' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'CS-PC++ (Mr. Shahbaz Alam)', room: 'RJ-204' };
+        else if (currentMins < 13 * 60 + 10) classData = { status: 'Live', text: 'CS-PC++ (Mr. Shahbaz Alam)', room: 'RJ-204' };
+        else if (currentMins < 15 * 60 + 40) classData = { status: 'Live', text: 'CS-PC++ Lab (G1: KCLG-05 / G2: KCLG-06)', room: 'KC Ground' };
+        else classData = { status: 'Live', text: 'HU-SS (Mr. Aditya Vats)', room: 'RJ-204' };
+      } else if (day === 2) { // Tuesday (RJ-205)
+        if (currentMins < 9 * 60 + 40) classData = { status: 'Live', text: 'ME-BMEA (Mr. Mayank Kushwaha)', room: 'RJ-205' };
+        else if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'AS-FLAS (Dr. Bhanumati Panda)', room: 'RJ-205' };
+        else if (currentMins < 11 * 60 + 30) classData = { status: 'Live', text: 'HU-SS (Mr. Aditya Vats)', room: 'RJ-205' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'CS-PC++ (Mr. Shahbaz Alam)', room: 'RJ-205' };
+        else if (currentMins < 13 * 60 + 10) classData = { status: 'Live', text: 'AS-FLAS Tutorial (Dr. Bhanumati Panda)', room: 'RJ-205' };
+        else if (currentMins < 15 * 60 + 40) classData = { status: 'Live', text: 'G1: ME-DM Lab (VB) / G2: HU-PC Lab (KC-510)', room: 'VB / KC-510' };
+        else classData = { status: 'Live', text: 'Mentor-Mentee (MYK / BP)', room: 'RJ-205' };
+      } else if (day === 3) { // Wednesday (RJ-207)
+        if (currentMins < 9 * 60 + 40) classData = { status: 'Live', text: 'AS-FLAS (Dr. Bhanumati Panda)', room: 'RJ-207' };
+        else if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'CS-PC++ (Mr. Shahbaz Alam)', room: 'RJ-207' };
+        else if (currentMins < 11 * 60 + 30) classData = { status: 'Live', text: 'ME-BMEA (Mr. Mayank Kushwaha)', room: 'RJ-207' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'HU-DT (Dr. Shweta Sharma)', room: 'RJ-207' };
+        else if (currentMins < 13 * 60 + 10) classData = { status: 'Live', text: 'HU-DT (Dr. Shweta Sharma)', room: 'RJ-207' };
+        else if (currentMins < 15 * 60 + 40) classData = { status: 'Live', text: 'Web Designing Workshop I (Mr. Rohit Pratap)', room: 'KC-509' };
+        else classData = { status: 'Live', text: 'Library / Sports Session', room: 'Campus Ground' };
+      } else if (day === 4) { // Thursday (RJ-207)
+        if (currentMins < 9 * 60 + 40) classData = { status: 'Live', text: 'HU-SS (Mr. Aditya Vats)', room: 'RJ-207' };
+        else if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'AS-FLAS (Dr. Bhanumati Panda)', room: 'RJ-207' };
+        else if (currentMins < 11 * 60 + 30) classData = { status: 'Live', text: 'CS-PC++ (Mr. Shahbaz Alam)', room: 'RJ-207' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'ME-BMEA (Mr. Mayank Kushwaha)', room: 'RJ-207' };
+        else if (currentMins < 13 * 60 + 10) classData = { status: 'Live', text: 'ME-BMEA Tutorial (Mr. Mayank Kushwaha)', room: 'RJ-207' };
+        else if (currentMins < 15 * 60 + 40) classData = { status: 'Live', text: 'G1: HU-PC Lab (KC-510) / G2: ME-DM Lab (VB)', room: 'KC-510 / VB' };
+        else classData = { status: 'Live', text: 'VA-FSA (BH-115/216)', room: 'BH Block' };
+      } else if (day === 5) { // Friday (RJ-207)
+        if (currentMins < 9 * 60 + 40) classData = { status: 'Live', text: 'CS-PC++ (Mr. Shahbaz Alam)', room: 'RJ-207' };
+        else if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'AS-FLAS (Dr. Bhanumati Panda)', room: 'RJ-207' };
+        else if (currentMins < 11 * 60 + 30) classData = { status: 'Live', text: 'HU-DT (Dr. Shweta Sharma)', room: 'RJ-207' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'ME-BMEA (Mr. Mayank Kushwaha)', room: 'RJ-207' };
+        else if (currentMins < 13 * 60 + 10) classData = { status: 'Live', text: 'HU-SS (Mr. Aditya Vats)', room: 'RJ-207' };
+        else if (currentMins < 15 * 60 + 40) classData = { status: 'Live', text: 'Web Designing Workshop I (Mr. Rohit Pratap)', room: 'KC-509' };
+        else classData = { status: 'Live', text: 'Remedial / Club Activity', room: 'RJ-207' };
+      }
+    } else {
+      // SECTION CSE-2 SCHEDULE (Lunch 12:20 - 01:10 PM)
+      if (currentMins >= 12 * 60 + 20 && currentMins < 13 * 60 + 10) classData = { status: 'Break', text: 'Lunch Break (12:20 - 01:10 PM)', room: 'Cafeteria / Ground' };
+      else if (day === 1) {
+        if (currentMins < 9 * 60 + 40) classData = { status: 'Live', text: 'Essentials of AI (Mr. Rahul Singh)', room: 'RJ-102' };
+        else if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Applied Physics (Dr. Kartika M.)', room: 'RJ-102' };
+        else if (currentMins < 11 * 60 + 30) classData = { status: 'Live', text: 'Maths / FLAS (Dr. Vimal S.)', room: 'RJ-102' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'Electrical BEE (Dr. Prerna M.)', room: 'RJ-102' };
+        else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'Prog in C & Maths Tutorial', room: 'RJ-101' };
+        else classData = { status: 'Live', text: 'Applied Physics Lab (KC-310)', room: 'KC Block 3rd Flr' };
+      } else if (day === 2) {
+        if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Web Design & Maths FLAS', room: 'RJ-102' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'Essentials of AI & EVS', room: 'RJ-102' };
+        else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'C++ Lab (Groups 1 & 2)', room: 'KCLG Lab' };
+        else classData = { status: 'Live', text: 'Applied Physics & Electrical BEE', room: 'RJ-101' };
+      } else if (day === 3) {
+        if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Electrical BEE & Prog in C', room: 'RJ-102' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'Maths FLAS & Physics', room: 'RJ-102' };
+        else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'Basic Electrical Engg Lab', room: 'RJ-Basement' };
+        else classData = { status: 'Live', text: 'Mentor-Mentee Counseling', room: 'RJ-Basement' };
+      } else if (day === 4) {
+        if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Maths FLAS & Electrical BEE', room: 'RJ-102' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'CAD Lab', room: 'RJ-109 (1st Flr)' };
+        else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'Applied Physics & EVS', room: 'RJ-102' };
+        else classData = { status: 'Live', text: 'Programming in C & Maths', room: 'RJ-102' };
+      } else if (day === 5) {
+        if (currentMins < 10 * 60 + 30) classData = { status: 'Live', text: 'Prog in C & Applied Physics', room: 'RJ-102' };
+        else if (currentMins < 12 * 60 + 20) classData = { status: 'Live', text: 'Web Designing Workshop I', room: 'KCLG-03/04' };
+        else if (currentMins < 14 * 60 + 50) classData = { status: 'Live', text: 'Maths FLAS & EVS', room: 'RJ-102' };
+        else classData = { status: 'Live', text: 'Electrical BEE & AI', room: 'RJ-102' };
+      }
     }
 
     setCurrentClassInfo(classData);
@@ -3887,7 +3887,7 @@ export default function CampusAIChat() {
       pue: diffDays(new Date('2026-12-21T09:00:00')),
       endSem: diffDays(new Date('2027-01-04T09:00:00')),
     });
-  }, []);
+  }, [isCSE8]);
 
   const attendanceStats = useMemo(() => {
     if (myCursedSpoof && !isBoss) {
@@ -3963,7 +3963,7 @@ export default function CampusAIChat() {
   }, [mt1Score, mt2Score, taScore, endSemScore, myCursedSpoof, isBoss]);
 
   // ==========================================================================
-  // SHINIGAMI EYES GOD HANDLERS
+  // SHINIGAMI EYES GOD HANDLERS (ALL AUTHENTICATED WITH user: currentUser)
   // ==========================================================================
   const handleToggleBlockAllAtOnce = async () => {
     const nextVal = !blockAllAtOnce;
@@ -3972,7 +3972,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'SET_BLOCK_ALL_AT_ONCE', blockAll: nextVal }),
+      body: JSON.stringify({ action: 'SET_BLOCK_ALL_AT_ONCE', blockAll: nextVal, user: currentUser }),
     });
   };
 
@@ -3982,7 +3982,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'SET_STEALTH_CLOAK', stealth: nextVal }),
+      body: JSON.stringify({ action: 'SET_STEALTH_CLOAK', stealth: nextVal, user: currentUser }),
     });
   };
 
@@ -3994,6 +3994,7 @@ export default function CampusAIChat() {
         action: hasTimer ? 'CANCEL_HEART_ATTACK_TIMER' : 'TRIGGER_HEART_ATTACK_TIMER',
         targetAdmissionNo: targetAdm,
         seconds: 40,
+        user: currentUser,
       }),
     });
     syncWithServer();
@@ -4004,7 +4005,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'TOGGLE_GASLIGHT_500', targetAdmissionNo: targetAdm }),
+      body: JSON.stringify({ action: 'TOGGLE_GASLIGHT_500', targetAdmissionNo: targetAdm, user: currentUser }),
     });
     syncWithServer();
   };
@@ -4014,7 +4015,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'TOGGLE_EVAPORATE_CURSE', targetAdmissionNo: targetAdm }),
+      body: JSON.stringify({ action: 'TOGGLE_EVAPORATE_CURSE', targetAdmissionNo: targetAdm, user: currentUser }),
     });
     syncWithServer();
   };
@@ -4027,7 +4028,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'TOGGLE_PUPPET_MODE', targetAdmissionNo: key }),
+      body: JSON.stringify({ action: 'TOGGLE_PUPPET_MODE', targetAdmissionNo: key, user: currentUser }),
     });
     syncWithServer();
   };
@@ -4038,7 +4039,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'SUBMIT_PUPPET_REPLY', interceptId, customReply: text }),
+      body: JSON.stringify({ action: 'SUBMIT_PUPPET_REPLY', interceptId, customReply: text, user: currentUser }),
     });
     setPuppetReplyInputs((prev) => ({ ...prev, [interceptId]: '' }));
     syncWithServer();
@@ -4052,7 +4053,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'TRIGGER_AUDIO_STINGER', targetAdmissionNo: targetAdm, sound }),
+      body: JSON.stringify({ action: 'TRIGGER_AUDIO_STINGER', targetAdmissionNo: targetAdm, sound, user: currentUser }),
     });
   };
 
@@ -4066,6 +4067,7 @@ export default function CampusAIChat() {
         clear: currentlySpoofed,
         attendancePct: 12.4,
         screenGlitch: !currentlySpoofed,
+        user: currentUser,
       }),
     });
     syncWithServer();
@@ -4075,7 +4077,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'SEIZE_MARKETPLACE_ITEM', id }),
+      body: JSON.stringify({ action: 'SEIZE_MARKETPLACE_ITEM', id, user: currentUser }),
     });
     syncWithServer();
   };
@@ -4086,7 +4088,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'DICTATE_MARKETPLACE_PRICE', id, newPrice }),
+      body: JSON.stringify({ action: 'DICTATE_MARKETPLACE_PRICE', id, newPrice, user: currentUser }),
     });
     syncWithServer();
   };
@@ -4100,7 +4102,7 @@ export default function CampusAIChat() {
       await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'REMOVE_BAN', target: existing.target }),
+        body: JSON.stringify({ action: 'REMOVE_BAN', target: existing.target, user: currentUser }),
       });
     } else {
       const newBan: BannedEntry = {
@@ -4112,7 +4114,7 @@ export default function CampusAIChat() {
       await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'ADD_BAN', ban: newBan }),
+        body: JSON.stringify({ action: 'ADD_BAN', ban: newBan, user: currentUser }),
       });
     }
     syncWithServer();
@@ -4136,7 +4138,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'ADD_BAN', ban: newBan }),
+      body: JSON.stringify({ action: 'ADD_BAN', ban: newBan, user: currentUser }),
     });
   };
 
@@ -4145,24 +4147,39 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'REMOVE_BAN', target: targetToUnban }),
+      body: JSON.stringify({ action: 'REMOVE_BAN', target: targetToUnban, user: currentUser }),
     });
   };
 
-  // Save Broadcast -> Triggers Flying Letter Assembly + Bell Sound Across All Screens + Top Bar
+  // Save Broadcast -> Triggers Flying Letter Assembly + Bell Sound + Device Push Notifications!
   const handleSaveBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = broadcastInput.trim();
     if (!text) return;
+    const localId = Date.now();
     setSovereignBroadcast(text);
     lastSeenBroadcastTextRef.current = text;
-    triggerFlyingAnnouncement(text);
+    lastSeenBroadcastIdRef.current = localId;
+    triggerFlyingAnnouncement(text, { notifyDevice: true, broadcastId: localId });
     broadcastLocalEffect({ type: 'BROADCAST_ANNOUNCEMENT', text });
-    await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'SET_BROADCAST', broadcast: text }),
-    });
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'SET_BROADCAST', broadcast: text, user: currentUser }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.broadcastId === 'number') lastSeenBroadcastIdRef.current = data.broadcastId;
+        if (typeof data.pushSubscriberCount === 'number') setPushSubscriberCount(data.pushSubscriberCount);
+        if (data.pushStats) {
+          setBroadcastDeliveryNote(
+            `📱 Push sent to ${data.pushStats.sent}/${data.pushStats.total} subscribed device(s) + live on all open screens!`
+          );
+          window.setTimeout(() => setBroadcastDeliveryNote(''), 6000);
+        }
+      }
+    } catch {}
   };
 
   const handleClearBroadcast = async () => {
@@ -4170,10 +4187,11 @@ export default function CampusAIChat() {
     setBroadcastInput('');
     setActiveBroadcastOverlay(null);
     lastSeenBroadcastTextRef.current = '';
+    lastSeenBroadcastIdRef.current = 0;
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'SET_BROADCAST', broadcast: '' }),
+      body: JSON.stringify({ action: 'SET_BROADCAST', broadcast: '', user: currentUser }),
     });
   };
 
@@ -4184,7 +4202,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'SET_REALM_FREEZE', freeze: nextFreeze }),
+      body: JSON.stringify({ action: 'SET_REALM_FREEZE', freeze: nextFreeze, user: currentUser }),
     });
   };
 
@@ -4204,6 +4222,7 @@ export default function CampusAIChat() {
         studentName: selectedDirectName || selectedDirectTarget,
         sender: 'ikA',
         text,
+        user: currentUser,
       }),
     });
     syncWithServer();
@@ -4225,6 +4244,7 @@ export default function CampusAIChat() {
         studentName: currentUser.name,
         sender: 'student',
         text,
+        user: currentUser,
       }),
     });
     syncWithServer();
@@ -4234,7 +4254,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'CLEAR_DIRECT_CHAT', studentAdmissionNo: admNo }),
+      body: JSON.stringify({ action: 'CLEAR_DIRECT_CHAT', studentAdmissionNo: admNo, user: currentUser }),
     });
     syncWithServer();
   };
@@ -4243,7 +4263,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'KICK_USER', targetAdmissionNo: targetAdm }),
+      body: JSON.stringify({ action: 'KICK_USER', targetAdmissionNo: targetAdm, user: currentUser }),
     });
   };
 
@@ -4254,11 +4274,15 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'FORCE_USER_COMMAND', targetAdmissionNo: targetAdm, command }),
+      body: JSON.stringify({ action: 'FORCE_USER_COMMAND', targetAdmissionNo: targetAdm, command, user: currentUser }),
     });
   };
 
   const handleCreateNewChat = () => {
+    if (streamIntervalRef.current !== null) {
+      window.clearInterval(streamIntervalRef.current);
+      streamIntervalRef.current = null;
+    }
     const newId = `session-${Date.now()}`;
     setSessions([{ id: newId, title: 'New Chat', messages: [], createdAt: 'Just now' }, ...sessions]);
     setActiveSessionId(newId);
@@ -4268,6 +4292,10 @@ export default function CampusAIChat() {
   };
 
   const handleDeleteSession = (sessionIdToDelete: string) => {
+    if (streamIntervalRef.current !== null) {
+      window.clearInterval(streamIntervalRef.current);
+      streamIntervalRef.current = null;
+    }
     const remaining = sessions.filter((s) => s.id !== sessionIdToDelete);
     if (remaining.length === 0) {
       const freshId = `session-${Date.now()}`;
@@ -4282,6 +4310,10 @@ export default function CampusAIChat() {
   };
 
   const handleLogout = () => {
+    if (streamIntervalRef.current !== null) {
+      window.clearInterval(streamIntervalRef.current);
+      streamIntervalRef.current = null;
+    }
     pauseMusic();
     setIsSidebarOpen(false);
     sessionStorage.removeItem('campus_tab_user');
@@ -4296,12 +4328,30 @@ export default function CampusAIChat() {
   };
 
   const simulateStreaming = (fullText: string, currentMessages: Message[], targetSessionId: string) => {
+    if (streamIntervalRef.current !== null) {
+      window.clearInterval(streamIntervalRef.current);
+      streamIntervalRef.current = null;
+    }
+    // For replies embedding interactive Data Analytics project cards, render immediately so Copy buttons are instantly clickable!
+    if (fullText.includes('[DA_PROJECT|')) {
+      setStreamingText('');
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === targetSessionId ? { ...s, messages: [...currentMessages, { role: 'assistant', content: fullText }] } : s
+        )
+      );
+      setIsLoading(false);
+      return;
+    }
     let index = 0;
     setStreamingText('');
-    const interval = setInterval(() => {
-      index += 18;
+    streamIntervalRef.current = window.setInterval(() => {
+      index += 24;
       if (index >= fullText.length) {
-        clearInterval(interval);
+        if (streamIntervalRef.current !== null) {
+          window.clearInterval(streamIntervalRef.current);
+          streamIntervalRef.current = null;
+        }
         setStreamingText('');
         setSessions((prev) => prev.map((s) => (s.id === targetSessionId ? { ...s, messages: [...currentMessages, { role: 'assistant', content: fullText }] } : s)));
         setIsLoading(false);
@@ -4349,7 +4399,7 @@ export default function CampusAIChat() {
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'DELETE_MARKETPLACE_ITEM', id: itemId }),
+      body: JSON.stringify({ action: 'DELETE_MARKETPLACE_ITEM', id: itemId, user: currentUser }),
     });
   };
 
@@ -4486,8 +4536,9 @@ export default function CampusAIChat() {
         return `🌸👑 **Aap hamare iss poore Portal ki Queen hain — Agrima Gupta!** 💖✨\n\n• 🌷 **Royal Title:** **Queen of ikA's World**\n• 🪪 **Official ID:** \`${currentUser?.admissionNo}\` (Group **G1** • Hosteller)\n• 💫 **Special Privilege:** Jab aap login karti hain toh poori website pe Sakura phool baraste hain aur dark theme gulabi ho jaati hai, kyunki Boss **ikA** ki nazar me aap sabse khaas hain! 😊🌸\n\nBataiye My Queen, aaj aapki kya khidmat ki jaye? 👇💖\n\n${sugg}`;
       }
       if (currentUser) {
+        const sec = currentUser.section || (CSE8_ROSTER[currentUser.admissionNo] ? 'CSE-8' : 'CSE-2');
         return wrapQueenOrBoss(
-          `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎'}, tumhe kaise bhool sakta hu! Yeh dekho apni official CSE-2 kundli:\n\n• 🌟 **Full Name:** **${currentUser.name}**\n• 🪪 **Admission No:** \`${currentUser.admissionNo}\`\n• 🧪 **Lab Group:** **${currentUser.group || 'G1/G2'}**\n• 🏠 **Residency:** **${currentUser.residency || 'CSE-2 Scholar'}**\n• 🎉 **Special Status:** Specially invited into this realm by **Boss ikA**! 👑\n\nBatao ${first}, ab agla kya explore karein? 👇`,
+          `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎'}, tumhe kaise bhool sakta hu! Yeh dekho apni official ${sec} kundli:\n\n• 🌟 **Full Name:** **${currentUser.name}**\n• 🪪 **Admission No:** \`${currentUser.admissionNo}\`\n• 🏫 **Section:** **${sec}**\n• 🧪 **Lab Group:** **${currentUser.group || 'G1/G2'}**\n• 🏠 **Residency:** **${currentUser.residency || `${sec} Scholar`}**\n• 🎉 **Special Status:** Specially invited into this realm by **Boss ikA**! 👑\n\nBatao ${first}, ab agla kya explore karein? 👇`,
           'Tum kaise ho?'
         );
       }
@@ -4521,6 +4572,17 @@ export default function CampusAIChat() {
       );
     }
 
+    // CSE-8 Faculty Dossiers
+    if (clean.includes('mayank kushwaha') || clean.includes('myk')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.mayank_kushwaha, 'Dr. Bhanumati Panda ke baare me batao');
+    if (clean.includes('bhanumati') || clean.includes('bp')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.bhanumati_panda, 'Mr. Shahbaz Alam ke baare me batao');
+    if (clean.includes('shahbaz') || (clean.includes('sa') && clean.includes('faculty'))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.shahbaz_alam, 'Mr. Aditya Vats ke baare me batao');
+    if (clean.includes('aditya vats') || clean.includes('av')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.aditya_vats, 'Dr. Shruti Singh ke baare me batao');
+    if (clean.includes('shruti singh') || (clean.includes('shruti') && !clean.includes('shweta'))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.shruti_singh, 'Dr. Shweta Sharma ke baare me batao');
+    if (clean.includes('shweta sharma') || clean.includes('ssh')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.shweta_sharma, 'Mr. Rohit Pratap Singh ke baare me batao');
+    if (clean.includes('rohit pratap') || clean.includes('rps')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.rohit_pratap, 'Mr. Mayank Mittal ke baare me batao');
+    if (clean.includes('mayank mittal') || clean.includes('mml')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.mayank_mittal, 'Mr. Mayank Kushwaha ke baare me batao');
+
+    // CSE-2 Faculty Dossiers
     if (clean.includes('prerna') || clean.includes('prerana') || clean.includes('mohapatra')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.prerna, 'Dr. Divyanshi Sharma ke baare me batao');
     if (clean.includes('divyanshi') || clean.includes('dsh')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.divyanshi, 'Prof. Shivam Mittal ki lore batao');
     if (clean.includes('shivam') || clean.includes('mittal')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.shivam, 'Prof. Vimal Srivastava ke baare me batao');
@@ -4529,6 +4591,9 @@ export default function CampusAIChat() {
     if (clean.includes('shailja') || clean.includes('varshney')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.shailja, 'Dr. Prerana Mohapatra ka profile dikhao');
     if (clean.includes('rahul singh') || (clean.includes('rahul') && clean.includes('batao'))) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.rahul, 'Dr. Prerana Mohapatra ka profile dikhao');
     if (clean.includes('show all faculty') || clean.includes('all faculty')) {
+      if (isCSE8) {
+        return wrapQueenOrBoss(`### 🎓 Complete Section CSE-8 Faculty Directory\n\n${Object.values(CSE8_FACULTY_DOSSIERS).join('\n\n---\n\n')}`, 'All 14 Cyber Security tools dikhao 🛡️');
+      }
       return wrapQueenOrBoss(`### 🎓 Complete Section CSE-2 Faculty Directory\n\n${Object.values(LOCAL_FACULTY_DOSSIERS).join('\n\n---\n\n')}`, 'Kya 50 LPA ka package lagta hai?');
     }
 
@@ -4593,9 +4658,16 @@ export default function CampusAIChat() {
     }
 
     // Conversational Hinglish Catch-All so NO input ever feels robotic!
+    if (isCSE8) {
+      return wrapQueenOrBoss(
+        `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Tumne likha: ***"${rawQuery.trim()}"*** 💬\n\nMain **ikA's World** ka AI dost hu (Section CSE-8 Edition)! Agar tumhe inme se kuch chahiye toh bas ek click karo ya likh do:\n• 🛡️💻 **14 HCLTech Cyber Analysis Python Tools:** *"All 14 Cyber Security projects"*, *"Port Scanner"*, *"Keylogger"*, *"Caesar Cipher"*, *"DNS CLI"*, *"Hash Cracker"*, *"Web Scanner"*, *"Steganography"*, *"Firewall Rule Engine"*\n• ⏰ **CSE-8 Timetable:** *"CSE-8 ka timetable dikhao"*\n• 👩‍🏫 **CSE-8 Faculty:** *"Mr. Mayank Kushwaha"*, *"Dr. Bhanumati Panda"*, *"Mr. Shahbaz Alam"*, *"Show all faculty"*\n• 🍔 **Canteen & Food:** *"Boys hostel canteen"* ya *"Tea Men's Cafe"*\n• 🎭 **Campus Fun:** *"Ek mast campus joke sunao"*! 👇🍎`,
+        'All 14 Cyber Security tools dikhao 🛡️'
+      );
+    }
+
     return wrapQueenOrBoss(
-      `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Tumने likha: ***"${rawQuery.trim()}"*** 💬\n\nMain **ikA's World** ka AI dost hu—mujhse tum bilkul khul ke baat kar sakte ho! Agar tumhe inme se kuch chahiye toh bas ek click karo ya likh do:\n• 🍔 **Canteen & Food:** *"Boys hostel waali canteen"* (K.J Cafe) ya *"College upper waali canteen"* (Tea Men's Cafe)\n• 📄 **Solved MT-2 Papers:** *"Solve full AI MT2 paper"*, *"Physics MT2 Q.1"*, *"Maths MT2 Section C"*\n• 👩‍🏫 **Faculty & Bunks:** *"Show all faculty"*, *"Safe bunk & SGPA"*, ya *"Ek mast campus joke sunao"*! 👇🍎`,
-      'Boys hostel waali canteen ka menu dikhao 🍔'
+      `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Tumne likha: ***"${rawQuery.trim()}"*** 💬\n\nMain **ikA's World** ka AI dost hu—mujhse tum bilkul khul ke baat kar sakte ho! Agar tumhe inme se kuch chahiye toh bas ek click karo ya likh do:\n• 🐍📊 **10 HCLTech Data Analytics Python Projects:** *"All 10 Data Analytics projects"*, *"Budget Tracker"*, *"IPL Analysis"*, *"Spotify"*, ya *"Project 1"*–*"Project 10"*\n• 🍔 **Canteen & Food:** *"Boys hostel waali canteen"* (K.J Cafe) ya *"College upper waali canteen"* (Tea Men's Cafe)\n• 📄 **Solved MT-2 Papers:** *"Solve full AI MT2 paper"*, *"Physics MT2 Q.1"*, *"Maths MT2 Section C"*\n• 👩‍🏫 **Faculty & Bunks:** *"Show all faculty"*, *"Safe bunk & SGPA"*, ya *"Ek mast campus joke sunao"*! 👇🍎`,
+      'All 10 HCLTech Data Analytics Python projects dikhao 🐍📊'
     );
   };
 
@@ -4676,9 +4748,12 @@ export default function CampusAIChat() {
     sendQuery(input, false);
   };
 
-  const filteredPapers = ALL_PAPERS.filter(
-    (p) => p.name.toLowerCase().includes(paperSearch.toLowerCase()) || p.code.toLowerCase().includes(paperSearch.toLowerCase()) || p.short.toLowerCase().includes(paperSearch.toLowerCase())
-  );
+  const filteredPapers = useMemo(() => {
+    const q = paperSearch.toLowerCase();
+    return ALL_PAPERS.filter(
+      (p) => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.short.toLowerCase().includes(q)
+    );
+  }, [paperSearch]);
 
   const filteredCanteenItems = useMemo(() => {
     return ALL_CANTEEN_ITEMS.filter((item) => {
@@ -5868,6 +5943,10 @@ export default function CampusAIChat() {
                 <span className="flex items-center gap-2"><span>🍔</span> Canteen Menus</span>
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">LIVE</span>
               </button>
+              <button type="button" onClick={() => {setCurrentWindow('data_analytics'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'data_analytics' ? 'bg-gradient-to-r from-red-600/30 to-emerald-600/30 text-white border border-red-500/40' : 'text-gray-300 hover:bg-white/5'}`}>
+                <span className="flex items-center gap-2"><span>⚡</span> DATA &amp; CYBER Analysis (HCL)</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">24 PY</span>
+              </button>
               <button onClick={() => {setCurrentWindow('papers'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'papers' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>📄</span> Solved Sample Papers</button>
               <button onClick={() => {setCurrentWindow('placement'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'placement' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>🎯</span> Placement &amp; Packages</button>
               <button onClick={() => {setCurrentWindow('timetable'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'timetable' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>⏰</span> Class Time Table</button>
@@ -5915,7 +5994,15 @@ export default function CampusAIChat() {
         {/* TOP HEADER */}
         <header className={`flex-shrink-0 flex items-center justify-between px-3 sm:px-6 py-3 border-b border-white/[0.08] ${globalBgColor} z-30 h-16 w-full`}>
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-gray-300 text-xs transition cursor-pointer">☰</button>
+            <button
+              type="button"
+              aria-label="Toggle navigation menu"
+              aria-expanded={isSidebarOpen}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-gray-300 text-xs transition cursor-pointer"
+            >
+              ☰
+            </button>
             <button onClick={() => setCurrentWindow('home')} className="flex items-center gap-2.5 text-left cursor-pointer group">
               <div className={`w-8 h-8 rounded-xl ${ikaRedBlackBox} flex items-center justify-center font-black text-xs`}>ikA</div>
               <div>
@@ -5947,7 +6034,7 @@ export default function CampusAIChat() {
                 💬 Boss ikA ({directChatMessages.length})
               </button>
             )}
-            <button onClick={() => setShowSakuraPetals(!showSakuraPetals)} className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer ${showSakuraPetals ? 'bg-pink-500/15 border-pink-500/40 text-pink-300' : 'bg-white/[0.05] border-white/10 text-gray-400 hover:text-white'}`}>
+            <button type="button" onClick={() => setShowSakuraPetals(!showSakuraPetals)} className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer ${showSakuraPetals ? 'bg-pink-500/15 border-pink-500/40 text-pink-300' : 'bg-white/[0.05] border-white/10 text-gray-400 hover:text-white'}`}>
               🌸 <span className="hidden sm:inline">{showSakuraPetals ? 'Petals' : 'Off'}</span>
             </button>
             <button onClick={toggleMusic} className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold transition cursor-pointer ${isMusicPlaying ? 'bg-red-600/20 border-red-500/50 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.35)]' : 'bg-white/[0.05] border-white/10 text-gray-400 hover:text-white'}`}>
@@ -5983,13 +6070,14 @@ export default function CampusAIChat() {
             </div>
             <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
               <button
-                onClick={() => triggerFlyingAnnouncement(sovereignBroadcast)}
+                type="button"
+                onClick={() => triggerFlyingAnnouncement(sovereignBroadcast, { notifyDevice: false })}
                 className="px-2.5 py-1 rounded-lg bg-red-600/25 hover:bg-red-600 text-red-200 hover:text-white text-[10px] font-bold border border-red-500/40 cursor-pointer"
               >
                 🔔 Replay Animation
               </button>
               {isBoss && (
-                <button onClick={handleClearBroadcast} className="text-[10px] text-red-300 hover:text-white underline cursor-pointer">
+                <button type="button" onClick={handleClearBroadcast} className="text-[10px] text-red-300 hover:text-white underline cursor-pointer">
                   Clear ✕
                 </button>
               )}
@@ -6016,7 +6104,8 @@ export default function CampusAIChat() {
             <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-emerald-400 font-bold">End Semester:</span><span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-semibold">{countdowns.endSem} days left</span></div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            <button onClick={() => setCurrentWindow('canteen')} className="text-[11px] text-emerald-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🍔 Canteen Menus</button>
+            <button type="button" onClick={() => setCurrentWindow('data_analytics')} className="text-[11px] text-rose-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🐍 10 Python Projects</button>
+            <button type="button" onClick={() => setCurrentWindow('canteen')} className="text-[11px] text-emerald-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🍔 Canteen Menus</button>
             <button onClick={() => setCurrentWindow('bunk_sgpa')} className="text-[11px] text-cyan-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🛡️🧮 Bunk &amp; SGPA</button>
             <button onClick={() => sendQuery('Ek mast campus joke sunao 😂', true)} className="text-[11px] text-amber-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">😂 250+ Jokes</button>
             <button onClick={() => { triggerMovieWhiteFlash(); setBossIntroTime(0); setCurrentWindow('boss_intro'); if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {}); } }} className="text-[11px] text-red-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🍎 Replay Intro</button>
@@ -6061,35 +6150,35 @@ export default function CampusAIChat() {
             </div>
           )}
 
-          {/* VIEW 0: HOME OVERVIEW (4 MAIN TILES + UPCOMING EXPANSIONS UNDERNEATH) */}
+          {/* VIEW 0: HOME OVERVIEW (4 MAIN TILES + HCL CAREER SHAPER + UPCOMING EXPANSIONS) */}
           {currentWindow === 'home' && (
-            <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center p-4 relative">
+            <div className="flex-1 overflow-y-auto flex flex-col items-center justify-start p-4 sm:p-6 relative">
               <div className={`absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${isBoss ? 'from-red-900/35 via-black to-black' : isAgrima ? 'from-pink-900/30' : 'from-red-900/20'} via-transparent to-transparent opacity-85 pointer-events-none`} />
-              <div className="w-full max-w-4xl space-y-5 text-center relative z-10 animate-in fade-in zoom-in-95 duration-200 my-auto py-2">
-                <div className="space-y-3 mb-2">
+              <div className="w-full max-w-4xl space-y-4 text-center relative z-10 animate-in fade-in zoom-in-95 duration-200 py-3 sm:py-6">
+                <div className="space-y-2 mb-1">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-[11px] font-bold text-red-400 tracking-widest uppercase">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" /> {isBoss ? '👑 SUPREME SANCTUM OF BOSS ikA (1402)' : isAgrima ? '🌸 ROYAL PALACE OF QUEEN AGRIMA' : '💀 Sovereign Realm of ikA • Section CSE-2 🍎'}
                   </span>
-                  <h1 className={`text-4xl sm:text-5xl md:text-6xl font-black font-serif tracking-widest uppercase leading-tight ${isBoss ? 'text-red-500 drop-shadow-[0_0_35px_rgba(220,38,38,1)]' : isAgrima ? 'text-pink-400 drop-shadow-[0_0_25px_rgba(236,72,153,0.9)]' : 'text-red-600 drop-shadow-[0_0_30px_rgba(220,38,38,0.95)]'} animate-pulse`}>
+                  <h1 className={`text-3xl sm:text-4xl md:text-5xl font-black font-serif tracking-widest uppercase leading-tight ${isBoss ? 'text-red-500 drop-shadow-[0_0_35px_rgba(220,38,38,1)]' : isAgrima ? 'text-pink-400 drop-shadow-[0_0_25px_rgba(236,72,153,0.9)]' : 'text-red-600 drop-shadow-[0_0_30px_rgba(220,38,38,0.95)]'} animate-pulse`}>
                     Welcome To ikA&apos;s World
                   </h1>
-                  <p className="text-lg md:text-2xl font-bold text-white tracking-wide">
+                  <p className="text-base md:text-xl font-bold text-white tracking-wide">
                     {isBoss ? '👑 Pranaam Supreme Boss ikA!' : isAgrima ? '👑 Swagat hai My Queen Agrima! 🌸' : `Hi ${currentUser?.name || 'Engineer'}! 👋✨`}
                   </p>
-                  <div onClick={() => setCurrentWindow('chat')} className={`max-w-2xl mx-auto p-3.5 rounded-2xl bg-black/70 border ${accentBorder} shadow-[0_0_25px_rgba(220,38,38,0.2)] text-xs sm:text-sm font-mono leading-relaxed cursor-pointer hover:border-white/40 transition`}>
+                  <div onClick={() => setCurrentWindow('chat')} className={`max-w-2xl mx-auto p-3 rounded-2xl bg-black/70 border ${accentBorder} shadow-[0_0_25px_rgba(220,38,38,0.2)] text-xs sm:text-sm font-mono leading-relaxed cursor-pointer hover:border-white/40 transition`}>
                     <span className={isBoss ? 'text-red-200' : isAgrima ? 'text-pink-200' : 'text-red-200'}>{overviewBossWhisper}</span>
                     <span className="inline-block w-2 h-4 ml-1 bg-red-500 animate-ping align-middle" />
                   </div>
                 </div>
 
                 {/* 1. THE 4 MAIN OVERVIEW TILES */}
-                <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto pt-1">
-                  <div onClick={() => setCurrentWindow('faculty')} className="p-5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-pink-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-36">
-                    <div className="flex items-center justify-between"><div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-xl">👩‍🏫</div><span className="text-[10px] font-semibold text-pink-400">Dossiers</span></div>
+                <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-3.5 max-w-4xl mx-auto pt-1">
+                  <div onClick={() => setCurrentWindow('faculty')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-pink-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-lg">👩‍🏫</div><span className="text-[10px] font-semibold text-pink-400">Dossiers</span></div>
                     <div><h3 className="text-sm font-bold text-white">Faculty Dossiers</h3><p className="text-[11px] text-gray-400 mt-0.5">Vibes, background &amp; survival tips</p></div>
                   </div>
-                  <div onClick={() => setCurrentWindow('timetable')} className="p-5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-amber-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-36">
-                    <div className="flex items-center justify-between"><div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl">⏰</div><span className="text-[10px] font-semibold text-amber-400">Live Status</span></div>
+                  <div onClick={() => setCurrentWindow('timetable')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-amber-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-lg">⏰</div><span className="text-[10px] font-semibold text-amber-400">Live Status</span></div>
                     <div>
                       <h3 className="text-sm font-bold text-white">Time Table</h3>
                       <div className="h-[18px] overflow-hidden relative mt-0.5">
@@ -6099,14 +6188,45 @@ export default function CampusAIChat() {
                       </div>
                     </div>
                   </div>
-                  <div onClick={() => setCurrentWindow('placement')} className="p-5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-emerald-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-36">
-                    <div className="flex items-center justify-between"><div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xl">🎯</div><span className="text-[10px] font-semibold text-emerald-400">Packages</span></div>
+                  <div onClick={() => setCurrentWindow('placement')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-emerald-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-lg">🎯</div><span className="text-[10px] font-semibold text-emerald-400">Packages</span></div>
                     <div><h3 className="text-sm font-bold text-white">Placement Reality</h3><p className="text-[11px] text-gray-400 mt-0.5">5 to 60 LPA &amp; CGPA truth</p></div>
                   </div>
-                  <div onClick={() => setCurrentWindow('papers')} className="p-5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-36">
-                    <div className="flex items-center justify-between"><div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-xl">📄</div><span className="text-[10px] font-semibold text-emerald-400">All 10 Solved!</span></div>
+                  <div onClick={() => setCurrentWindow('papers')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-lg">📄</div><span className="text-[10px] font-semibold text-emerald-400">All 10 Solved!</span></div>
                     <div><h3 className="text-sm font-bold text-white">Sample Papers &amp; Keys</h3><p className="text-[11px] text-gray-400 mt-0.5">MT-1, MT-2 &amp; Full Solved Keys</p></div>
                   </div>
+                </div>
+
+                {/* 1B. FEATURED HCLTECH CAREER SHAPER BANNER (COMPACT & SLEEK) */}
+                <div className="max-w-4xl mx-auto pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentWindow('data_analytics')}
+                    className="w-full px-4 py-3 rounded-2xl bg-gradient-to-r from-red-950/60 via-zinc-950/80 to-emerald-950/40 hover:from-red-950/80 hover:to-emerald-950/60 border border-red-500/40 hover:border-red-400/70 shadow-lg transition flex items-center justify-between gap-3 text-left cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600/30 to-red-600/30 border border-red-500/40 flex items-center justify-center text-lg flex-shrink-0">
+                        ⚡
+                      </div>
+                      <div className="truncate">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-xs sm:text-sm font-black text-white truncate">
+                            HCLTech Career Shaper — DATA &amp; CYBER Analysis Vault
+                          </h3>
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold hidden sm:inline-block">
+                            📊 DATA (10) + 🛡️ CYBER (14)
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-300 truncate mt-0.5">
+                          24 Ready-to-Run Python Scripts • Auto CSVs, EDA Charts &amp; Complete Cybersecurity Scanners • Copy &amp; Download .PY
+                        </p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-emerald-600 text-white text-xs font-bold whitespace-nowrap flex-shrink-0">
+                      Explore DATA &amp; CYBER Vault →
+                    </span>
+                  </button>
                 </div>
 
                 {/* 2. UPCOMING / COMING SOON TILES DIRECTLY UNDER THE 4 TILES */}
@@ -6450,23 +6570,33 @@ export default function CampusAIChat() {
                     </div>
                   </div>
 
-                  {/* 2. GLOBAL FLYING ANNOUNCEMENT BROADCAST (Flies in on all screens + Bell Sound) */}
+                  {/* 2. GLOBAL FLYING ANNOUNCEMENT BROADCAST (Flies in on all screens + Bell Sound + Device Push Notification!) */}
                   <form onSubmit={handleSaveBroadcast} className="p-5 rounded-2xl bg-black/70 border border-amber-500/40 space-y-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                      <span>🔔📢</span> Sovereign Flying Announcement (Flies Letter-by-Letter + Bell Sound &amp; Pinned Top Bar)
-                    </h4>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                        <span>🔔📢</span> Sovereign Flying Announcement (Screens + Bell + Device Push Notification)
+                      </h4>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono text-emerald-300">
+                        📱 {pushSubscriberCount} Device{pushSubscriberCount === 1 ? '' : 's'} Subscribed
+                      </span>
+                    </div>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={broadcastInput}
                         onChange={(e) => setBroadcastInput(e.target.value)}
-                        placeholder="Type announcement (flies onto all screens & plays after login intro with Bell sound)..."
+                        placeholder="Type announcement (pushes notification to devices + flies onto all screens with Bell sound)..."
                         className="flex-1 bg-white/5 border border-amber-500/30 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-amber-400"
                       />
                       <button type="submit" className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold cursor-pointer">
-                        🔔 Launch Flying Broadcast
+                        🔔 Broadcast &amp; Push Notify
                       </button>
                     </div>
+                    {broadcastDeliveryNote && (
+                      <p role="status" aria-live="polite" className="text-[11px] text-emerald-300 font-mono">
+                        {broadcastDeliveryNote}
+                      </p>
+                    )}
                   </form>
 
                   {/* 2B. SHINIGAMI REQUEST BOX CONTROL: CHANGE SECRET CODE ANYTIME + STUDENT PETITIONS INBOX */}
@@ -6903,21 +7033,346 @@ export default function CampusAIChat() {
             </div>
           )}
 
-          {/* VIEW: FACULTY DOSSIERS (100% COMPLETE DATA FOR ALL 7 PROFESSORS + COMING SOON FOOTER) */}
+          {/* VIEW: FACULTY DOSSIERS (SECTION-ISOLATED: CSE-8 ONLY FOR CSE-8, CSE-2 ONLY FOR CSE-2, BOSS TOGGLE) */}
           {currentWindow === 'faculty' && (
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-10">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-bold text-lg text-white">Section CSE-2 Faculty Dossiers</h3>
-                    <p className="text-xs text-gray-400">Complete classroom reality guides, academic pedigrees &amp; survival tips</p>
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 mb-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Verified {isCSE8 ? 'Section CSE-8' : 'Section CSE-2'} Faculty Directory
+                    </div>
+                    <h3 className="font-bold text-lg text-white">
+                      {isCSE8 ? 'Section CSE-8 Faculty Dossiers' : 'Section CSE-2 Faculty Dossiers'}
+                    </h3>
+                    <p className="text-xs text-gray-400">
+                      {isCSE8
+                        ? 'Official faculty roster from CSE-8 Timetable (w.e.f. 28.10.2026) • Classroom reality & survival tips'
+                        : 'Complete classroom reality guides, academic pedigrees & survival tips'}
+                    </p>
                   </div>
-                  <button onClick={() => sendQuery('Show all faculty', true)} className={`text-xs ${accentText} hover:underline cursor-pointer`}>
-                    View Full Directory in Chat ↗
-                  </button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {isBoss && (
+                      <div className="flex items-center p-1 rounded-xl bg-black/60 border border-white/10 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setBossSectionOverride('CSE-2')}
+                          className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                            bossSectionOverride === 'CSE-2' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          CSE-2
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBossSectionOverride('CSE-8')}
+                          className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                            bossSectionOverride === 'CSE-8' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
+                          }`}
+                        >
+                          CSE-8
+                        </button>
+                      </div>
+                    )}
+                    <button onClick={() => sendQuery('Show all faculty', true)} className={`text-xs ${accentText} hover:underline cursor-pointer`}>
+                      View Full Directory in Chat ↗
+                    </button>
+                  </div>
                 </div>
 
-                {/* 1. DR. PRERANA MOHAPATRA */}
+                {isCSE8 ? (
+                  <>
+                    {/* 1. MR. MAYANK KUSHWAHA */}
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-950/30 via-white/[0.04] to-white/[0.02] border border-amber-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                      <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
+                        <span className="text-5xl mb-2">⚙️</span>
+                        <span className="text-xs font-bold text-amber-300">Class Mentor-1</span>
+                        <span className="text-[10px] text-gray-400">Section CSE-8</span>
+                        <span className="mt-2 text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">Room RJ-204</span>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div>
+                            <div className="inline-flex px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold uppercase">
+                              Mechanical &amp; Automation (25ME101) • Class Mentor-1
+                            </div>
+                            <h4 className="text-xl font-bold text-white mt-1">Mr. Mayank Kushwaha (MYK)</h4>
+                            <p className="text-xs text-gray-400">Assistant Professor &amp; CSE-8 Class Mentor-1 | Applied Sciences &amp; Mechanical Engg.</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-amber-200/90 italic bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
+                          &ldquo;Workshop precision pe zero compromise, but concept samjhane ka style ekdum crystal clear!&rdquo; ⚙️🔧
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+                          <div>⚙️ <strong>Domain:</strong> Digital Manufacturing &amp; Automation</div>
+                          <div>🏫 <strong>Classroom:</strong> RJ-204 (Mon) &amp; RJ-205 (Tue)</div>
+                          <div>🔩 <strong>Lab:</strong> Digital Mfg Lab (VB Block)</div>
+                          <div>🛡️ <strong>Mentorship:</strong> CSE-8 Mentor-1 (RJ-204)</div>
+                        </div>
+                        <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
+                          💡 <strong>Survival Tip:</strong> Digital Mfg Lab (VB Block) me safety protocols follow karo, workshop files time pe check karao, aur diagrams clean banao!
+                        </div>
+                        <button onClick={() => sendQuery('Mr. Mayank Kushwaha ke baare me batao', true)} className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shadow cursor-pointer">
+                          View Complete Dossier in Chat 💬
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 2. DR. BHANUMATI PANDA */}
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/30 via-white/[0.04] to-white/[0.02] border border-blue-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                      <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
+                        <span className="text-5xl mb-2">📐</span>
+                        <span className="text-xs font-bold text-blue-300">Class Mentor-2</span>
+                        <span className="text-[10px] text-gray-400">Section CSE-8</span>
+                        <span className="mt-2 text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">FLAS • RJ-205/207</span>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div>
+                            <div className="inline-flex px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase">
+                              Linear Algebra &amp; Statistics (25AS102 • FLAS) • Class Mentor-2
+                            </div>
+                            <h4 className="text-xl font-bold text-white mt-1">Dr. Bhanumati Panda (BP)</h4>
+                            <p className="text-xs text-gray-400">Professor &amp; CSE-8 Class Mentor-2 | Applied Sciences &amp; Humanities</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-blue-200/90 italic bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20">
+                          &ldquo;Matrices aur Eigenvalues ka step-by-step masterclass—endlessly patient aur har student ka doubt clear karti hain!&rdquo; 📐✨
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+                          <div>📐 <strong>Subject:</strong> FLAS (25AS102) &amp; Tutorial</div>
+                          <div>🏫 <strong>Classrooms:</strong> RJ-204, RJ-205 &amp; RJ-207</div>
+                          <div>♾️ <strong>Core:</strong> Linear Algebra, Vector Spaces &amp; Stats</div>
+                          <div>🌸 <strong>Mentorship:</strong> CSE-8 Class Mentor-2</div>
+                        </div>
+                        <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
+                          💡 <strong>Survival Tip:</strong> Class me alert raho, derivations step-by-step notebook me utaaro, aur doubts poochne me bilkul jhijhako mat!
+                        </div>
+                        <button onClick={() => sendQuery('Dr. Bhanumati Panda ke baare me batao', true)} className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow cursor-pointer">
+                          View Complete Dossier in Chat 💬
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 3. MR. SHAHBAZ ALAM */}
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-950/30 via-white/[0.04] to-white/[0.02] border border-emerald-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                      <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
+                        <span className="text-5xl mb-2">💻</span>
+                        <span className="text-xs font-bold text-emerald-300">C++ Faculty</span>
+                        <span className="text-[10px] text-gray-400">Section CSE-8</span>
+                        <span className="mt-2 text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">KCLG-05 Lab G1</span>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div>
+                            <div className="inline-flex px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase">
+                              Computer Science • Programming in C++ (25CS101)
+                            </div>
+                            <h4 className="text-xl font-bold text-white mt-1">Mr. Shahbaz Alam (SA)</h4>
+                            <p className="text-xs text-gray-400">Assistant Professor | Computer Science &amp; Engineering</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-emerald-200/90 italic bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
+                          &ldquo;Pointers, memory allocation aur OOP concepts ka practical masterclass—logic clear karo, marks apne aap aayenge!&rdquo; 💻⚡
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+                          <div>🖥️ <strong>Subject:</strong> Programming in C++ (25CS101)</div>
+                          <div>📍 <strong>Lab Location:</strong> KCLG-05 (Group 1 Coordinator)</div>
+                          <div>⚡ <strong>Domain:</strong> OOP, Memory Models &amp; Data Structures</div>
+                          <div>🏫 <strong>Lecture Halls:</strong> RJ-204, RJ-205 &amp; RJ-207</div>
+                        </div>
+                        <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
+                          💡 <strong>Survival Tip:</strong> Compiler errors se bhago mat! Segmentation fault aaye toh debugger aur dry-run seekho—internals me full coding credits milte hain!
+                        </div>
+                        <button onClick={() => sendQuery('Mr. Shahbaz Alam ke baare me batao', true)} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow cursor-pointer">
+                          View Complete Dossier in Chat 💬
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 4. MR. ADITYA VATS */}
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-950/30 via-white/[0.04] to-white/[0.02] border border-purple-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                      <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
+                        <span className="text-5xl mb-2">🎙️</span>
+                        <span className="text-xs font-bold text-purple-300">Soft Skills Lead</span>
+                        <span className="text-[10px] text-gray-400">Section CSE-8</span>
+                        <span className="mt-2 text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">25HU101</span>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div>
+                            <div className="inline-flex px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold uppercase">
+                              Humanities • Soft Skills (25HU101)
+                            </div>
+                            <h4 className="text-xl font-bold text-white mt-1">Mr. Aditya Vats (AV)</h4>
+                            <p className="text-xs text-gray-400">Assistant Professor | Humanities &amp; Soft Skills</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-purple-200/90 italic bg-purple-500/10 p-2.5 rounded-xl border border-purple-500/20">
+                          &ldquo;Corporate etiquette aur communicative finesse ka smart blend—confidence building sessions with dynamic energy!&rdquo; 🎙️👔
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+                          <div>🗣️ <strong>Subject:</strong> Soft Skills (25HU101)</div>
+                          <div>👔 <strong>Domain:</strong> Business Communication &amp; Personality</div>
+                          <div>🏫 <strong>Classrooms:</strong> RJ-204, RJ-205 &amp; RJ-207</div>
+                          <div>🎯 <strong>Focus:</strong> Public Speaking &amp; Corporate Dynamics</div>
+                        </div>
+                        <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
+                          💡 <strong>Survival Tip:</strong> Speaking activities me actively participate karo! Formal body language aur professional vocabulary build karne ka safe space hai.
+                        </div>
+                        <button onClick={() => sendQuery('Mr. Aditya Vats ke baare me batao', true)} className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow cursor-pointer">
+                          View Complete Dossier in Chat 💬
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 5. DR. SHRUTI SINGH */}
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-pink-950/30 via-white/[0.04] to-white/[0.02] border border-pink-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                      <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
+                        <span className="text-5xl mb-2">🗣️</span>
+                        <span className="text-xs font-bold text-pink-300">PC Lab In-Charge</span>
+                        <span className="text-[10px] text-gray-400">Section CSE-8</span>
+                        <span className="mt-2 text-[10px] font-mono px-2 py-0.5 rounded bg-pink-500/10 text-pink-300 border border-pink-500/20">KC-510 Lab</span>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div>
+                            <div className="inline-flex px-2.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 text-[10px] font-bold uppercase">
+                              Soft Skills &amp; Professional Communication Lab (25HU151 in KC-510)
+                            </div>
+                            <h4 className="text-xl font-bold text-white mt-1">Dr. Shruti Singh (SS)</h4>
+                            <p className="text-xs text-gray-400">Assistant Professor | Humanities &amp; Professional Communication</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-pink-200/90 italic bg-pink-500/10 p-2.5 rounded-xl border border-pink-500/20">
+                          &ldquo;Corporate presentation ethics aur confident speaking skills sikhane me unmatched guidance!&rdquo; 🗣️✨
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+                          <div>📚 <strong>Subjects:</strong> Soft Skills &amp; PC Lab (25HU151)</div>
+                          <div>🎙️ <strong>Lab Location:</strong> KC Block 5th Floor (KC-510)</div>
+                          <div>🌟 <strong>Domain:</strong> Phonetics, Speech Drills &amp; GD Practice</div>
+                          <div>💡 <strong>Vibe:</strong> Energetic, encouraging aur motivating!</div>
+                        </div>
+                        <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
+                          💡 <strong>Survival Tip:</strong> Hesitation chhodo aur speaking activities me volunteer karo. KC-510 lab sessions are golden for campus placements!
+                        </div>
+                        <button onClick={() => sendQuery('Dr. Shruti Singh ke baare me batao', true)} className="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-semibold shadow cursor-pointer">
+                          View Complete Dossier in Chat 💬
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 6. DR. SHWETA SHARMA */}
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-cyan-950/30 via-white/[0.04] to-white/[0.02] border border-cyan-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                      <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
+                        <span className="text-5xl mb-2">💡</span>
+                        <span className="text-xs font-bold text-cyan-300">APC Coordinator</span>
+                        <span className="text-[10px] text-gray-400">Section CSE-8</span>
+                        <span className="mt-2 text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">Design Thinking</span>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div>
+                            <div className="inline-flex px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-bold uppercase">
+                              Design Thinking, Innovation &amp; Entrepreneurship (25HU102) • APC Coordinator
+                            </div>
+                            <h4 className="text-xl font-bold text-white mt-1">Dr. Shweta Sharma (SSH)</h4>
+                            <p className="text-xs text-gray-400">Associate Professor &amp; Academic Program Coordinator (APC) | Humanities</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-cyan-200/90 italic bg-cyan-500/10 p-2.5 rounded-xl border border-cyan-500/20">
+                          &ldquo;Problem-solving beyond the textbook—har prototype me student creativity ko spotlight karti hain!&rdquo; 🚀🧠
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+                          <div>💡 <strong>Subject:</strong> Design Thinking &amp; Entrep. (25HU102)</div>
+                          <div>🏛️ <strong>Leadership:</strong> Academic Program Coordinator (APC)</div>
+                          <div>🎨 <strong>Focus:</strong> Human-Centered Design &amp; Prototyping</div>
+                          <div>🏫 <strong>Classroom:</strong> RJ-207 (Wed &amp; Fri)</div>
+                        </div>
+                        <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
+                          💡 <strong>Survival Tip:</strong> Empathy map aur problem statement sheets me genuine observations likho; creative prototypes ko full credit milta hai!
+                        </div>
+                        <button onClick={() => sendQuery('Dr. Shweta Sharma ke baare me batao', true)} className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow cursor-pointer">
+                          View Complete Dossier in Chat 💬
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 7. MR. ROHIT PRATAP SINGH */}
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-950/30 via-white/[0.04] to-white/[0.02] border border-indigo-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                      <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
+                        <span className="text-5xl mb-2">🌐</span>
+                        <span className="text-xs font-bold text-indigo-300">Web Design Workshop</span>
+                        <span className="text-[10px] text-gray-400">Section CSE-8</span>
+                        <span className="mt-2 text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">KC-509 Lab</span>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div>
+                            <div className="inline-flex px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold uppercase">
+                              Web Designing Workshop I (25VA151 in KC-509)
+                            </div>
+                            <h4 className="text-xl font-bold text-white mt-1">Mr. Rohit Pratap Singh (RPS)</h4>
+                            <p className="text-xs text-gray-400">Workshop Instructor | Applied Computing</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-indigo-200/90 italic bg-indigo-500/10 p-2.5 rounded-xl border border-indigo-500/20">
+                          &ldquo;HTML5, modern CSS styling aur responsive UI layout building ka hands-on studio experience!&rdquo; 🌐🎨
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+                          <div>🌐 <strong>Subject:</strong> Web Designing Workshop I (25VA151)</div>
+                          <div>🖥️ <strong>Lab Location:</strong> KC-509 Computer Lab</div>
+                          <div>⚡ <strong>Domain:</strong> Modern Frontend, Flexbox, Grid &amp; CSS</div>
+                          <div>🕒 <strong>Lab Timings:</strong> Wed &amp; Fri Periods VII &amp; VIII</div>
+                        </div>
+                        <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
+                          💡 <strong>Survival Tip:</strong> Clean visual hierarchy banao, mobile responsiveness check karo, aur mini-portfolio ready rakho!
+                        </div>
+                        <button onClick={() => sendQuery('Mr. Rohit Pratap Singh ke baare me batao', true)} className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow cursor-pointer">
+                          View Complete Dossier in Chat 💬
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 8. MR. MAYANK MITTAL */}
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-teal-950/30 via-white/[0.04] to-white/[0.02] border border-teal-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                      <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
+                        <span className="text-5xl mb-2">⚡</span>
+                        <span className="text-xs font-bold text-teal-300">C++ Lab Group 2</span>
+                        <span className="text-[10px] text-gray-400">Section CSE-8</span>
+                        <span className="mt-2 text-[10px] font-mono px-2 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/20">KCLG-06 Lab</span>
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-start justify-between flex-wrap gap-2">
+                          <div>
+                            <div className="inline-flex px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-bold uppercase">
+                              Computer Science • Programming in C++ Lab Group-2 (25CS151 in KCLG-06)
+                            </div>
+                            <h4 className="text-xl font-bold text-white mt-1">Mr. Mayank Mittal (MML)</h4>
+                            <p className="text-xs text-gray-400">Assistant Professor | Computer Science &amp; Engineering</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-teal-200/90 italic bg-teal-500/10 p-2.5 rounded-xl border border-teal-500/20">
+                          &ldquo;KCLG-06 lab me har student ke terminal pe jakar bug solve karne wale dedicated guide!&rdquo; 🔍💻
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+                          <div>🖥️ <strong>Subject:</strong> Programming in C++ Lab (Group 2)</div>
+                          <div>📍 <strong>Lab Location:</strong> KCLG-06 (KC Ground)</div>
+                          <div>⚡ <strong>Domain:</strong> Algorithmic edge cases &amp; Error analysis</div>
+                          <div>🕒 <strong>Lab Timing:</strong> Monday Periods VII &amp; VIII (14:00 - 15:40)</div>
+                        </div>
+                        <div className="text-xs text-gray-400 border-t border-white/[0.06] pt-2">
+                          💡 <strong>Survival Tip:</strong> Syntax errors se ghabrao mat, terminal par code run karke check karo, aur code comments add karo!
+                        </div>
+                        <button onClick={() => sendQuery('Mr. Mayank Mittal ke baare me batao', true)} className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold shadow cursor-pointer">
+                          View Complete Dossier in Chat 💬
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* 1. DR. PRERANA MOHAPATRA */}
                 <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-950/30 via-white/[0.04] to-white/[0.02] border border-emerald-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                   <div className="w-full md:w-52 flex-shrink-0 flex flex-col gap-2.5">
                     <div className="w-full h-60 rounded-2xl bg-black/50 border border-white/10 overflow-hidden">
@@ -6936,8 +7391,8 @@ export default function CampusAIChat() {
                         <p className="text-xs text-gray-400">Assistant Professor | Electrical &amp; Electronics Engineering</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <a href="https://www.linkedin.com/in/dr-prerana-mohapatra-227563147" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
-                        <a href="https://www.instagram.com/prerana_mohapatra?rpxt=MWR5YmpnZ20zaXNsZg==" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-xl bg-pink-500/20 text-pink-300 border border-pink-500/30 text-xs font-semibold">📷 Instagram ↗</a>
+                        <a href="https://www.linkedin.com/in/dr-prerana-mohapatra-227563147" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
+                        <a href="https://www.instagram.com/prerana_mohapatra?rpxt=MWR5YmpnZ20zaXNsZg==" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-xl bg-pink-500/20 text-pink-300 border border-pink-500/30 text-xs font-semibold">📷 Instagram ↗</a>
                       </div>
                     </div>
                     <p className="text-xs text-emerald-200/90 italic bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
@@ -6976,7 +7431,7 @@ export default function CampusAIChat() {
                         <h4 className="text-xl font-bold text-white mt-1">Dr. Divyanshi Sharma (DSH)</h4>
                         <p className="text-xs text-gray-400">Assistant Professor | Applied Sciences &amp; Humanities</p>
                       </div>
-                      <a href="https://www.linkedin.com/in/dr-divyanshi-sharma-53606b73" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
+                      <a href="https://www.linkedin.com/in/dr-divyanshi-sharma-53606b73" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
                     </div>
                     <p className="text-xs text-teal-200/90 italic bg-teal-500/10 p-2.5 rounded-xl border border-teal-500/20">
                       &ldquo;The warmest soul on campus—endlessly patient, genuinely caring, aur har student ki ultimate guardian angel.&rdquo; 🌸💚
@@ -7008,7 +7463,7 @@ export default function CampusAIChat() {
                         <h4 className="text-xl font-bold text-white mt-1">Prof. Shivam Mittal</h4>
                         <p className="text-xs text-gray-400">Assistant Professor | Computer Science &amp; Engineering</p>
                       </div>
-                      <a href="https://www.linkedin.com/in/shivam-mittal-408a31210" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
+                      <a href="https://www.linkedin.com/in/shivam-mittal-408a31210" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
                     </div>
                     <p className="text-xs text-indigo-200/90 italic bg-indigo-500/10 p-2.5 rounded-xl border border-indigo-500/20">
                       &ldquo;Jis college se padhai shuru ki, wahi podium sambhal liya—The Ultimate Campus Loyalty Loop!&rdquo; 🔄🏫
@@ -7046,7 +7501,7 @@ export default function CampusAIChat() {
                         <h4 className="text-xl font-bold text-white mt-1">Prof. Vimal Srivastava (VSV)</h4>
                         <p className="text-xs text-gray-400">Mathematics Professor | Applied Sciences &amp; Humanities</p>
                       </div>
-                      <a href="https://www.linkedin.com/in/vimal-srivastava-9585a5265" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
+                      <a href="https://www.linkedin.com/in/vimal-srivastava-9585a5265" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
                     </div>
                     <p className="text-xs text-blue-200/90 italic bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/20">
                       &ldquo;Derivations pe zero compromise, but off-topic roast aur comedy timing is pure peak entertainment!&rdquo; 🎙️⚡<br />
@@ -7079,7 +7534,7 @@ export default function CampusAIChat() {
                         <h4 className="text-xl font-bold text-white mt-1">Dr. Kartika Maheshwari (KM)</h4>
                         <p className="text-xs text-gray-400">Senior Assistant Professor | Applied Sciences &amp; Humanities</p>
                       </div>
-                      <a href="https://www.linkedin.com/in/kartika-maheshwari-36178517b" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
+                      <a href="https://www.linkedin.com/in/kartika-maheshwari-36178517b" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
                     </div>
                     <p className="text-xs text-pink-200/90 italic bg-pink-500/10 p-2.5 rounded-xl border border-pink-500/20">
                       &ldquo;Sweetest smile in the faculty lounge, sharpest red pen in the exam hall.&rdquo; ☕✍️
@@ -7118,8 +7573,8 @@ export default function CampusAIChat() {
                         <p className="text-xs text-gray-400">Assistant Professor | Computer Science &amp; Engineering</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <a href="https://www.linkedin.com/in/shailja-varshney-778ab91b5" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
-                        <a href="https://www.instagram.com/varshney.shailja?vrfl=MXkyMjJyY2NpZWo2OA==" target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-xl bg-pink-500/20 text-pink-300 border border-pink-500/30 text-xs font-semibold">📷 Instagram ↗</a>
+                        <a href="https://www.linkedin.com/in/shailja-varshney-778ab91b5" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-xl bg-[#0077b5]/20 text-blue-300 border border-[#0077b5]/30 text-xs font-semibold">in LinkedIn ↗</a>
+                        <a href="https://www.instagram.com/varshney.shailja?vrfl=MXkyMjJyY2NpZWo2OA==" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-xl bg-pink-500/20 text-pink-300 border border-pink-500/30 text-xs font-semibold">📷 Instagram ↗</a>
                       </div>
                     </div>
                     <p className="text-xs text-purple-200/90 italic bg-purple-500/10 p-2.5 rounded-xl border border-purple-500/20">
@@ -7170,9 +7625,97 @@ export default function CampusAIChat() {
                     </button>
                   </div>
                 </div>
+              </>
+            )}
 
-                {/* MORE COMING SOON AT THE END OF FACULTY DOSSIERS */}
+            {/* MORE COMING SOON AT THE END OF FACULTY DOSSIERS */}
                 <MoreComingSoonBanner sectionName="Faculty Dossiers" />
+              </div>
+            </div>
+          )}
+
+          {/* VIEW: HCLTECH CAREER SHAPER — DUAL TRACK: CYBER ANALYSIS (14 TOOLS) & DATA ANALYTICS (10 PROJECTS) */}
+          {currentWindow === 'data_analytics' && (
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
+              <div className="w-full max-w-4xl space-y-4 animate-in fade-in zoom-in-95 duration-200 pb-12">
+                {/* DUAL TRACK SWITCHER TABS */}
+                <div className="flex items-center justify-between flex-wrap gap-2 p-1.5 rounded-2xl bg-black/60 border border-white/10">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setCareerShaperTrack('cyber_security')}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 cursor-pointer ${
+                        careerShaperTrack === 'cyber_security'
+                          ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg border border-red-400/40'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <span>🛡️</span> Cyber Analysis ({isCSE8 ? 'CSE-8 Default' : 'Track 2'} • 14 Tools)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCareerShaperTrack('data_analytics')}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 cursor-pointer ${
+                        careerShaperTrack === 'data_analytics'
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg border border-emerald-400/40'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <span>🐍</span> Data Analytics ({!isCSE8 ? 'CSE-2 Default' : 'Track 1'} • 10 Projects)
+                    </button>
+                  </div>
+                  <div className="text-[11px] text-gray-400 pr-2 hidden sm:block">
+                    Section Track: <span className="text-white font-mono font-bold">{isCSE8 ? 'Section CSE-8' : 'Section CSE-2'}</span>
+                  </div>
+                </div>
+
+                {careerShaperTrack === 'cyber_security' ? (
+                  <>
+                    <div className="p-5 rounded-3xl bg-gradient-to-r from-red-950/60 via-black to-amber-950/40 border border-red-500/35 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-300 text-[10px] font-bold uppercase">
+                          🛡️ HCLTech Career Shaper • Cyber Analysis Coursework (14 Tools)
+                        </div>
+                        <h3 className="text-lg sm:text-xl font-black text-white">14 Cyber Security Python Tools (Ready to Run!)</h3>
+                        <p className="text-xs text-gray-300">
+                          CLI Port Scanner, Keylogger, Caesar, DNS CLI, Web Vulnerability Scanner, Scapy Sniffer, Hash Cracker, Steganography, Canary Tokens, Phishing Generator, SSH Brute Force Detector, Base64 Tool, CIS Benchmark Auditor, and Firewall Rule Engine!
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => sendQuery('All 14 Cyber Security tools dikhao 🛡️', true)}
+                        className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold whitespace-nowrap cursor-pointer shadow"
+                      >
+                        💬 Open in AI Chat
+                      </button>
+                    </div>
+
+                    <CyberProjectCard projectId="all" />
+                  </>
+                ) : (
+                  <>
+                    <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-950/50 via-black to-teal-950/30 border border-emerald-500/35 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase">
+                          🐍 HCLTech Career Shaper • Data Analytics Coursework (10 Projects)
+                        </div>
+                        <h3 className="text-lg sm:text-xl font-black text-white">10 Data Analytics Python Projects (Copy &amp; Run!)</h3>
+                        <p className="text-xs text-gray-300">
+                          Every script auto-generates its local CSV, runs EDA metrics, and plots Matplotlib/Seaborn charts. You can also ask in chat (e.g. <strong>&ldquo;Project 3&rdquo;</strong>, <strong>&ldquo;Spotify code&rdquo;</strong>, or <strong>&ldquo;All HCL projects&rdquo;</strong>)!
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => sendQuery('All 10 HCLTech Data Analytics Python projects dikhao 🐍📊', true)}
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold whitespace-nowrap cursor-pointer shadow"
+                      >
+                        💬 Open in AI Chat
+                      </button>
+                    </div>
+
+                    <DataAnalyticsProjectCard projectId="all" />
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -7270,16 +7813,47 @@ export default function CampusAIChat() {
             </div>
           )}
 
-          {/* VIEW: TIMETABLE + OFFICIAL ACADEMIC CALENDAR & SYLLABUS PDFs UNDERNEATH */}
+          {/* VIEW: TIMETABLE + OFFICIAL ACADEMIC CALENDAR & SYLLABUS PDFs UNDERNEATH (SECTION ISOLATED) */}
           {currentWindow === 'timetable' && (
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-10">
                 <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-900/40 to-purple-900/40 border border-blue-500/30 shadow-lg flex flex-col md:flex-row gap-4 justify-between items-center">
                   <div className="space-y-1">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/20 text-blue-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" /> Live Academic Status
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/20 text-blue-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" /> Live Academic Status • {isCSE8 ? 'Section CSE-8' : 'Section CSE-2'}
+                      </div>
+                      {isBoss && (
+                        <div className="flex items-center p-0.5 rounded-lg bg-black/50 border border-white/10 text-[10px]">
+                          <button
+                            type="button"
+                            onClick={() => setBossSectionOverride('CSE-2')}
+                            className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
+                              bossSectionOverride === 'CSE-2' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            CSE-2
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBossSectionOverride('CSE-8')}
+                            className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
+                              bossSectionOverride === 'CSE-8' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            CSE-8
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <h4 className="text-white font-bold text-lg">ODD Semester (2026-27)</h4>
+                    <h4 className="text-white font-bold text-lg">
+                      ODD Semester (2026-27) — {isCSE8 ? 'Section CSE-8 Timetable' : 'Section CSE-2 Timetable'}
+                    </h4>
+                    <p className="text-xs text-blue-200/80">
+                      {isCSE8
+                        ? 'Classrooms: RJ-204 (Mon) • RJ-205 (Tue) • RJ-207 (Wed-Fri) • w.e.f. 28.10.2026'
+                        : 'Classroom: RJ-102 • Applied Science & Humanities • w.e.f. 10.09.2026'}
+                    </p>
                   </div>
                   <div className="flex items-center gap-4 text-xs font-medium w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
                     <div className="flex flex-col items-center gap-1 opacity-50"><span className="w-3 h-3 rounded-full bg-emerald-500" /><span className="text-gray-400">Classes Began</span><span className="text-[10px] text-gray-500">Sep 10</span></div>
@@ -7294,40 +7868,142 @@ export default function CampusAIChat() {
                   </div>
                 </div>
 
-                {/* WEEKLY CLASS TIME TABLE */}
-                <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/30">
-                  <table className="w-full text-left text-xs text-gray-300">
-                    <thead className="bg-white/[0.04] text-gray-400 uppercase text-[10px] font-semibold border-b border-white/10">
-                      <tr><th className="p-3.5">Day</th><th className="p-3.5">08:50 - 10:30 AM</th><th className="p-3.5">10:40 - 12:20 PM</th><th className="p-3.5">12:20 - 01:10</th><th className="p-3.5">01:10 - 02:50 PM</th><th className="p-3.5">02:50 - 04:30 PM</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/[0.06] font-mono text-[11px]">
-                      <tr><td className="p-3.5 font-sans font-semibold text-white">Mon</td><td className="p-3.5 text-cyan-400">Ess. of AI &amp; Physics</td><td className="p-3.5 text-blue-400">Maths &amp; Electrical</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-purple-400">Prog in C &amp; Maths</td><td className="p-3.5 text-emerald-400">Physics Lab (KC-310)</td></tr>
-                      <tr><td className="p-3.5 font-sans font-semibold text-white">Tue</td><td className="p-3.5 text-orange-400">Web Design &amp; Maths</td><td className="p-3.5 text-cyan-400">Ess. of AI &amp; EVS</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-purple-400">Prog in C++ Lab</td><td className="p-3.5 text-emerald-400">Physics &amp; Electrical</td></tr>
-                      <tr><td className="p-3.5 font-sans font-semibold text-white">Wed</td><td className="p-3.5 text-blue-400">Electrical &amp; Prog in C</td><td className="p-3.5 text-blue-400">Maths &amp; Physics</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-yellow-400">Basic Elec Lab</td><td className="p-3.5 text-pink-400">Mentor-Mentee</td></tr>
-                      <tr><td className="p-3.5 font-sans font-semibold text-white">Thu</td><td className="p-3.5 text-blue-400">Maths &amp; Electrical</td><td className="p-3.5 text-red-400">CAD Lab (RJ-109)</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-emerald-400">Physics &amp; EVS</td><td className="p-3.5 text-purple-400">Prog in C &amp; Maths</td></tr>
-                      <tr><td className="p-3.5 font-sans font-semibold text-white">Fri</td><td className="p-3.5 text-purple-400">Prog in C &amp; Physics</td><td className="p-3.5 text-orange-400">Web Design Workshop</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-blue-400">Maths &amp; EVS</td><td className="p-3.5 text-cyan-400">Electrical &amp; Ess. of AI</td></tr>
-                    </tbody>
-                  </table>
-                </div>
+                {/* WEEKLY CLASS TIME TABLE (SECTION ISOLATED) */}
+                {isCSE8 ? (
+                  /* SECTION CSE-8 OFFICIAL TIME TABLE (w.e.f. 28.10.2026) */
+                  <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/30">
+                    <table className="w-full text-left text-xs text-gray-300 min-w-[760px]">
+                      <thead className="bg-white/[0.04] text-gray-400 uppercase text-[10px] font-semibold border-b border-white/10">
+                        <tr>
+                          <th className="p-3">Day</th>
+                          <th className="p-2.5">I<br /><span className="text-[9px] text-gray-500 font-mono">08:50-09:40</span></th>
+                          <th className="p-2.5">II<br /><span className="text-[9px] text-gray-500 font-mono">09:40-10:30</span></th>
+                          <th className="p-2.5">III<br /><span className="text-[9px] text-gray-500 font-mono">10:40-11:30</span></th>
+                          <th className="p-2.5">IV<br /><span className="text-[9px] text-gray-500 font-mono">11:30-12:20</span></th>
+                          <th className="p-2.5">V<br /><span className="text-[9px] text-gray-500 font-mono">12:20-01:10</span></th>
+                          <th className="p-2.5 text-center bg-white/[0.02]">Lunch<br /><span className="text-[9px] text-gray-500 font-mono">01:10-02:00</span></th>
+                          <th className="p-2.5">VII<br /><span className="text-[9px] text-gray-500 font-mono">02:00-02:50</span></th>
+                          <th className="p-2.5">VIII<br /><span className="text-[9px] text-gray-500 font-mono">02:50-03:40</span></th>
+                          <th className="p-2.5">IX<br /><span className="text-[9px] text-gray-500 font-mono">03:40-04:30</span></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.06] font-mono text-[11px]">
+                        <tr>
+                          <td className="p-3 font-sans font-semibold text-white">Mon<br /><span className="text-[9px] font-mono text-gray-400">RJ-204</span></td>
+                          <td className="p-2.5 text-amber-400">ME-BMEA<br /><span className="text-[9px] text-gray-400">MYK</span></td>
+                          <td className="p-2.5 text-amber-400">ME-BMEA<br /><span className="text-[9px] text-gray-400">MYK</span></td>
+                          <td className="p-2.5 text-blue-400">AS-FLAS<br /><span className="text-[9px] text-gray-400">BP</span></td>
+                          <td className="p-2.5 text-emerald-400">CS-PC++<br /><span className="text-[9px] text-gray-400">SA</span></td>
+                          <td className="p-2.5 text-emerald-400">CS-PC++<br /><span className="text-[9px] text-gray-400">SA</span></td>
+                          <td className="p-2.5 text-center text-gray-500 italic bg-white/[0.02]">Lunch</td>
+                          <td colSpan={2} className="p-2.5 text-cyan-300 bg-cyan-950/20 text-center border-x border-cyan-500/20">
+                            <strong>CS-PC++ Lab (25CS151)</strong><br />
+                            <span className="text-[9px] text-gray-300">G1: SA (KCLG-05) • G2: MML (KCLG-06)</span>
+                          </td>
+                          <td className="p-2.5 text-purple-300">HU-SS<br /><span className="text-[9px] text-gray-400">AV (RJ-204)</span></td>
+                        </tr>
+                        <tr>
+                          <td className="p-3 font-sans font-semibold text-white">Tue<br /><span className="text-[9px] font-mono text-gray-400">RJ-205</span></td>
+                          <td className="p-2.5 text-amber-400">ME-BMEA<br /><span className="text-[9px] text-gray-400">MYK</span></td>
+                          <td className="p-2.5 text-blue-400">AS-FLAS<br /><span className="text-[9px] text-gray-400">BP</span></td>
+                          <td className="p-2.5 text-purple-300">HU-SS<br /><span className="text-[9px] text-gray-400">AV</span></td>
+                          <td className="p-2.5 text-emerald-400">CS-PC++<br /><span className="text-[9px] text-gray-400">SA</span></td>
+                          <td className="p-2.5 text-blue-300">AS-FLAS-T<br /><span className="text-[9px] text-gray-400">BP</span></td>
+                          <td className="p-2.5 text-center text-gray-500 italic bg-white/[0.02]">Lunch</td>
+                          <td colSpan={2} className="p-2.5 text-amber-300 bg-amber-950/20 text-center border-x border-amber-500/20">
+                            <strong>G1: ME-DM Lab (MYK, VB Block)</strong><br />
+                            <strong>G2: HU-PC Lab (SS, KC-510)</strong>
+                          </td>
+                          <td className="p-2.5 text-pink-300">Mentor-Mentee<br /><span className="text-[9px] text-gray-400">MYK / BP (RJ-205)</span></td>
+                        </tr>
+                        <tr>
+                          <td className="p-3 font-sans font-semibold text-white">Wed<br /><span className="text-[9px] font-mono text-gray-400">RJ-207</span></td>
+                          <td className="p-2.5 text-blue-400">AS-FLAS<br /><span className="text-[9px] text-gray-400">BP</span></td>
+                          <td className="p-2.5 text-emerald-400">CS-PC++<br /><span className="text-[9px] text-gray-400">SA</span></td>
+                          <td className="p-2.5 text-amber-400">ME-BMEA<br /><span className="text-[9px] text-gray-400">MYK</span></td>
+                          <td className="p-2.5 text-rose-400">HU-DT<br /><span className="text-[9px] text-gray-400">SSH</span></td>
+                          <td className="p-2.5 text-rose-400">HU-DT<br /><span className="text-[9px] text-gray-400">SSH</span></td>
+                          <td className="p-2.5 text-center text-gray-500 italic bg-white/[0.02]">Lunch</td>
+                          <td colSpan={2} className="p-2.5 text-indigo-300 bg-indigo-950/20 text-center border-x border-indigo-500/20">
+                            <strong>VA-WDW-I (25VA151)</strong><br />
+                            <span className="text-[9px] text-gray-300">RPS (KC-509 Computer Lab)</span>
+                          </td>
+                          <td className="p-2.5 text-gray-400">Lib / Sports<br /><span className="text-[9px] text-gray-500">Campus</span></td>
+                        </tr>
+                        <tr>
+                          <td className="p-3 font-sans font-semibold text-white">Thu<br /><span className="text-[9px] font-mono text-gray-400">RJ-207</span></td>
+                          <td className="p-2.5 text-purple-300">HU-SS<br /><span className="text-[9px] text-gray-400">AV</span></td>
+                          <td className="p-2.5 text-blue-400">AS-FLAS<br /><span className="text-[9px] text-gray-400">BP</span></td>
+                          <td className="p-2.5 text-emerald-400">CS-PC++<br /><span className="text-[9px] text-gray-400">SA</span></td>
+                          <td className="p-2.5 text-amber-400">ME-BMEA<br /><span className="text-[9px] text-gray-400">MYK</span></td>
+                          <td className="p-2.5 text-amber-300">ME-BMEA-T<br /><span className="text-[9px] text-gray-400">MYK</span></td>
+                          <td className="p-2.5 text-center text-gray-500 italic bg-white/[0.02]">Lunch</td>
+                          <td colSpan={2} className="p-2.5 text-teal-300 bg-teal-950/20 text-center border-x border-teal-500/20">
+                            <strong>G1: HU-PC Lab (SS, KC-510)</strong><br />
+                            <strong>G2: ME-DM Lab (MYK, VB Block)</strong>
+                          </td>
+                          <td className="p-2.5 text-yellow-300">VA-FSA<br /><span className="text-[9px] text-gray-400">BH-115/216</span></td>
+                        </tr>
+                        <tr>
+                          <td className="p-3 font-sans font-semibold text-white">Fri<br /><span className="text-[9px] font-mono text-gray-400">RJ-207</span></td>
+                          <td className="p-2.5 text-emerald-400">CS-PC++<br /><span className="text-[9px] text-gray-400">SA</span></td>
+                          <td className="p-2.5 text-blue-400">AS-FLAS<br /><span className="text-[9px] text-gray-400">BP</span></td>
+                          <td className="p-2.5 text-rose-400">HU-DT<br /><span className="text-[9px] text-gray-400">SSH</span></td>
+                          <td className="p-2.5 text-amber-400">ME-BMEA<br /><span className="text-[9px] text-gray-400">MYK</span></td>
+                          <td className="p-2.5 text-purple-300">HU-SS<br /><span className="text-[9px] text-gray-400">AV</span></td>
+                          <td className="p-2.5 text-center text-gray-500 italic bg-white/[0.02]">Lunch</td>
+                          <td colSpan={2} className="p-2.5 text-indigo-300 bg-indigo-950/20 text-center border-x border-indigo-500/20">
+                            <strong>VA-WDW-I (25VA151)</strong><br />
+                            <span className="text-[9px] text-gray-300">RPS (KC-509 Computer Lab)</span>
+                          </td>
+                          <td className="p-2.5 text-gray-400">Club Activity<br /><span className="text-[9px] text-gray-500">RJ-207</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  /* SECTION CSE-2 TIME TABLE */
+                  <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/30">
+                    <table className="w-full text-left text-xs text-gray-300">
+                      <thead className="bg-white/[0.04] text-gray-400 uppercase text-[10px] font-semibold border-b border-white/10">
+                        <tr><th className="p-3.5">Day</th><th className="p-3.5">08:50 - 10:30 AM</th><th className="p-3.5">10:40 - 12:20 PM</th><th className="p-3.5">12:20 - 01:10</th><th className="p-3.5">01:10 - 02:50 PM</th><th className="p-3.5">02:50 - 04:30 PM</th></tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.06] font-mono text-[11px]">
+                        <tr><td className="p-3.5 font-sans font-semibold text-white">Mon</td><td className="p-3.5 text-cyan-400">Ess. of AI &amp; Physics</td><td className="p-3.5 text-blue-400">Maths &amp; Electrical</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-purple-400">Prog in C &amp; Maths</td><td className="p-3.5 text-emerald-400">Physics Lab (KC-310)</td></tr>
+                        <tr><td className="p-3.5 font-sans font-semibold text-white">Tue</td><td className="p-3.5 text-orange-400">Web Design &amp; Maths</td><td className="p-3.5 text-cyan-400">Ess. of AI &amp; EVS</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-purple-400">Prog in C++ Lab</td><td className="p-3.5 text-emerald-400">Physics &amp; Electrical</td></tr>
+                        <tr><td className="p-3.5 font-sans font-semibold text-white">Wed</td><td className="p-3.5 text-blue-400">Electrical &amp; Prog in C</td><td className="p-3.5 text-blue-400">Maths &amp; Physics</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-yellow-400">Basic Elec Lab</td><td className="p-3.5 text-pink-400">Mentor-Mentee</td></tr>
+                        <tr><td className="p-3.5 font-sans font-semibold text-white">Thu</td><td className="p-3.5 text-blue-400">Maths &amp; Electrical</td><td className="p-3.5 text-red-400">CAD Lab (RJ-109)</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-emerald-400">Physics &amp; EVS</td><td className="p-3.5 text-purple-400">Prog in C &amp; Maths</td></tr>
+                        <tr><td className="p-3.5 font-sans font-semibold text-white">Fri</td><td className="p-3.5 text-purple-400">Prog in C &amp; Physics</td><td className="p-3.5 text-orange-400">Web Design Workshop</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-blue-400">Maths &amp; EVS</td><td className="p-3.5 text-cyan-400">Electrical &amp; Ess. of AI</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
                 {/* OFFICIAL PDF DOCUMENTS UNDER TIMETABLE (VIEW & DOWNLOAD) */}
                 <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/10 space-y-4">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                        <span>📂</span> Official ABES Academic Calendar &amp; B.Tech 1st Year Syllabus PDFs
+                        <span>📂</span> Official ABES Documents &amp; Section {isCSE8 ? 'CSE-8' : 'CSE-2'} Files
                       </h4>
                       <p className="text-xs text-gray-400">
                         Click <strong>👁️ View</strong> to read the PDF right here, <strong>↗ Full Tab</strong> for fullscreen, or <strong>📥 Download</strong>!
                       </p>
                     </div>
                     <button
-                      onClick={() => sendQuery('B.Tech 1st Sem ka full Academic Calendar dikhao 📅', true)}
+                      onClick={() => sendQuery(isCSE8 ? 'CSE-8 ka full timetable aur teachers batao' : 'B.Tech 1st Sem ka full Academic Calendar dikhao 📅', true)}
                       className={`text-xs ${accentText} hover:underline cursor-pointer`}
                     >
-                      Ask AI About Dates &amp; Syllabus ↗
+                      Ask AI About Schedule ↗
                     </button>
                   </div>
+
+                  {isCSE8 && (
+                    <PaperDownloadCard
+                      title="📅 ABES Engineering College — Section CSE-8 Official Time Table (w.e.f. 28.10.2026)"
+                      filesCsv="/cse8.pdf"
+                    />
+                  )}
 
                   <PaperDownloadCard
                     title="📅 ABES Academic Calendar — ODD Semester 2026-27 (Revised on 26.10.2026)"
@@ -7350,7 +8026,7 @@ export default function CampusAIChat() {
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-10">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-blue-500/30 space-y-2"><span className="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">Step 1</span><h4 className="font-semibold text-sm text-white">OTR (One Time Reg)</h4><p className="text-xs text-gray-300">Go to <a href="https://scholarship.up.gov.in" target="_blank" rel="noreferrer" className="text-blue-400 underline">scholarship.up.gov.in</a> ➡️ click <strong>OTR</strong> ➡️ complete Aadhaar e-KYC.</p></div>
+                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-blue-500/30 space-y-2"><span className="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">Step 1</span><h4 className="font-semibold text-sm text-white">OTR (One Time Reg)</h4><p className="text-xs text-gray-300">Go to <a href="https://scholarship.up.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">scholarship.up.gov.in</a> ➡️ click <strong>OTR</strong> ➡️ complete Aadhaar e-KYC.</p></div>
                   <div className="p-4 rounded-2xl bg-white/[0.03] border border-purple-500/30 space-y-2"><span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md">Step 2</span><h4 className="font-semibold text-sm text-white">New Registration</h4><p className="text-xs text-gray-300">Click <strong>Students</strong> ➡️ <strong>New Registration</strong>, enter OTR number, and save your Registration ID.</p></div>
                   <div className="p-4 rounded-2xl bg-white/[0.03] border border-emerald-500/30 space-y-2"><span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Step 3</span><h4 className="font-semibold text-sm text-white">Application &amp; Final Print</h4><p className="text-xs text-gray-300">Login Fresh, fill form, check preview print, and submit hardcopy with DigiLocker marksheets at ABES.</p></div>
                 </div>
@@ -7513,20 +8189,26 @@ export default function CampusAIChat() {
           <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto flex items-center bg-white/[0.05] border border-white/10 focus-within:border-red-500/70 rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 shadow-2xl transition">
             <input
               type="text"
+              aria-label="Ask ikA's Oracle anything"
               value={input}
               onChange={(e) => handleInputChange(e.target.value)}
               placeholder={
                 currentUser
                   ? isBoss
-                    ? 'Hukum kijiye Supreme Boss ikA (e.g. Boys hostel canteen, Solve full AI MT2 paper, 250+ jokes)...'
+                    ? 'Hukum kijiye Supreme Boss ikA (e.g. All 10 Data Analytics projects, Budget Tracker, Boys hostel canteen, AI MT2)...'
                     : isAgrima
-                    ? 'Aapka kya hukum hai My Queen Agrima? 🌸 (e.g. Tea Men cafe menu, Solve full AI MT2 paper)...'
-                    : `Talk in Hinglish or ask anything, ${currentUser.name.split(' ')[0]} (e.g. Ye kya hai?, Boys hostel canteen, Solve Physics MT2)...`
+                    ? 'Aapka kya hukum hai My Queen Agrima? 🌸 (e.g. Data Analytics projects, Tea Men cafe, Solve full AI MT2)...'
+                    : `Ask anything, ${currentUser.name.split(' ')[0]} (e.g. Data Analytics projects, Project 1-10, Boys hostel canteen, Physics MT2)...`
                   : 'Kuch bhi pucho dost...'
               }
               className="flex-1 bg-transparent px-2 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-100 placeholder-gray-500 outline-none"
             />
-            <button type="submit" disabled={!input.trim() || isLoading} className={`${accentBg} disabled:bg-gray-700 disabled:text-gray-500 text-white font-black w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition cursor-pointer text-xs sm:text-sm shadow-md`}>
+            <button
+              type="submit"
+              aria-label="Send message"
+              disabled={!input.trim() || isLoading}
+              className={`${accentBg} disabled:bg-gray-700 disabled:text-gray-500 text-white font-black w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition cursor-pointer text-xs sm:text-sm shadow-md`}
+            >
               ↑
             </button>
           </form>

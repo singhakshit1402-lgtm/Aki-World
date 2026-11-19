@@ -1,0 +1,16 @@
+{
+  "name": "ikA's World — ABES CSE-2 Hub",
+  "short_name": "ikA Hub",
+  "description": "ABES Section CSE-2 Sovereign Portal: Solved MT-2 Papers, 10 HCLTech Data Analytics Projects, Canteen Menus & Live Announcements.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090b10",
+  "theme_color": "#dc2626",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

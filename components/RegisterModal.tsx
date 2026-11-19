@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { subscribeDeviceForAnnouncements } from '@/lib/clientPush';
 
 export interface StudentUser {
   name: string;
   email: string;
   admissionNo: string;
   rollNo: number;
+  section: 'CSE-2' | 'CSE-8';
   group: string;
   gender: 'M' | 'F';
   residency: 'Hosteller' | 'Day Scholar';
@@ -103,14 +105,156 @@ export const CSE2_ROSTER: Record<string, RosterEntry> = {
   '2026B01010427': { rollNo: 79, name: 'ANANT PANDEY', group: 'G2', gender: 'M', residency: 'Day Scholar' },
 };
 
+// Complete Verified CSE-8 Roster (1 to 77) — Cyber Analysis Track
+export const CSE8_ROSTER: Record<string, RosterEntry> = {
+  '2026B01010748': { rollNo: 1, name: 'KASHISH GOSWAMI', group: 'G1', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010103': { rollNo: 2, name: 'KASHISH SOAM', group: 'G1', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010679': { rollNo: 3, name: 'KAUSHLENDRA KUMAR', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01011063': { rollNo: 4, name: 'KESHAV DIXIT', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010457': { rollNo: 5, name: 'KHEMCHAND SINGH', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01011038': { rollNo: 6, name: 'KHUSHI CHAUDHARY', group: 'G1', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010116': { rollNo: 7, name: 'KHUSHI MAURYA', group: 'G1', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010300': { rollNo: 8, name: 'KHUSHI SINGH', group: 'G1', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010142': { rollNo: 9, name: 'KISHAN PATEL', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01011148': { rollNo: 10, name: 'KISHAN RAJ', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010514': { rollNo: 11, name: 'KISMITA GUPTA', group: 'G1', gender: 'F', residency: 'Day Scholar' },
+  '2026B01011047': { rollNo: 12, name: 'KOMAL JINDAL', group: 'G1', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010065': { rollNo: 13, name: 'KOUSTUBH SINGH', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010343': { rollNo: 14, name: 'KRISH AGRAWAL', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010863': { rollNo: 15, name: 'KRISH KUMAR', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010160': { rollNo: 16, name: 'KRISHABH MAURYA', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010801': { rollNo: 17, name: 'KRISHAN PRATAP', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010820': { rollNo: 18, name: 'KRISHNA AGRAHARI', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010622': { rollNo: 19, name: 'KRISHNA BHARDWAJ', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010838': { rollNo: 20, name: 'KRISHNA CHAUHAN', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010173': { rollNo: 21, name: 'KRISHNA GOYAL', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010507': { rollNo: 22, name: 'KRISHNA GUPTA', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010870': { rollNo: 23, name: 'KRISHNA GUPTA', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010966': { rollNo: 24, name: 'KRISHNA JHA', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010562': { rollNo: 25, name: 'KRISHNA RAI', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010489': { rollNo: 26, name: 'KRISHNA RUHELA', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010614': { rollNo: 27, name: 'KRISHNA SAINI', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010161': { rollNo: 28, name: 'KRISHNA SHARMA', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010888': { rollNo: 29, name: 'KRISHNA SHARMA', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010717': { rollNo: 30, name: 'KRISHNA SINGH', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010609': { rollNo: 31, name: 'KRISHNA SINGH YADAV', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010223': { rollNo: 32, name: 'KRISHNA SONI', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010639': { rollNo: 33, name: 'KRISHNA TIWARI', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010321': { rollNo: 34, name: 'KRITIKA SHARMA', group: 'G1', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010383': { rollNo: 35, name: 'KRRISH GAIROLA', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010462': { rollNo: 36, name: 'KUMAR ARTHAV', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010939': { rollNo: 37, name: 'KUMAR MANGALAM YADUVANSHI', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01011157': { rollNo: 38, name: 'KUNAL KAUSHIK', group: 'G1', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010924': { rollNo: 39, name: 'KUNAL YADAV', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010474': { rollNo: 40, name: 'KUSHAGRA', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010412': { rollNo: 41, name: 'KUSHAGRA AGRAWAL', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010635': { rollNo: 42, name: 'KUSHAGRA PATEL', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010961': { rollNo: 43, name: 'KUSHAGRA RAJPUT', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010815': { rollNo: 44, name: 'KUSHAGRA SINGH', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010869': { rollNo: 45, name: 'KUSHAL TRIPATHI', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010670': { rollNo: 46, name: 'LAKSHAY AGARWAL', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01011015': { rollNo: 47, name: 'LAKSHAY RAWAT', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010772': { rollNo: 48, name: 'LAKSHITA SINGH', group: 'G2', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010401': { rollNo: 49, name: 'LAKSHY CHAUHAN', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010440': { rollNo: 50, name: 'LAKSHYA KHARE', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010201': { rollNo: 51, name: 'LAKSHYA PANDEY', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010860': { rollNo: 52, name: 'LAKSHYA TRIPATHI', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010017': { rollNo: 53, name: 'LALIT KUMAR', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010697': { rollNo: 54, name: 'LALIT YADAV', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010661': { rollNo: 55, name: 'LAVEEZA TAYYAB', group: 'G2', gender: 'F', residency: 'Hosteller' },
+  '2026B01010813': { rollNo: 56, name: 'LAVIT', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010965': { rollNo: 57, name: 'LAVIT VIDHURI', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010729': { rollNo: 58, name: 'LOVEKESH DIWAKAR', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01011112': { rollNo: 59, name: 'LUCKY SHARMA', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010715': { rollNo: 60, name: 'LUCKY SINGH', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010351': { rollNo: 61, name: 'LUCKY YADAV', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010120': { rollNo: 62, name: 'MADHAV RAJBHAR', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010589': { rollNo: 63, name: 'MAHAK CHAUHAN', group: 'G2', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010558': { rollNo: 64, name: 'MAHI DUBEY', group: 'G2', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010218': { rollNo: 65, name: 'MAHIMA KATIYAR', group: 'G2', gender: 'F', residency: 'Day Scholar' },
+  '2026B01011151': { rollNo: 66, name: 'MANAN GABA', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01011074': { rollNo: 67, name: 'MANAS SAJWAN', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010969': { rollNo: 68, name: 'MANAS SINGH', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010782': { rollNo: 69, name: 'MANAS TIWARI', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010188': { rollNo: 70, name: 'MANIKARNIKA', group: 'G2', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010811': { rollNo: 71, name: 'MANKESH KUMAR GOLA', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010238': { rollNo: 72, name: 'MANTOO GUPTA', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010279': { rollNo: 73, name: 'MANVI DHIMAN', group: 'G2', gender: 'F', residency: 'Day Scholar' },
+  '2026B01010555': { rollNo: 74, name: 'MAYANK MISHRA', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01010029': { rollNo: 75, name: 'MAYANK PATEL', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01011202': { rollNo: 76, name: 'LAKSHYA GOAYL', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+  '2026B01011199': { rollNo: 77, name: 'MOHIT KUMAR', group: 'G2', gender: 'M', residency: 'Day Scholar' },
+};
+
+function doesEmailNameMatchRosterName(emailNameStr: string, rosterNameStr: string): boolean {
+  const emailTokens = emailNameStr.toLowerCase().split(/[^a-z]+/).filter((t) => t.length >= 2);
+  const rosterTokens = rosterNameStr.toLowerCase().split(/[^a-z]+/).filter((t) => t.length >= 2);
+
+  if (emailTokens.length === 0 || rosterTokens.length === 0) return false;
+
+  const primaryEmailName = emailTokens[0];
+  const primaryRosterFirst = rosterTokens[0];
+
+  const firstNameMatches =
+    primaryEmailName === primaryRosterFirst ||
+    (primaryEmailName.length >= 3 && primaryRosterFirst.startsWith(primaryEmailName)) ||
+    (primaryRosterFirst.length >= 3 && primaryEmailName.startsWith(primaryRosterFirst));
+
+  const allTokensBelong = emailTokens.every((eToken) =>
+    rosterTokens.some(
+      (rToken) =>
+        rToken === eToken ||
+        (eToken.length >= 3 && rToken.startsWith(eToken)) ||
+        (rToken.length >= 3 && eToken.startsWith(rToken))
+    )
+  );
+
+  return firstNameMatches && allTokensBelong;
+}
+
+function parseEmailParts(cleanEmail: string): { isBoss: boolean; namePart: string; admPart: string } {
+  if (cleanEmail.startsWith('1402akshit')) {
+    return { isBoss: true, namePart: 'akshit', admPart: '2026b01010274' };
+  }
+  const prefix = cleanEmail.split('@')[0];
+
+  // Pattern: name.admNo or name.mid.admNo
+  const dotSplit = prefix.split('.');
+  if (dotSplit.length >= 2) {
+    const lastPart = dotSplit[dotSplit.length - 1];
+    if (/\d{4,}/.test(lastPart)) {
+      const namePart = dotSplit.slice(0, -1).join('.');
+      return { isBoss: false, namePart, admPart: lastPart };
+    }
+  }
+
+  // Fallback regex: name followed by admission number
+  const match = prefix.match(/^([a-z\s._-]+?)[._-]?((?:20)?26[a-z]?\d{6,8}|\d{7,8})$/i);
+  if (match) {
+    return { isBoss: false, namePart: match[1], admPart: match[2] };
+  }
+
+  return { isBoss: false, namePart: '', admPart: '' };
+}
+
 export default function RegisterModal({ onSuccess }: { onSuccess: (user: StudentUser) => void }) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [animationType, setAnimationType] = useState<'none' | 'popper' | 'flower' | 'boss'>('none');
   const [matchedUser, setMatchedUser] = useState<StudentUser | null>(null);
+  const loginTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (loginTimerRef.current !== null) {
+        window.clearTimeout(loginTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    if (animationType !== 'none') return;
     setError('');
 
     const cleanEmail = email.trim().toLowerCase();
@@ -120,40 +264,61 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
       return;
     }
 
-    const prefix = cleanEmail.split('@')[0];
-    const digitMatches = prefix.match(/\d{3,}/g);
+    const { isBoss, namePart, admPart } = parseEmailParts(cleanEmail);
 
     let foundAdmNo = '';
     let foundEntry: RosterEntry | null = null;
+    let detectedSection: 'CSE-2' | 'CSE-8' = 'CSE-2';
 
-    if (digitMatches && digitMatches.length > 0) {
-      const longestDigits = digitMatches.sort((a, b) => b.length - a.length)[0];
+    if (isBoss) {
+      foundAdmNo = '2026B01010274';
+      foundEntry = CSE2_ROSTER[foundAdmNo] || { rollNo: 7, name: 'AKSHIT SINGH', group: 'G1', gender: 'M', residency: 'Day Scholar' };
+      detectedSection = 'CSE-2';
+    } else {
+      if (!namePart || !admPart) {
+        setError('Email format invalid! Format must be: firstname.admissionNo@abes.ac.in (e.g. akshit.26b01010274@abes.ac.in)');
+        return;
+      }
+
+      const cleanAdm = admPart.replace(/[^0-9a-z]/gi, '').toLowerCase();
+      const digitsList = cleanAdm.match(/\d{4,}/g) || [];
+      const digits = digitsList.sort((a, b) => b.length - a.length)[0] || cleanAdm;
+
+      // 1. Search Section CSE-2
       for (const [admNo, entry] of Object.entries(CSE2_ROSTER)) {
-        if (admNo.toLowerCase().endsWith(longestDigits.toLowerCase()) || admNo.toLowerCase().includes(longestDigits.toLowerCase())) {
+        const kClean = admNo.toLowerCase();
+        if (kClean.includes(cleanAdm) || kClean.endsWith(cleanAdm) || (digits.length >= 4 && (kClean.endsWith(digits) || kClean.includes(digits)))) {
           foundAdmNo = admNo;
           foundEntry = entry;
+          detectedSection = 'CSE-2';
           break;
         }
       }
-    }
 
-    if (!foundEntry) {
-      const firstNamePart = prefix.split('.')[0].replace(/[^a-z]/g, '').toUpperCase();
-      if (firstNamePart.length >= 3) {
-        for (const [admNo, entry] of Object.entries(CSE2_ROSTER)) {
-          const rosterFirst = entry.name.split(' ')[0];
-          if (rosterFirst === firstNamePart || entry.name.startsWith(firstNamePart)) {
+      // 2. Search Section CSE-8
+      if (!foundEntry) {
+        for (const [admNo, entry] of Object.entries(CSE8_ROSTER)) {
+          const kClean = admNo.toLowerCase();
+          if (kClean.includes(cleanAdm) || kClean.endsWith(cleanAdm) || (digits.length >= 4 && (kClean.endsWith(digits) || kClean.includes(digits)))) {
             foundAdmNo = admNo;
             foundEntry = entry;
+            detectedSection = 'CSE-8';
             break;
           }
         }
       }
-    }
 
-    if (!foundEntry || !foundAdmNo) {
-      setError('Yeh email Section CSE-2 ke official roster me nahi mila! Check your admission digits.');
-      return;
+      if (!foundEntry || !foundAdmNo) {
+        setError(`Admission number "${admPart}" kisi bhi official student roster me nahi mila! Kripya admission number check karein.`);
+        return;
+      }
+
+      // STRICT DUAL VERIFICATION: Check that the name in the email matches the student registered with this admission number!
+      const nameMatches = doesEmailNameMatchRosterName(namePart, foundEntry.name);
+      if (!nameMatches) {
+        setError(`Invalid Credentials! Email me diya gaya name "${namePart}" iss admission number (${foundAdmNo}) ke registered student (${foundEntry.name}) se match nahi karta.`);
+        return;
+      }
     }
 
     const formattedName = foundEntry.name
@@ -166,12 +331,16 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
       email: cleanEmail,
       admissionNo: foundAdmNo,
       rollNo: foundEntry.rollNo,
+      section: detectedSection,
       group: foundEntry.group,
       gender: foundEntry.gender,
       residency: foundEntry.residency,
     };
 
     setMatchedUser(detectedUser);
+
+    // Use the Login button click gesture to request device notification permission & subscribe to Web Push
+    void subscribeDeviceForAnnouncements(detectedUser);
 
     if (foundAdmNo === '2026B01010274') {
       setAnimationType('boss');
@@ -181,7 +350,7 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
       setAnimationType('popper');
     }
 
-    setTimeout(() => {
+    loginTimerRef.current = window.setTimeout(() => {
       localStorage.setItem('campus_user', JSON.stringify(detectedUser));
       onSuccess(detectedUser);
     }, 3400);
@@ -276,13 +445,13 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
           <div className="relative z-10 p-8 md:p-10 rounded-3xl bg-gradient-to-br from-zinc-950 via-red-950/90 to-black border-2 border-red-500/50 shadow-[0_0_80px_rgba(220,38,38,0.5)] text-center space-y-4 max-w-md mx-4 animate-in zoom-in-75 duration-300">
             <div className="text-6xl animate-bounce">🎉👑🎊</div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 border border-red-400/40 text-red-300 text-xs font-bold uppercase tracking-widest">
-              Verified CSE-2 • {matchedUser.group}
+              Verified {matchedUser.section || 'CSE-2'} • {matchedUser.group} {matchedUser.section === 'CSE-8' ? '• Cyber Analysis' : '• Data Analytics'}
             </div>
             <h3 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-red-400 via-white to-red-300 bg-clip-text text-transparent">
               Our Boss invites you! 🥳🚀
             </h3>
             <p className="text-sm text-gray-200 font-medium leading-relaxed">
-              Swagat hai <strong className="text-white">{matchedUser.name}</strong> ({matchedUser.admissionNo})! Boss <strong className="text-red-500">ikA</strong> welcomes you to the official Section CSE-2 realm! ⚡
+              Swagat hai <strong className="text-white">{matchedUser.name}</strong> ({matchedUser.admissionNo})! Boss <strong className="text-red-500">ikA</strong> welcomes you to the official Section {matchedUser.section || 'CSE-2'} realm! ⚡
             </p>
           </div>
         </div>
@@ -297,23 +466,25 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
               ikA
             </div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-[10px] font-bold text-red-400 uppercase tracking-widest">
-              Section CSE-2 Smart Auto-Login
+              Section CSE-2 &amp; CSE-8 Smart Auto-Login
             </div>
             <h2 className="text-2xl font-extrabold text-white tracking-tight">Enter College Email</h2>
             <p className="text-xs text-gray-400 leading-relaxed">
-              Naam likhne ki zaroorat nahi! Bas apni ABES email ID daalo, <strong className="text-red-400">ikA&apos;s Neural Roster</strong> tumhara Naam aur Lab Group khud pehchan lega! ✨
+              Naam likhne ki zaroorat nahi! Bas apni ABES email ID daalo, <strong className="text-red-400">ikA&apos;s Neural Roster</strong> tumhara Section (CSE-2 / CSE-8), Naam aur Lab Group khud pehchan lega! ✨
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-300 flex items-center justify-between">
+              <label htmlFor="abes-email-input" className="text-xs font-semibold text-gray-300 flex items-center justify-between">
                 <span>Official ABES Email ID</span>
                 <span className="text-[10px] text-red-400 font-mono">@abes.ac.in</span>
               </label>
               <input
+                id="abes-email-input"
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="firstname.26b01010***@abes.ac.in"
