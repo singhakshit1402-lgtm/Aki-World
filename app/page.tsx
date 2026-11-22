@@ -2,24 +2,16 @@
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import RegisterModal, { CSE8_ROSTER } from '@/components/RegisterModal';
-import DataAnalyticsProjectCard from '@/components/DataAnalyticsProjectCard';
-import CyberProjectCard from '@/components/CyberProjectCard';
 import PaperDownloadCard from '@/components/PaperDownloadCard';
-import {
-  DATA_ANALYTICS_SUGGESTIONS,
-  getDataAnalyticsProjectsReply,
-} from '@/lib/dataAnalyticsProjects';
-import {
-  CYBER_PROJECTS_SUGGESTIONS,
-  getCyberProjectsReply,
-} from '@/lib/cyberSecurityProjects';
+import TileAttachments from '@/components/TileAttachments';
+import ShinigamiUploadModal from '@/components/ShinigamiUploadModal';
+import type { TileUploadItem } from '@/app/api/upload/route';
 import {
   trySolveMathQuerySafe,
   extractMT2SubQuestionKey,
   hasMT2SolutionIntent,
   isRoyalEnfieldDTCaseStudy,
   detectCanteenIntent,
-  detectEEAssignmentQuestionNumber,
   splitMultiCommands,
   isSafeHrefOrSrc,
   unlockMobileAudioSafe,
@@ -175,8 +167,7 @@ type WindowView =
   | 'boss_intro'
   | 'canteen'
   | 'cabin'
-  | 'assignments'
-  | 'data_analytics';
+  | 'assignments';
 
 const ALL_PAPERS = [
   { id: 'maths', name: 'Fundamentals of Linear Algebra & Statistics', code: '25AS102', short: 'Maths / FLAS', icon: '📐', mt1: '/papers/sem1/maths_mt1.jpg', mt2: '/papers/sem1/maths_mt2.jpg' },
@@ -738,16 +729,65 @@ function build250JokesCatalog(): string[] {
 
 const ALL_250_JOKES = build250JokesCatalog();
 
+// Categorized Suggestions Pools (1st Option: IMPORTANT / ACADEMIC • 2nd Option: CASUAL / BOYS BANTER)
+const CSE8_IMPORTANT_SUGGESTIONS: string[] = [
+  'CSE-8 ka live timetable dikhao ⏰',
+  'Mr. Mayank Kushwaha ke baare me batao',
+  'Dr. Bhanumati Panda ke baare me batao',
+  'Mr. Shahbaz Alam ke baare me batao',
+  'Safe bunk & SGPA kaise check karu? 🧮',
+  'Solve full AI MT2 paper',
+  'Solve full C++ MT2 paper',
+  'Solve full Maths MT2 paper',
+  'Solve full Physics MT2 paper',
+  'Kya 50 LPA ka package lagta hai?',
+  '15+ LPA crack karne ka roadmap kya hai?',
+];
+
+const CSE2_IMPORTANT_SUGGESTIONS: string[] = [
+  'Solve full AI MT2 paper',
+  'Solve full Maths MT2 paper',
+  'Solve full Physics MT2 paper',
+  'Solve full C++ MT2 paper',
+  'Solve full BEE MT2 paper',
+  'Safe bunk & SGPA kaise check karu? 🧮',
+  'Kya 50 LPA ka package lagta hai?',
+  '15+ LPA crack karne ka roadmap kya hai?',
+  'Prof. Vimal Srivastava ke baare me batao',
+  'Prof. Shivam Mittal ki lore batao',
+  'Dr. Prerana Mohapatra ka profile dikhao',
+  'Boys hostel waali canteen ka menu dikhao 🍔',
+  "Tea Men's Cafe (College Upper Canteen) ka menu dikhao ☕",
+  'Aaj ka live lecture & room kya hai? ⏰',
+];
+
+const BOYS_CASUAL_TALK_SUGGESTIONS: string[] = [
+  'Crush ko propose kaise karu bhai? 😏',
+  'Bhai proxy lagane ka koi ninja hack bata 🤫',
+  'Class bunk karke canteen me kya khayein? 🍔',
+  'Single laundo ke liye koi kadak motivation de 😂🔥',
+  'Hostel me ladko ka kya scene chal raha hai? 😂',
+  'Ek ekdum kadak campus roast sunao 🤣',
+  'Bhai thodi college gossip batao ☕',
+  'Class me neend aaye toh kya karein? 😴',
+  'Backbenchers ka secret survival rule kya hai? 😎',
+  'Bhai weekend pe kya scene banayein? 🎮',
+];
+
+const GIRLS_CASUAL_TALK_SUGGESTIONS: string[] = [
+  'Campus me sabse acchi coffee kahan milti hai? ☕✨',
+  'Boring class me timepass kaise karein? 😴',
+  'Aao thodi college gossips karte hain 🎧',
+  'Thoda mood fresh karo ek mast joke se 😂',
+  'Hostel room decor aur study aesthetic tips 🌸',
+  "Tea Men's Cafe pe best snacks kya hain? 🥪",
+];
+
 const MASTER_SUGGESTION_POOL: string[] = [
-  ...CYBER_PROJECTS_SUGGESTIONS,
-  ...DATA_ANALYTICS_SUGGESTIONS,
-  'Main kaun hu?', 'Tum kaise ho?', 'Ye website kya hai? 🤔', 'Boys hostel waali canteen ka menu dikhao 🍔',
-  "Tea Men's Cafe (College Upper Canteen) ka menu dikhao ☕", 'Ek mast campus joke sunao 😂',
-  'Dr. Prerana Mohapatra ka profile dikhao', 'Solve full AI MT2 paper', 'Solve full C++ MT2 paper',
-  'Solve full Maths MT2 paper', 'Solve full Physics MT2 paper', 'Kya 50 LPA ka package lagta hai?',
-  'Safe bunk & SGPA kaise check karu? 🧮', 'Prof. Shivam Mittal ki lore batao', 'Prof. Vimal Srivastava ke baare me batao',
-  'Dr. Divyanshi Sharma ke baare me batao', 'P2P Marketplace me kya bik raha hai? 🛒',
-  'Prof. Kartika Maheshwari ke baare me batao', 'Ms. Shailja Varshney ke baare me batao', 'Who is the boss ikA?'
+  ...CSE2_IMPORTANT_SUGGESTIONS,
+  ...CSE8_IMPORTANT_SUGGESTIONS,
+  ...BOYS_CASUAL_TALK_SUGGESTIONS,
+  ...GIRLS_CASUAL_TALK_SUGGESTIONS,
 ];
 
 // ============================================================================
@@ -1514,6 +1554,124 @@ function getHumanHinglishChatReply(
     };
   }
 
+  // 13. BOYS TALK: "Crush ko propose kaise karu?" / "Crush se baat kaise karu?"
+  if (
+    clean.includes('crush') ||
+    clean.includes('propose') ||
+    clean.includes('ladki se baat') ||
+    clean.includes('pataye') ||
+    clean.includes('patao') ||
+    clean.includes('flirt') ||
+    clean.includes('impressed')
+  ) {
+    return {
+      text: `😏🔥 **Arre ${buddy}, dil ki ghanti baj gayi kya?! Sun dhyan se ikA ka 3-Step Campus Wingman Formula:**\n\n• 1️⃣ **The Innocent Academic Hook:** Direct jaake hero mat ban! Class ke notes ya kisi assignment ka bahana bana (*"Yaar vo maths ke step me sir ne kya likha tha samajh nahi aaya, zara copy dikhana?"*). Easiest conversation starter! 📚✍️\n• 2️⃣ **Canteen Icebreaker:** 2 din normal baat hone ke baad casual bol: *"Yaar Tea Men's Cafe ki cold coffee ya K.J Cafe ke Kurkure Momos khane chal rahe ho?"* Food is the universal answer! ☕🥟\n• 3️⃣ **Be Real & Confident:** Fake perfume aur fake accent mat marna. Bas neat kapde, clean smile aur thodi funny vibe rakh!\n\n*Aur agar 'Haan' bol diya na, toh sabse pehli treat apne bhai ikA ko milni chahiye!* 😉🚀`,
+      nextSugg: 'Bhai proxy lagane ka koi ninja hack bata 🤫',
+    };
+  }
+
+  // 14. BOYS TALK: "Proxy lagane ka hack" / "Attendance kaise badhaye"
+  if (
+    clean.includes('proxy') ||
+    clean.includes('attendance hack') ||
+    clean.includes('proxy lagane') ||
+    clean.includes('attendance kam')
+  ) {
+    return {
+      text: `🤫⚡ **Shhh... aawaz niche kar ${buddy}, HOD sir ke kaan bohot tej hain! 😂**\n\nDekh bhai, proxy lagana engineering ka 8th wonder hai, par isme risk 100% hai:\n• 🎯 **Golden Rule #1:** Roll No 1 se 15 ke beech kabhi proxy mat maarna—teacher ka concentration tab sabse high hota hai!\n• 🎙️ **Voice Modulation:** Apni natural aawaz se halki alag pitch me *"Present Sir!"* bolna, par lagataar do roll numbers pe mat bolna warna pakde jaoge! 💀\n• 🛡️ **The True Hacker Move:** Proxy ka risk kyu lena jab tumhare paas **Safe Bunk Calculator** hai? Sidebar me jao, apni attendance check karo—agar 75%+ buffer hai toh seedha aaram se bunk maaro bina chori-chupe ke! 😎🔥`,
+      nextSugg: 'Safe bunk & SGPA kaise check karu? 🧮',
+    };
+  }
+
+  // 15. BOYS TALK: "Class bunk karke canteen me kya khaye" / "Bunk plan"
+  if (
+    clean.includes('bunk') ||
+    clean.includes('canteen chale') ||
+    clean.includes('kya khaye') ||
+    clean.includes('bunk mare')
+  ) {
+    return {
+      text: `🍔🔥 **Bunk ka mood ban gaya ${buddy}?! Canteen squad ready hai:**\n\n• ☕ **College Upper Canteen (Tea Men's Cafe):** Garma-garam Cold Coffee (₹60) + Paneer Grilled Sandwich (₹70) dabao aur window side table pe chill vibes lo!\n• 🥟 **Boys Hostel Canteen (K.J Cafe):** Kurkure Momos (₹75) ya Double-Cheese Maggi (₹60) order karo aur dosto ke saath baith ke pure din ka scene banao!\n\n⚠️ *Pro Tip:* Bunk maarne se pehle ikA ke Safe Bunk tool se apni 75% limit check kar lena, warna semester ke aakhiri me medical banwaate firoge! 😂🏃‍♂️`,
+      nextSugg: 'Boys hostel waali canteen ka menu dikhao 🍔',
+    };
+  }
+
+  // 16. BOYS TALK: "Single laundo ke liye motivation" / "GF kab banegi"
+  if (
+    clean.includes('single') ||
+    clean.includes('girlfriend') ||
+    clean.includes('gf') ||
+    clean.includes('bhav nahi') ||
+    clean.includes('pyaar me dhokha')
+  ) {
+    return {
+      text: `👑💪 **Arre mere single sher ${buddy}, udaas kyu ho raha hai?!**\n\nSingle hona engineering me sabse bada cheat-code hai:\n• ❌ Na raat ko 3 baje tak *"babu ne thaana thaya"* ka drama.\n• ❌ Na pocket money teddy bear aur chocolate me barbaad karna.\n• ✅ Poora dimaag DSA, LeetCode, Gym aur Hackathons pe lagao!\n\n*Bhai sun, jab 4th year me 25 LPA ka offer letter aayega na, tab dekhna! Abhi bas apne career aur personality pe grind kar, tera bhai ikA hamesha tere peeche khada hai!* 🔥😎🚀`,
+      nextSugg: '15+ LPA crack karne ka roadmap kya hai?',
+    };
+  }
+
+  // 17. BOYS TALK: "Hostel life scene" / "Hostel me kya chal raha hai"
+  if (
+    clean.includes('hostel scene') ||
+    clean.includes('hostel me ladko') ||
+    clean.includes('hostel masti') ||
+    clean.includes('hostel me kya')
+  ) {
+    return {
+      text: `🏠😂 **Bhai hostel ka scene alag hi multi-verse hai!**\n\n• 🎮 Raat ke 1:30 baje kisi room se screaming aati hai: *"Bhai revive de, AWM padi hai!"* (BGMI/Valorant tournament chalta hai).\n• 🍜 Dusre room me electric kettle me ek sath 4 logo ki Maggi ubal rahi hoti hai bina plate ke!\n• ⏰ Aur subah 8:49 AM pe aankh khulne par 60 second me bag uthake RJ-block bhaagne ka Olympic sprint sirf hostel wale hi laga sakte hain! 😂🏃‍♂️\n\n*Hostel ke yeh din hi baad me zindagi bhar yaad aayenge mere bhai, full enjoy karo!* ⚡`,
+      nextSugg: 'Ek ekdum kadak campus roast sunao 🤣',
+    };
+  }
+
+  // 18. BOYS TALK: "Campus roast" / "Ek kadak roast sunao"
+  if (
+    clean.includes('roast') ||
+    clean.includes('campus roast') ||
+    clean.includes('kadak roast')
+  ) {
+    return {
+      text: `🔥💀 **Ye le ekdum kadak fresh ABES Campus Roast ${buddy}:**\n\n1. Yahan ke launde assignment aise copy karte hain ki saamne wale ka naam, date aur roll number tak print ho jata hai! ✍️😂\n2. Canteen me 4 dost milkar ₹10 ki ek chai lenge aur 45 minute tak aisi startup discuss karenge jaise Agla Shark Tank unke room me hi aayega!\n3. Aur attendance 74.8% hone par aisi-aisi bimariyon ke medical certificate nikal aate hain jo AIIMS ke doctor ne bhi nahi suni hoti! 🤣🩺\n4. Lab exam me sabse pehle enter karne wale ka confidence dekh ke lagta hai poora CPU yahi banayega, par 5 minute baad screen pe *"Syntax Error"* dekh ke sir pe haath rakh leta hai! 💻💀`,
+      nextSugg: 'Bhai thodi college gossip batao ☕',
+    };
+  }
+
+  // 19. BOYS TALK: "College gossip" / "Spicy gossip"
+  if (
+    clean.includes('gossip') ||
+    clean.includes('spicy gossip') ||
+    clean.includes('kya chal raha campus')
+  ) {
+    return {
+      text: `☕👀 **Arre sun sun ${buddy}, taaza campus gossip!**\n\n• Kal library ke aakhiri aisle me do log itne serious book kholke baithe the jaise UPSC crack kar rahe ho, paas jaake dekha toh phone me Instagram reels scroll ho rahi thi! 😂\n• Aur suno, Section CSE-2 ke kuch launde canteen me bol rahe the: *"Bhai bas 2nd year se padhai start karenge, abhi explore kar rahe hain!"* (Explore matlab poora din canteen ki bench todna)! 🤣\n• Sabse bada gossip: Kal Shivam sir ne class me ek bande ko pakad liya jo desk ke neeche phone chala raha tha aur bola—*"Bhai phone se zyada screen tere chashme me chamak rahi hai!"* Pura class has pada! ⚡`,
+      nextSugg: 'Prof. Shivam Mittal ki lore batao',
+    };
+  }
+
+  // 20. BOYS TALK: "Class me neend aa rahi hai" / "Boring lecture"
+  if (
+    clean.includes('neend') ||
+    clean.includes('so jau') ||
+    clean.includes('boring lecture') ||
+    clean.includes('neend aa rahi')
+  ) {
+    return {
+      text: `😴💤 **Hahaha ${buddy}, lecture me lori sunai de rahi hai na?! Ye 3 survival hacks laga:**\n\n• 1️⃣ **The Deep Thinker Pose:** Apne ek haath ko gaal pe rakho aur black board ki taraf aise ghooro jaise universe ka mysterious formula solve kar rahe ho. Teacher sochega ladka deep study me hai! 🧘‍♂️\n• 2️⃣ **Fake Scribbling:** Copy pe random geometric shapes ya Tic-Tac-Toe khelte raho taaki haath chalta rahe aur aankhein band na hon!\n• 3️⃣ **The Canteen Motivation:** Bas 15 minute bache hain, lecture khatam hote hi K.J Cafe ke Kurkure Momos ya Tea Men's ki thandi Cold Coffee pe attack bolna hai! Uth ja sher! ⚡☕`,
+      nextSugg: 'Tea Men\'s Cafe (College Upper Canteen) ka menu dikhao ☕',
+    };
+  }
+
+  // 21. BOYS TALK: "Backbenchers rule"
+  if (
+    clean.includes('backbencher') ||
+    clean.includes('backbenchers') ||
+    clean.includes('aakhiri bench')
+  ) {
+    return {
+      text: `😎🎒 **Backbenchers ka Sacred Creed — The Legends of RJ-Block!**\n\n• Rule #1: First bench wale exam pass karate hain, par aakhiri bench wale college ko yaadgaar banate hain! 🏆\n• Rule #2: Bag khulega par copy nahi niklegi—sirf lunchbox, headphone aur charger! 🥪🎧\n• Rule #3: Jab sir poochenge *"Are you getting it?!"*, tab sabse zor se haan backbenchers hi bolte hain bina board dekhe! 😂📐\n• Rule #4: Attendance kam hone par bhi swag 100% rehta hai!\n\n*Proud backbencher ho toh ek baar thumbs up maar do ${buddy}!* 🔥`,
+      nextSugg: 'Prof. Vimal Srivastava ke baare me batao',
+    };
+  }
+
   return null;
 }
 
@@ -2123,244 +2281,6 @@ export function getAcademicCalendarAndSyllabusReply(rawQuery: string): { text: s
   };
 }
 
-// ============================================================================
-// ELECTRICAL ENGINEERING (25EL101) — ASSIGNMENT 02 (UNIT-2) SOLUTIONS & PDF
-// ============================================================================
-const EE_ASSIGNMENT_2_PDF_TAG = `[DOWNLOAD_PAPER|⚡ Official EE Assignment-02 (Questions) PDF|/Assignment_Unit-2_EE.pdf]
-
-[DOWNLOAD_PAPER|✅ Official EE Assignment-02 (SOLUTIONS) PDF|/ee_assignment_2_solutions.pdf]`;
-
-const EE_ASSIGNMENT_02_QUESTIONS: Record<number, string> = {
-  1: `### ⚡ Q-1: 100W, 120V Lamp on 240V, 50Hz Supply (CO2 • K3)
-**Given:** Lamp Power = 100 W | Lamp Voltage = 120 V | Supply = 240 V, 50 Hz.
-• **Lamp's Rated Current (I):** 100W / 120V = **0.833 A**
-• **Lamp's Resistance (R_lamp):** 120² / 100 = **144 Ω**
-• **Total Impedance Needed (Z_total):** 240V / 0.833A = **288 Ω**
-
-**🅰️ (a) Connecting a Resistor (R) in Series:**
-• R_total = 288 Ω, so Series Resistance R = 288 - 144 = **144 Ω**
-• Power Factor = R_total / Z_total = 288 / 288 = **1 (Unity)**
-• Total Power Consumed = 240V × 0.833A × 1 = **200 W**
-
-**🅱️ (b) Connecting a Capacitor (C) in Series:**
-• Capacitive Reactance (X_c) = √(288² - 144²) = **249.42 Ω**
-• Capacitance (C) = 1 / (2 × π × 50 × 249.42) = **12.76 μF**
-• Power Factor = 144 / 288 = **0.5 (Leading)**
-• Total Power Consumed = I² × R_lamp = **100 W**
-
-**🅲 (c) Connecting a Coil (Resistance = 10 Ω) in Series:**
-• New R_total = 144 + 10 = 154 Ω
-• Inductive Reactance (X_L) = √(288² - 154²) = **243.37 Ω**
-• Inductance (L) = 243.37 / (2 × π × 50) = **0.775 H**
-• Power Factor = 154 / 288 = **0.535 (Lagging)**
-• Total Power Consumed = (0.833)² × 154 = **107 W**
-
-✅ **Conclusion:** **Method (b) (Capacitor)** is the most economical because an ideal capacitor doesn't consume extra active power, keeping the total bill at just **100 W**.`,
-
-  2: `### ⚡ Q-2: Series RLC Circuit Parameters (CO2 • K3)
-**Given:** L = 0.01 H | v(t) = 400cos(3000t - 10°) V | i(t) = 10√2 cos(3000t - 55°) A.
-
-• **Step 1: Convert to RMS Phasors**
-  ◦ Angular Freq (ω) = **3000 rad/s**
-  ◦ Voltage (V) = (400 / √2) ∠ -10° = **282.84 ∠ -10° V**
-  ◦ Current (I) = (10√2 / √2) ∠ -55° = **10 ∠ -55° A**
-
-• **Step 2: Find Total Impedance (Z)**
-  ◦ Z = V / I = 282.84 / 10 = 28.284 Ω. Angle = -10° - (-55°) = +45°.
-  ◦ Z = 28.284 ∠ 45° Ω
-  ◦ In Rectangular Form: Z = 28.284(cos 45° + j sin 45°) = **20 + j20 Ω**
-
-• **Step 3: Find R, L, and C**
-  ◦ Resistance (R) is the real part = **20 Ω**
-  ◦ Inductive Reactance (X_L) = ω × L = 3000 × 0.01 = **30 Ω**
-  ◦ Net Reactance is 20 Ω. So, X_L - X_C = 20  =>  30 - X_C = 20  =>  **X_C = 10 Ω**
-  ◦ Capacitance (C) = 1 / (ω × X_C) = 1 / (3000 × 10) = **33.33 μF**`,
-
-  3: `### ⚡ Q-3: Parallel R and Series R-C Circuit (CO2 • K3)
-**Given:** R1 = 20 Ω, f = 50 Hz. Total Current = 7 A. Current in R1 branch = 5 A. Current in R-C branch = 3 A.
-
-• **Step 1: Find Supply Voltage & Branch Impedance**
-  ◦ Voltage (V) = Current in R1 × R1 = 5A × 20Ω = **100 V**
-  ◦ Impedance of R-C branch (Z2) = V / Current = 100V / 3A = **33.33 Ω**
-
-• **Step 2: Find the Phase Angle**
-  ◦ Let Voltage be the reference (0°).
-  ◦ R1 branch current is in phase (5 ∠ 0° A). R-C branch current leads by some angle φ2 (3 ∠ φ2 A).
-  ◦ Vector addition: Total Current² = I1² + I2² + (2 × I1 × I2 × cos φ2)
-  ◦ 7² = 5² + 3² + (2 × 5 × 3 × cos φ2)
-  ◦ 49 = 34 + 30 cos φ2  =>  30 cos φ2 = 15  =>  **cos φ2 = 0.5**
-
-• **Step 3: Calculate R and C in the branch**
-  ◦ Resistance (R) = Z2 × cos φ2 = 33.33 × 0.5 = **16.67 Ω**
-  ◦ sin φ2 = √(1 - 0.5²) = 0.866
-  ◦ Capacitive Reactance (X_C) = Z2 × sin φ2 = 33.33 × 0.866 = **28.87 Ω**
-  ◦ Capacitance (C) = 1 / (2 × π × 50 × 28.87) = **110.32 μF**`,
-
-  4: `### ⚡ Q-4: Coil in Series with a 20 μF Capacitor (CO2 • K3)
-**Given:** C = 20 μF | V = 230 V | f = 50 Hz | I = 8 A | Power Consumed = 200 W.
-
-• **Common Circuit Parameters:**
-  ◦ Coil Resistance (R) = Power / I² = 200 / 64 = **3.125 Ω**
-  ◦ Total Circuit Impedance (Z) = V / I = 230 / 8 = **28.75 Ω**
-  ◦ Net Circuit Reactance = √(28.75² - 3.125²) = **28.58 Ω**
-  ◦ Capacitive Reactance (X_C) = 1 / (2 × π × 50 × 20μF) = **159.15 Ω**
-
-**🅰️ (a) If Circuit Power Factor is Leading (X_C > X_L):**
-• X_C - X_L = 28.58  =>  159.15 - X_L = 28.58  =>  **X_L = 130.57 Ω**
-• Inductance (L) = 130.57 / (2 × π × 50) = **0.416 H**
-• Coil Impedance (Z_coil) = √(3.125² + 130.57²) = 130.61 Ω
-• **Coil Power Factor:** R / Z_coil = 3.125 / 130.61 = **0.0239 (Lagging)**
-
-**🅱️ (b) If Circuit Power Factor is Lagging (X_L > X_C):**
-• X_L - X_C = 28.58  =>  X_L - 159.15 = 28.58  =>  **X_L = 187.73 Ω**
-• Inductance (L) = 187.73 / (2 × π × 50) = **0.597 H**
-• Coil Impedance (Z_coil) = √(3.125² + 187.73²) = 187.76 Ω
-• **Coil Power Factor:** R / Z_coil = 3.125 / 187.76 = **0.0166 (Lagging)**`,
-
-  5: `### ⚡ Q-5: Non-Inductive Resistor in Series with a Coil (CO2 • K3)
-**Given:** Non-inductive Resistor (R) = 10 Ω | Coil Resistance (r) = 2 Ω | V = 200 V | f = 50 Hz | I = 10 A.
-
-**1️⃣ (i) Inductance of the Coil (L):**
-• Total Circuit Impedance (Z_tot) = V / I = 200 / 10 = **20 Ω**
-• Total Circuit Resistance (R_tot) = 10 + 2 = **12 Ω**
-• Inductive Reactance of Coil (X_L) = √(20² - 12²) = **16 Ω**
-• Inductance (L) = 16 / (2 × π × 50) = 0.05093 H = **50.93 mH**
-
-**2️⃣ (ii) Power Factor of Coil and Circuit:**
-• Coil Impedance (Z_coil) = √(2² + 16²) = **16.12 Ω**
-• **Power Factor of Coil:** r / Z_coil = 2 / 16.12 = **0.124 (Lagging)**
-• **Power Factor of Circuit:** R_tot / Z_tot = 12 / 20 = **0.60 (Lagging)**
-
-**3️⃣ (iii) Voltage Across the Coil:**
-• V_coil = Current × Z_coil = 10 A × 16.12 Ω = **161.2 V**`,
-
-  6: `### ⚡ Q-6: Series Resonance Circuit (CO2 • K3)
-**Given:** L = 50 mH (0.05 H) | R = 10 Ω | C = 25 μF | V = 200 V.
-
-**🅰️ (a) Resonance Frequency (f_r):**
-• Formula: f_r = 1 / (2 × π × √(L × C))
-• Calculation: 1 / (2 × π × √(0.05 × 25 × 10⁻⁶))
-• **f_r = 142.35 Hz**
-
-**🅱️ (b) Current Flowing at Resonance (I_r):**
-• At resonance, X_L = X_C, so Total Impedance (Z) = R = 10 Ω
-• I_r = V / R = 200 / 10 = **20 A**
-
-**🅲 (c) Quality Factor (Q):**
-• Formula: Q = (1 / R) × √(L / C)
-• Calculation: (1 / 10) × √(0.05 / 25 × 10⁻⁶) = (1 / 10) × √(2000)
-• **Q = 4.47**`,
-
-  7: `### ⚡ Q-7: Series-Parallel Circuit Analysis (CO2 • K3)
-**Given:** Supply V = 100√2 ∠ 0° V (or 141.42 V) | Series Branch Z1 = 5 + j5 Ω | Parallel Branches: Z2 = 5 - j5 Ω and Z3 = 5 + j5 Ω.
-
-• **Step 1: Equivalent Impedance (Z_eq)**
-  ◦ Parallel part (Z_p): (Z2 × Z3) / (Z2 + Z3) = ((5 - j5)(5 + j5)) / (10) = 50 / 10 = **5 Ω**
-  ◦ Total Impedance (Z_eq): Z1 + Z_p = (5 + j5) + 5 = **10 + j5 Ω**
-
-• **Step 2: Branch Currents (Using standard 200V Supply for Exact Sheet Answers)**
-  ◦ Branch 1 Current (I1) = **10 ∠ 45° A**
-  ◦ Branch 2 Current (I2) = **10 ∠ -45° A**
-  ◦ Branch 3 Current (I3) = **10 ∠ 105° A**
-  ◦ Total Supply Current (I_total) = **20 ∠ 45° A**
-
-• **Step 3: Power Consumption**
-  ◦ Power in Branch 1 (P1): I1² × R1 = 10² × 10 = **1000 W**
-  ◦ Power in Branch 2 (P2): I2² × R2 = 10² × 5 = **500 W**
-  ◦ Power in Branch 3 (P3): I3² × R3 = 10² × 5 = **500 W**
-  ◦ **Total Circuit Power:** 1000 + 500 + 500 = **2000 W (2 kW)**`,
-
-  8: `### ⚡ Q-8: Ammeter Reading in a Parallel AC Network (CO2 • K3)
-**Given:** Two parallel branches. Branch 1: R1 = 3 Ω, X_C = -j3 Ω (Z1 = 3 - j3 Ω). Branch 2: R2 = 5 Ω, X_L = j2 Ω (Z2 = 5 + j2 Ω). Voltmeter across 3 Ω reads 45 V.
-
-• **Step 1: Current in Branch 1 (I1)**
-  ◦ Magnitude of I1 = V / R1 = 45 / 3 = **15 A**
-  ◦ Taking node voltage V_AB as reference (0°). Z1 = 4.243 ∠ -45° Ω.
-  ◦ V_AB = I1 × |Z1| = 15 × 4.243 = **63.64 V**
-  ◦ Phasor I1 = (63.64 ∠ 0°) / (4.243 ∠ -45°) = 15 ∠ 45° = **10.61 + j10.61 A**
-
-• **Step 2: Current in Branch 2 (I2)**
-  ◦ Impedance Z2 = 5 + j2 = 5.385 ∠ 21.8° Ω
-  ◦ Phasor I2 = V_AB / Z2 = (63.64 ∠ 0°) / (5.385 ∠ 21.8°) = 11.82 ∠ -21.8° = **10.97 - j4.39 A**
-
-• **Step 3: Total Line Current (Ammeter Reading I)**
-  ◦ Total I = I1 + I2 = (10.61 + 10.97) + j(10.61 - 4.39) = 21.58 + j6.22 A
-  ◦ Polar Form = **22.4 ∠ 16.1° A** (or 28.8° depending on reference).
-  ◦ **Reading of Ammeter (Magnitude):** **22.4 A**`,
-
-  9: `### ⚡ Q-9: Two Impedances in Parallel (CO2 • K3)
-**Given:** Z1 = 5 + j10 Ω (11.18 ∠ 63.43°) | Z2 = 10 - j15 Ω (18.028 ∠ -56.31°) | Total Current (I_T) = 20 ∠ 0° A.
-
-**🅰️ (a) Current taken by each branch:**
-• Z1 + Z2 = (5 + j10) + (10 - j15) = 15 - j5 = 15.811 ∠ -18.43° Ω
-• By Current Division Rule:
-  ◦ I1 = I_T × [Z2 / (Z1 + Z2)] = 20 × [18.028 ∠ -56.31° / 15.811 ∠ -18.43°] = **22.80 ∠ -37.88° A**
-  ◦ I2 = I_T × [Z1 / (Z1 + Z2)] = 20 × [11.18 ∠ 63.43° / 15.811 ∠ -18.43°] = **14.14 ∠ 81.86° A**
-
-**🅱️ (b) Circuit Power Factor:**
-• Equivalent Impedance (Z_eq) = (Z1 × Z2) / (Z1 + Z2) = 12.748 ∠ 25.55° Ω
-• **Circuit Power Factor** = cos(25.55°) = **0.902 (Lagging)**
-
-**🅲 (c) Power consumed in each branch:**
-• Power in Branch 1 (P1) = |I1|² × R1 = (22.80)² × 5 = 2600 W = **2.6 kW**
-• Power in Branch 2 (P2) = |I2|² × R2 = (14.14)² × 10 = 2000 W = **2.0 kW**`,
-
-  10: `### ⚡ Q-10: Three-Phase Balanced Star and Delta Load (CO2 • K3)
-**Given:** R = 25 Ω | L = 0.15 H | C = 100 μF (connected in series per phase). 3-phase supply: Line Voltage (V_L) = 400 V, f = 50 Hz.
-
-• **Step 1: Per-Phase Impedance (Z_ph)**
-  ◦ Inductive Reactance (X_L) = 2 × π × 50 × 0.15 = 47.12 Ω
-  ◦ Capacitive Reactance (X_C) = 1 / (2 × π × 50 × 100μF) = 31.83 Ω
-  ◦ Net Reactance (X_ph) = 47.12 - 31.83 = 15.29 Ω
-  ◦ Phase Impedance (Z_ph) = √(25² + 15.29²) = **29.30 Ω**
-
-**1️⃣ (i) When load is Star (Y) Connected:**
-• Phase Voltage (V_ph) = V_L / √3 = 400 / √3 = **230.94 V**
-• Line Current = Phase Current (I_ph) = V_ph / Z_ph = 230.94 / 29.30 = **7.88 A**
-• **Power Factor:** cos φ = R / Z_ph = 25 / 29.30 = **0.853 (Lagging)**
-• **Total Power (P_Y):** √3 × V_L × I_L × cos φ = √3 × 400 × 7.88 × 0.853 = 4657 W = **4.658 kW**
-
-**2️⃣ (ii) When load is Delta (Δ) Connected:**
-• Phase Voltage = Line Voltage = **400 V**
-• Phase Current (I_ph) = 400 / 29.30 = 13.65 A
-• Line Current (I_L) = √3 × I_ph = √3 × 13.65 = **23.64 A**
-• **Power Factor:** cos φ = R / Z_ph = **0.853 (Lagging)**
-• **Total Power (P_Δ):** √3 × V_L × I_L × cos φ = √3 × 400 × 23.64 × 0.853 = 13972 W = **13.97 kW**`,
-};
-
-export function getEEAssignment02Reply(rawQuery: string): { text: string; nextSugg: string } | null {
-  const q = rawQuery.toLowerCase().trim();
-
-  const hasAssignKeyword = /\b(assign|assignment|assgn|sheet)[\s\-]*0?2?\b/i.test(q);
-  const hasEEKeyword = /\b(ee|bee|electrical|25el101|25el201|ac circuit|rlc)\b/i.test(q);
-
-  const isDirectCombo =
-    /\b(ee|electrical|bee)\s*(assignment|assign|sheet)\b/i.test(q) ||
-    /\b(assignment|assign|sheet)\s*(of)?\s*(ee|electrical|bee)\b/i.test(q) ||
-    /\b(ee|electrical).{0,15}(assignment|assign)\b/i.test(q) ||
-    /\b(assignment|assign).{0,15}(ee|electrical)\b/i.test(q);
-
-  const directQNum = detectEEAssignmentQuestionNumber(q);
-
-  if (!(hasAssignKeyword && hasEEKeyword) && !isDirectCombo && directQNum === null) {
-    return null;
-  }
-
-  // If a specific question number or question text was matched, return that exact question
-  if (directQNum !== null && EE_ASSIGNMENT_02_QUESTIONS[directQNum]) {
-    return {
-      text: `⚡📘 **BASICS OF ELECTRICAL ENGINEERING (25EL101) — ASSIGNMENT-02 (UNIT-2)**\n\n${EE_ASSIGNMENT_02_QUESTIONS[directQNum]}\n\n${EE_ASSIGNMENT_2_PDF_TAG}`,
-      nextSugg: 'Assignment 02 of Electrical Engineering full solution dikhao ⚡',
-    };
-  }
-
-  const allSolvedText = Object.values(EE_ASSIGNMENT_02_QUESTIONS).join('\n\n---\n\n');
-
-  return {
-    text: `⚡🏛️ **ABES BASICS OF ELECTRICAL ENGINEERING (25EL101) — ASSIGNMENT SHEET-02 (UNIT-2: AC CIRCUITS)**\n*(Complete Step-by-Step Solutions + Official Assignment PDF)*\n\n${allSolvedText}\n\n${EE_ASSIGNMENT_2_PDF_TAG}`,
-    nextSugg: 'EE Assignment 2 Q6 dikhao ⚡',
-  };
-}
 
 // ============================================================================
 // 4. MASTER OMNI-BRAIN + MULTI-COMMAND ENGINE (EXECUTES 1 TO 4 COMMANDS AT ONCE!)
@@ -2373,15 +2293,7 @@ function getOmniBrainHinglishReply(
   isAgrima: boolean
 ): { text: string; nextSugg: string } | null {
   const evaluateClause = (clause: string): { text: string; nextSugg: string } | null => {
-    // 0. HCLTech Career Shaper Python Projects (Cyber Analysis 14 tools & Data Analytics 10 projects)
-    const cyberProj = getCyberProjectsReply(clause, first);
-    if (cyberProj) return cyberProj;
 
-    const daProj = getDataAnalyticsProjectsReply(clause, first);
-    if (daProj) return daProj;
-
-    const eeAssign = getEEAssignment02Reply(clause);
-    if (eeAssign) return eeAssign;
 
     const solved = getAllSolvedMT2Reply(clause);
     if (solved) return solved;
@@ -2393,11 +2305,15 @@ function getOmniBrainHinglishReply(
     if (calOrSyllabus) return calOrSyllabus;
 
     const c = clause.toLowerCase();
+
+    // Priority Check for Prof. Vimal Srivastava (prevents 'srivastava' containing 'av' from falsely matching Aditya Vats)
+    if (c.includes('vimal') || c.includes('srivastava') || c.includes('getting it')) return { text: LOCAL_FACULTY_DOSSIERS.vimal, nextSugg: 'Prof. Kartika Maheshwari ke baare me batao' };
+
     // CSE-8 Faculty Dossiers
     if (c.includes('mayank kushwaha') || c.includes('myk')) return { text: CSE8_FACULTY_DOSSIERS.mayank_kushwaha, nextSugg: 'Dr. Bhanumati Panda ke baare me batao' };
-    if (c.includes('bhanumati') || c.includes('bp')) return { text: CSE8_FACULTY_DOSSIERS.bhanumati_panda, nextSugg: 'Mr. Shahbaz Alam ke baare me batao' };
+    if (c.includes('bhanumati') || (/\bbp\b/i.test(c) && !c.includes('paper'))) return { text: CSE8_FACULTY_DOSSIERS.bhanumati_panda, nextSugg: 'Mr. Shahbaz Alam ke baare me batao' };
     if (c.includes('shahbaz') || (c.includes('sa') && c.includes('faculty'))) return { text: CSE8_FACULTY_DOSSIERS.shahbaz_alam, nextSugg: 'Mr. Aditya Vats ke baare me batao' };
-    if (c.includes('aditya vats') || c.includes('av')) return { text: CSE8_FACULTY_DOSSIERS.aditya_vats, nextSugg: 'Dr. Shruti Singh ke baare me batao' };
+    if (!c.includes('vimal') && !c.includes('srivastava') && (c.includes('aditya vats') || /\bav\b/i.test(c))) return { text: CSE8_FACULTY_DOSSIERS.aditya_vats, nextSugg: 'Dr. Shruti Singh ke baare me batao' };
     if (c.includes('shruti singh') || (c.includes('shruti') && !c.includes('shweta'))) return { text: CSE8_FACULTY_DOSSIERS.shruti_singh, nextSugg: 'Dr. Shweta Sharma ke baare me batao' };
     if (c.includes('shweta sharma') || c.includes('ssh')) return { text: CSE8_FACULTY_DOSSIERS.shweta_sharma, nextSugg: 'Mr. Rohit Pratap Singh ke baare me batao' };
     if (c.includes('rohit pratap') || c.includes('rps')) return { text: CSE8_FACULTY_DOSSIERS.rohit_pratap, nextSugg: 'Mr. Mayank Mittal ke baare me batao' };
@@ -2407,7 +2323,6 @@ function getOmniBrainHinglishReply(
     if (c.includes('prerna') || c.includes('prerana') || c.includes('mohapatra')) return { text: LOCAL_FACULTY_DOSSIERS.prerna, nextSugg: 'Dr. Divyanshi Sharma ke baare me batao' };
     if (c.includes('divyanshi') || c.includes('dsh')) return { text: LOCAL_FACULTY_DOSSIERS.divyanshi, nextSugg: 'Prof. Shivam Mittal ki lore batao' };
     if (c.includes('shivam') || c.includes('mittal')) return { text: LOCAL_FACULTY_DOSSIERS.shivam, nextSugg: 'Prof. Vimal Srivastava ke baare me batao' };
-    if (c.includes('vimal') || c.includes('srivastava') || c.includes('getting it')) return { text: LOCAL_FACULTY_DOSSIERS.vimal, nextSugg: 'Prof. Kartika Maheshwari ke baare me batao' };
     if (c.includes('kartika') || c.includes('maheshwari')) return { text: LOCAL_FACULTY_DOSSIERS.kartika, nextSugg: 'Ms. Shailja Varshney ke baare me batao' };
     if (c.includes('shailja') || c.includes('varshney')) return { text: LOCAL_FACULTY_DOSSIERS.shailja, nextSugg: 'Dr. Prerana Mohapatra ka profile dikhao' };
     if (c.includes('rahul singh') || (c.includes('rahul') && c.includes('batao'))) return { text: LOCAL_FACULTY_DOSSIERS.rahul, nextSugg: 'Dr. Prerana Mohapatra ka profile dikhao' };
@@ -2422,7 +2337,7 @@ function getOmniBrainHinglishReply(
   const clauses = splitMultiCommands(rawQuery);
   if (clauses.length >= 2) {
     const results: string[] = [];
-    let finalSugg = 'All 10 HCLTech Data Analytics Python projects dikhao 🐍📊';
+    let finalSugg = 'Solve full AI MT2 paper';
 
     for (const cl of clauses.slice(0, 4)) {
       const matched = evaluateClause(cl);
@@ -2444,14 +2359,6 @@ function getOmniBrainHinglishReply(
   }
 
   // Single command checks
-  const singleCyber = getCyberProjectsReply(rawQuery, first);
-  if (singleCyber) return singleCyber;
-
-  const singleDA = getDataAnalyticsProjectsReply(rawQuery, first);
-  if (singleDA) return singleDA;
-
-  const singleEE = getEEAssignment02Reply(rawQuery);
-  if (singleEE) return singleEE;
 
   const singleCalOrSyllabus = getAcademicCalendarAndSyllabusReply(rawQuery);
   if (singleCalOrSyllabus) return singleCalOrSyllabus;
@@ -2520,14 +2427,7 @@ function FormattedMessage({
             </div>
           );
         }
-        const daProjectMatch = line.trim().match(/^\[DA_PROJECT\|([a-z0-9-]+)\]$/i);
-        if (daProjectMatch) {
-          return <DataAnalyticsProjectCard key={`da-${i}`} projectId={daProjectMatch[1]} />;
-        }
-        const cyberProjectMatch = line.trim().match(/^\[CYBER_PROJECT\|([a-z0-9-]+)\]$/i);
-        if (cyberProjectMatch) {
-          return <CyberProjectCard key={`cyber-${i}`} projectId={cyberProjectMatch[1]} />;
-        }
+
         const suggestionMatch = line.match(/^\[SUGGESTIONS\|(.*)\|(.*)\]$/);
         if (suggestionMatch && onSelectSuggestion) {
           return (
@@ -2723,7 +2623,51 @@ export default function CampusAIChat() {
 
   // SECTION CSE-2 VS CSE-8 DETECTION & BOSS OVERRIDE
   const [bossSectionOverride, setBossSectionOverride] = useState<'CSE-2' | 'CSE-8'>('CSE-2');
-  const [careerShaperTrack, setCareerShaperTrack] = useState<'data_analytics' | 'cyber_security'>('data_analytics');
+  // Shinigami Universal Tile Uploads State & Handlers
+  const [tileUploads, setTileUploads] = useState<TileUploadItem[]>([]);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
+  const [activeUploadTileId, setActiveUploadTileId] = useState<string>('home');
+
+  useEffect(() => {
+    const loadTileUploads = async () => {
+      try {
+        const cached = localStorage.getItem('shinigami_tile_uploads');
+        if (cached) {
+          try {
+            setTileUploads(JSON.parse(cached));
+          } catch {}
+        }
+        const res = await fetch('/api/upload');
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.uploads)) {
+          setTileUploads(data.uploads);
+          localStorage.setItem('shinigami_tile_uploads', JSON.stringify(data.uploads));
+        }
+      } catch {}
+    };
+    loadTileUploads();
+  }, []);
+
+  const handleDeleteUpload = async (id: string) => {
+    try {
+      const res = await fetch(`/api/upload?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.uploads)) {
+        setTileUploads(data.uploads);
+        localStorage.setItem('shinigami_tile_uploads', JSON.stringify(data.uploads));
+      }
+    } catch {}
+  };
+
+  const handleUploadSuccess = (_newItem: TileUploadItem, allUploads: TileUploadItem[]) => {
+    setTileUploads(allUploads);
+    localStorage.setItem('shinigami_tile_uploads', JSON.stringify(allUploads));
+  };
+
+  const handleOpenUploadModal = (tileId: string) => {
+    setActiveUploadTileId(tileId);
+    setIsUploadModalOpen(true);
+  };
 
   const studentSection = useMemo<'CSE-2' | 'CSE-8'>(() => {
     if (currentUser?.section === 'CSE-8') return 'CSE-8';
@@ -2734,13 +2678,7 @@ export default function CampusAIChat() {
   const activeSection: 'CSE-2' | 'CSE-8' = isBoss ? bossSectionOverride : studentSection;
   const isCSE8 = activeSection === 'CSE-8';
 
-  useEffect(() => {
-    if (studentSection === 'CSE-8') {
-      setCareerShaperTrack('cyber_security');
-    } else {
-      setCareerShaperTrack('data_analytics');
-    }
-  }, [studentSection]);
+
 
   // Unlock mobile audio on first interaction + register Service Worker for Device Notifications
   useEffect(() => {
@@ -3277,8 +3215,48 @@ export default function CampusAIChat() {
   const [hasVipSecretCode, setHasVipSecretCode] = useState<boolean>(false);
   const [unlockAnimStage, setUnlockAnimStage] = useState<'idle' | 'chains' | 'key_turn' | 'shatter'>('idle');
 
-  const [boxPositionIdx, setBoxPositionIdx] = useState<number>(0);
-  const [teleportCountdown, setTeleportCountdown] = useState<number>(11);
+  const [orbPos, setOrbPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingOrb, setIsDraggingOrb] = useState<boolean>(false);
+  const dragStartRef = useRef<{ startX: number; startY: number; initX: number; initY: number }>({ startX: 0, startY: 0, initX: 0, initY: 0 });
+  const hasDraggedRef = useRef<boolean>(false);
+
+  const handleOrbPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsDraggingOrb(true);
+    hasDraggedRef.current = false;
+    const rect = e.currentTarget.getBoundingClientRect();
+    dragStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initX: orbPos ? orbPos.x : rect.left,
+      initY: orbPos ? orbPos.y : rect.top,
+    };
+  };
+
+  const handleOrbPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingOrb) return;
+    const dx = e.clientX - dragStartRef.current.startX;
+    const dy = e.clientY - dragStartRef.current.startY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      hasDraggedRef.current = true;
+    }
+    const safeX = Math.max(10, Math.min(window.innerWidth - 80, dragStartRef.current.initX + dx));
+    const safeY = Math.max(10, Math.min(window.innerHeight - 80, dragStartRef.current.initY + dy));
+    setOrbPos({ x: safeX, y: safeY });
+  };
+
+  const handleOrbPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingOrb) return;
+    setIsDraggingOrb(false);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+    if (!hasDraggedRef.current) {
+      setRequestStatusMsg('');
+      setIsRequestBoxModalOpen(true);
+    }
+  };
+
   const [isRequestBoxModalOpen, setIsRequestBoxModalOpen] = useState<boolean>(false);
   const [showEarlyCodePrompt, setShowEarlyCodePrompt] = useState<boolean>(false);
   const [earlyCodeInput, setEarlyCodeInput] = useState<string>('');
@@ -3337,20 +3315,7 @@ export default function CampusAIChat() {
     return () => clearInterval(timer);
   }, [currentUser, currentWindow, isRequestBoxUnlocked, triggerRequestBoxUnlockAnimation]);
 
-  // Rule #2: Teleport Request Box Location on Screen Every 11 Seconds
-  useEffect(() => {
-    if (!isRequestBoxUnlocked || isRequestBoxModalOpen) return;
-    const tick = setInterval(() => {
-      setTeleportCountdown((prev) => {
-        if (prev <= 1) {
-          setBoxPositionIdx((pos) => (pos + 1 + Math.floor(Math.random() * 3)) % REQUEST_BOX_POSITIONS.length);
-          return 11;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(tick);
-  }, [isRequestBoxUnlocked, isRequestBoxModalOpen]);
+  // Rule #2: Stationary & Moveable Request Box (No Jumping — User Can Drag to Any Wise Place!)
 
   // Adaptive Client Clock (1s only when live timers are open, 15s idle to prevent wasted full-page re-renders!)
   const [clientNowMs, setClientNowMs] = useState<number>(0);
@@ -3617,20 +3582,35 @@ export default function CampusAIChat() {
     if (normCurrent && !usedSuggestionsRef.current.includes(normCurrent)) {
       usedSuggestionsRef.current.push(normCurrent);
     }
-    const available = MASTER_SUGGESTION_POOL.filter(
-      (item) => !usedSuggestionsRef.current.some((u) => item.toLowerCase().includes(u.slice(0, 12)) || u.includes(item.toLowerCase().slice(0, 12)))
-    );
-    let poolToUse = available;
-    if (poolToUse.length < 2) {
-      usedSuggestionsRef.current = [normCurrent];
-      poolToUse = MASTER_SUGGESTION_POOL.filter((item) => !item.toLowerCase().includes(normCurrent.slice(0, 12)));
+
+    const isCSE8User = currentUser?.section === 'CSE-8';
+    const isFemaleUser = currentUser?.gender === 'F';
+
+    const importantPool = isCSE8User ? CSE8_IMPORTANT_SUGGESTIONS : CSE2_IMPORTANT_SUGGESTIONS;
+    const casualPool = isFemaleUser ? GIRLS_CASUAL_TALK_SUGGESTIONS : BOYS_CASUAL_TALK_SUGGESTIONS;
+
+    // 1st Option: ALWAYS IMPORTANT / ACADEMIC
+    let opt1 = preferredFirst && importantPool.includes(preferredFirst) ? preferredFirst : '';
+    if (!opt1) {
+      const unusedImportant = importantPool.filter(
+        (item) => !usedSuggestionsRef.current.some((u) => item.toLowerCase().includes(u.slice(0, 10)) || u.includes(item.toLowerCase().slice(0, 10)))
+      );
+      opt1 = unusedImportant.length > 0 ? unusedImportant[0] : importantPool[Math.floor(Math.random() * importantPool.length)];
     }
-    const opt1 = preferredFirst && poolToUse.includes(preferredFirst) ? preferredFirst : poolToUse[0];
-    const opt2 = poolToUse.find((item) => item !== opt1) || MASTER_SUGGESTION_POOL[1];
+
+    // 2nd Option: ALWAYS NORMAL TALK / CASUAL / BOYS FUN BANTER
+    const unusedCasual = casualPool.filter(
+      (item) => item !== opt1 && !usedSuggestionsRef.current.some((u) => item.toLowerCase().includes(u.slice(0, 10)) || u.includes(item.toLowerCase().slice(0, 10)))
+    );
+    const opt2 = unusedCasual.length > 0 ? unusedCasual[0] : casualPool.find((c) => c !== opt1) || casualPool[0];
+
     usedSuggestionsRef.current.push(opt1.toLowerCase());
     usedSuggestionsRef.current.push(opt2.toLowerCase());
+    if (usedSuggestionsRef.current.length > 30) {
+      usedSuggestionsRef.current = usedSuggestionsRef.current.slice(-12);
+    }
     return `[SUGGESTIONS|${opt1}|${opt2}]`;
-  }, []);
+  }, [currentUser]);
 
   const loadUserSessions = useCallback((user: StudentUser) => {
     const isSecretBoss = user.email.toLowerCase().trim().startsWith('1402akshit');
@@ -4332,17 +4312,7 @@ export default function CampusAIChat() {
       window.clearInterval(streamIntervalRef.current);
       streamIntervalRef.current = null;
     }
-    // For replies embedding interactive Data Analytics project cards, render immediately so Copy buttons are instantly clickable!
-    if (fullText.includes('[DA_PROJECT|')) {
-      setStreamingText('');
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === targetSessionId ? { ...s, messages: [...currentMessages, { role: 'assistant', content: fullText }] } : s
-        )
-      );
-      setIsLoading(false);
-      return;
-    }
+
     let index = 0;
     setStreamingText('');
     streamIntervalRef.current = window.setInterval(() => {
@@ -4572,11 +4542,14 @@ export default function CampusAIChat() {
       );
     }
 
+    // Priority Check for Prof. Vimal Srivastava (prevents 'srivastava' containing 'av' from falsely matching Aditya Vats)
+    if (clean.includes('vimal') || clean.includes('srivastava') || clean.includes('getting it')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.vimal, 'Prof. Kartika Maheshwari ke baare me batao');
+
     // CSE-8 Faculty Dossiers
     if (clean.includes('mayank kushwaha') || clean.includes('myk')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.mayank_kushwaha, 'Dr. Bhanumati Panda ke baare me batao');
-    if (clean.includes('bhanumati') || clean.includes('bp')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.bhanumati_panda, 'Mr. Shahbaz Alam ke baare me batao');
+    if (clean.includes('bhanumati') || (/\bbp\b/i.test(clean) && !clean.includes('paper'))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.bhanumati_panda, 'Mr. Shahbaz Alam ke baare me batao');
     if (clean.includes('shahbaz') || (clean.includes('sa') && clean.includes('faculty'))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.shahbaz_alam, 'Mr. Aditya Vats ke baare me batao');
-    if (clean.includes('aditya vats') || clean.includes('av')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.aditya_vats, 'Dr. Shruti Singh ke baare me batao');
+    if (!clean.includes('vimal') && !clean.includes('srivastava') && (clean.includes('aditya vats') || /\bav\b/i.test(clean))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.aditya_vats, 'Dr. Shruti Singh ke baare me batao');
     if (clean.includes('shruti singh') || (clean.includes('shruti') && !clean.includes('shweta'))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.shruti_singh, 'Dr. Shweta Sharma ke baare me batao');
     if (clean.includes('shweta sharma') || clean.includes('ssh')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.shweta_sharma, 'Mr. Rohit Pratap Singh ke baare me batao');
     if (clean.includes('rohit pratap') || clean.includes('rps')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.rohit_pratap, 'Mr. Mayank Mittal ke baare me batao');
@@ -4586,13 +4559,12 @@ export default function CampusAIChat() {
     if (clean.includes('prerna') || clean.includes('prerana') || clean.includes('mohapatra')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.prerna, 'Dr. Divyanshi Sharma ke baare me batao');
     if (clean.includes('divyanshi') || clean.includes('dsh')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.divyanshi, 'Prof. Shivam Mittal ki lore batao');
     if (clean.includes('shivam') || clean.includes('mittal')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.shivam, 'Prof. Vimal Srivastava ke baare me batao');
-    if (clean.includes('vimal') || clean.includes('srivastava') || clean.includes('getting it')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.vimal, 'Prof. Kartika Maheshwari ke baare me batao');
     if (clean.includes('kartika') || clean.includes('maheshwari')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.kartika, 'Ms. Shailja Varshney ke baare me batao');
     if (clean.includes('shailja') || clean.includes('varshney')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.shailja, 'Dr. Prerana Mohapatra ka profile dikhao');
     if (clean.includes('rahul singh') || (clean.includes('rahul') && clean.includes('batao'))) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.rahul, 'Dr. Prerana Mohapatra ka profile dikhao');
     if (clean.includes('show all faculty') || clean.includes('all faculty')) {
       if (isCSE8) {
-        return wrapQueenOrBoss(`### 🎓 Complete Section CSE-8 Faculty Directory\n\n${Object.values(CSE8_FACULTY_DOSSIERS).join('\n\n---\n\n')}`, 'All 14 Cyber Security tools dikhao 🛡️');
+        return wrapQueenOrBoss(`### 🎓 Complete Section CSE-8 Faculty Directory\n\n${Object.values(CSE8_FACULTY_DOSSIERS).join('\n\n---\n\n')}`, 'CSE-8 Timetable dikhao ⏰');
       }
       return wrapQueenOrBoss(`### 🎓 Complete Section CSE-2 Faculty Directory\n\n${Object.values(LOCAL_FACULTY_DOSSIERS).join('\n\n---\n\n')}`, 'Kya 50 LPA ka package lagta hai?');
     }
@@ -4660,14 +4632,14 @@ export default function CampusAIChat() {
     // Conversational Hinglish Catch-All so NO input ever feels robotic!
     if (isCSE8) {
       return wrapQueenOrBoss(
-        `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Tumne likha: ***"${rawQuery.trim()}"*** 💬\n\nMain **ikA's World** ka AI dost hu (Section CSE-8 Edition)! Agar tumhe inme se kuch chahiye toh bas ek click karo ya likh do:\n• 🛡️💻 **14 HCLTech Cyber Analysis Python Tools:** *"All 14 Cyber Security projects"*, *"Port Scanner"*, *"Keylogger"*, *"Caesar Cipher"*, *"DNS CLI"*, *"Hash Cracker"*, *"Web Scanner"*, *"Steganography"*, *"Firewall Rule Engine"*\n• ⏰ **CSE-8 Timetable:** *"CSE-8 ka timetable dikhao"*\n• 👩‍🏫 **CSE-8 Faculty:** *"Mr. Mayank Kushwaha"*, *"Dr. Bhanumati Panda"*, *"Mr. Shahbaz Alam"*, *"Show all faculty"*\n• 🍔 **Canteen & Food:** *"Boys hostel canteen"* ya *"Tea Men's Cafe"*\n• 🎭 **Campus Fun:** *"Ek mast campus joke sunao"*! 👇🍎`,
-        'All 14 Cyber Security tools dikhao 🛡️'
+        `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Tumne likha: ***"${rawQuery.trim()}"*** 💬\n\nMain **ikA's World** ka AI dost hu (Section CSE-8 Edition)! Agar tumhe inme se kuch chahiye toh bas ek click karo ya likh do:\n• ⏰ **CSE-8 Timetable:** *"CSE-8 ka timetable dikhao"*\n• 👩‍🏫 **CSE-8 Faculty:** *"Mr. Mayank Kushwaha"*, *"Dr. Bhanumati Panda"*, *"Mr. Shahbaz Alam"*, *"Show all faculty"*\n• 🍔 **Canteen & Food:** *"Boys hostel canteen"* ya *"Tea Men's Cafe"*\n• 🎭 **Campus Fun:** *"Ek mast campus joke sunao"*! 👇🍎`,
+        'CSE-8 Timetable dikhao ⏰'
       );
     }
 
     return wrapQueenOrBoss(
-      `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Tumne likha: ***"${rawQuery.trim()}"*** 💬\n\nMain **ikA's World** ka AI dost hu—mujhse tum bilkul khul ke baat kar sakte ho! Agar tumhe inme se kuch chahiye toh bas ek click karo ya likh do:\n• 🐍📊 **10 HCLTech Data Analytics Python Projects:** *"All 10 Data Analytics projects"*, *"Budget Tracker"*, *"IPL Analysis"*, *"Spotify"*, ya *"Project 1"*–*"Project 10"*\n• 🍔 **Canteen & Food:** *"Boys hostel waali canteen"* (K.J Cafe) ya *"College upper waali canteen"* (Tea Men's Cafe)\n• 📄 **Solved MT-2 Papers:** *"Solve full AI MT2 paper"*, *"Physics MT2 Q.1"*, *"Maths MT2 Section C"*\n• 👩‍🏫 **Faculty & Bunks:** *"Show all faculty"*, *"Safe bunk & SGPA"*, ya *"Ek mast campus joke sunao"*! 👇🍎`,
-      'All 10 HCLTech Data Analytics Python projects dikhao 🐍📊'
+      `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Tumne likha: ***"${rawQuery.trim()}"*** 💬\n\nMain **ikA's World** ka AI dost hu—mujhse tum bilkul khul ke baat kar sakte ho! Agar tumhe inme se kuch chahiye toh bas ek click karo ya likh do:\n• 🍔 **Canteen & Food:** *"Boys hostel waali canteen"* (K.J Cafe) ya *"College upper waali canteen"* (Tea Men's Cafe)\n• 📄 **Solved MT-2 Papers:** *"Solve full AI MT2 paper"*, *"Physics MT2 Q.1"*, *"Maths MT2 Section C"*\n• 👩‍🏫 **Faculty & Bunks:** *"Show all faculty"*, *"Safe bunk & SGPA"*, ya *"Ek mast campus joke sunao"*! 👇🍎`,
+      'Solve full AI MT2 paper'
     );
   };
 
@@ -4916,6 +4888,13 @@ export default function CampusAIChat() {
       }
     >
       {!currentUser && <RegisterModal onSuccess={handleLoginSuccess} />}
+
+      <ShinigamiUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        initialTileId={activeUploadTileId}
+        onUploadSuccess={handleUploadSuccess}
+      />
 
       {/* HORROR & FLYING LETTER KEYFRAME ANIMATIONS */}
       <style>{`
@@ -5692,21 +5671,26 @@ export default function CampusAIChat() {
       )}
 
       {/* =====================================================================
-          3. TELEPORTING "TO ikA" REQUEST BOX ORB (SQUARE ⛩️ ON MOBILE ONLY!)
+          3. MOVEABLE "TO ikA" REQUEST BOX ORB (NO JUMPING • PLACEABLE ANYWHERE!)
          ===================================================================== */}
       {currentUser && isRequestBoxUnlocked && currentWindow !== 'boss_intro' && (
         <div
-          className={`fixed ${REQUEST_BOX_POSITIONS[boxPositionIdx]} z-[880] transition-all duration-700 ease-in-out`}
+          style={
+            orbPos
+              ? { left: `${orbPos.x}px`, top: `${orbPos.y}px` }
+              : { bottom: '85px', right: '16px' }
+          }
+          className="fixed z-[880] select-none touch-none"
+          onPointerDown={handleOrbPointerDown}
+          onPointerMove={handleOrbPointerMove}
+          onPointerUp={handleOrbPointerUp}
+          onPointerCancel={() => setIsDraggingOrb(false)}
         >
-          <button
-            onClick={() => {
-              setRequestStatusMsg('');
-              setIsRequestBoxModalOpen(true);
-            }}
-            title={`To ikA Request Box • Jumps in ${teleportCountdown}s`}
-            className="group relative w-11 h-11 sm:w-auto sm:h-auto p-0 sm:px-3.5 sm:py-2 rounded-2xl bg-gradient-to-br from-red-950/95 via-black to-amber-950/90 border-2 border-red-500/80 hover:border-amber-400 shadow-[0_0_25px_rgba(220,38,38,0.8)] flex items-center justify-center sm: gap-2.5 cursor-pointer hover:scale-105 transition"
+          <div
+            title="To ikA Request Box • Drag karke screen pe kahin bhi move karo • Click karke open karo"
+            className={`group relative p-2 sm:px-3.5 sm:py-2 rounded-2xl bg-gradient-to-br from-red-950/95 via-black to-amber-950/90 border-2 border-red-500/80 hover:border-amber-400 shadow-[0_0_25px_rgba(220,38,38,0.8)] flex items-center gap-2.5 cursor-grab active:cursor-grabbing hover:scale-105 transition-transform ${isDraggingOrb ? 'scale-105 shadow-2xl opacity-90' : ''}`}
           >
-            <span className="text-xl animate-bounce">⛩️</span>
+            <span className="text-xl">⛩️</span>
             <div className="hidden sm:block text-left">
               <div className="text-[11px] font-black text-white tracking-wider uppercase flex items-center gap-1.5">
                 <span>To ikA Box</span>
@@ -5717,16 +5701,16 @@ export default function CampusAIChat() {
                 )}
               </div>
               <div className="text-[9px] font-mono text-red-300 flex items-center gap-1">
-                <span>⚡ Jumps in {teleportCountdown}s</span>
-                <span>• {requestBoxQuotaInfo.remainingCount} left</span>
+                <span>✋ Moveable (Drag)</span>
+                <span>• {requestBoxQuotaInfo.remainingCount} bachi</span>
               </div>
             </div>
-          </button>
+          </div>
         </div>
       )}
 
       {/* =====================================================================
-          4. "TO ikA" FORBIDDEN REQUEST BOX MODAL (WITH ALL 8 SACRED RULES)
+          4. "TO ikA" REQUEST & FEEDBACK BOX MODAL (HINGLISH EDITION)
          ===================================================================== */}
       {isRequestBoxModalOpen && currentUser && (
         <div className="fixed inset-0 z-[9990] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none">
@@ -5738,12 +5722,12 @@ export default function CampusAIChat() {
                 </div>
                 <div>
                   <h3 className="text-base font-black text-white uppercase tracking-wider">
-                    To ikA — Forbidden Request Box
+                    Boss ikA — Direct Request &amp; Feedback Box
                   </h3>
                   <p className="text-[11px] text-red-300 font-mono">
                     {hasVipSecretCode
-                      ? '👑 VIP Covenant Unlocked (11 Requests/Day • 0h Cooldown)'
-                      : '📜 Mortal Covenant (3 Requests/Day • 8h Gap Between Requests)'}
+                      ? '👑 VIP Access Active! (11 Requests Roz • 0 Ghante Cooldown)'
+                      : '📜 Normal Access (3 Requests Roz • 8 Ghante ka Gap)'}
                   </p>
                 </div>
               </div>
@@ -5756,23 +5740,23 @@ export default function CampusAIChat() {
             </div>
 
             <div className="p-5 overflow-y-auto space-y-4 flex-1">
-              {/* Live Quota & Cooldown Status Bar */}
+              {/* Live Quota & Cooldown Status Bar in Hinglish */}
               <div className="grid grid-cols-3 gap-2.5 text-center font-mono text-xs">
                 <div className="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10">
-                  <div className="text-[10px] text-gray-400 uppercase">Daily Quota</div>
+                  <div className="text-[10px] text-gray-400 uppercase">Roz ki Limit</div>
                   <div className="text-base font-black text-emerald-400 mt-0.5">
-                    {requestBoxQuotaInfo.remainingCount} / {requestBoxQuotaInfo.maxAllowed} Left
+                    {requestBoxQuotaInfo.remainingCount} / {requestBoxQuotaInfo.maxAllowed} Bachi
                   </div>
                 </div>
                 <div className="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10">
-                  <div className="text-[10px] text-gray-400 uppercase">8h Gap Timer</div>
+                  <div className="text-[10px] text-gray-400 uppercase">Agla Request Gap</div>
                   <div className="text-sm font-black text-amber-300 mt-0.5">
                     {requestBoxQuotaInfo.cooldownText}
                   </div>
                 </div>
                 <div className="p-2.5 rounded-2xl bg-white/[0.04] border border-white/10">
-                  <div className="text-[10px] text-gray-400 uppercase">Teleport Rate</div>
-                  <div className="text-sm font-black text-red-400 mt-0.5">Every 11s ⚡</div>
+                  <div className="text-[10px] text-gray-400 uppercase">Review Status</div>
+                  <div className="text-sm font-black text-red-400 mt-0.5">Direct to Boss ⚡</div>
                 </div>
               </div>
 
@@ -5780,23 +5764,23 @@ export default function CampusAIChat() {
               {!hasVipSecretCode && (
                 <div className="p-3.5 rounded-2xl bg-amber-950/25 border border-amber-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="text-xs text-amber-200">
-                    🗝️ <strong>Have Boss ikA&apos;s Secret Code?</strong> Unlock <strong>11 Requests</strong> &amp; remove the 8-hour wait:
+                    🗝️ <strong>Boss ikA ka Secret Code hai?</strong> <strong>11 Requests</strong> unlock karo aur 8-hour wait hatao:
                   </div>
                   <div className="flex gap-1.5">
                     <input
                       type="text"
                       value={earlyCodeInput}
                       onChange={(e) => setEarlyCodeInput(e.target.value)}
-                      placeholder="Enter Code..."
+                      placeholder="Code daalo..."
                       className="bg-black/60 border border-amber-500/40 rounded-xl px-3 py-1 text-xs text-white font-mono uppercase outline-none w-32"
                     />
                     <button
                       type="button"
                       onClick={() => {
                         if (!verifyAndActivateSecretCode(earlyCodeInput)) {
-                          setRequestStatusMsg('❌ Invalid Secret Code! Ask Supreme Boss ikA.');
+                          setRequestStatusMsg('❌ Galat Secret Code! Supreme Boss ikA se pucho.');
                         } else {
-                          setRequestStatusMsg('🔓 VIP Secret Code Activated! 11 Requests & 0h Cooldown Unlocked!');
+                          setRequestStatusMsg('🔓 VIP Secret Code Activated! 11 Requests & 0h Cooldown Unlock Ho Gaya!');
                         }
                       }}
                       className="px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black cursor-pointer"
@@ -5807,15 +5791,15 @@ export default function CampusAIChat() {
                 </div>
               )}
 
-              {/* The Sacred Rules of the Box */}
+              {/* The Sacred Rules of the Box in Hinglish */}
               <div className="p-3.5 rounded-2xl bg-black/70 border border-white/10 space-y-1 text-[11px] text-gray-300">
                 <div className="text-xs font-bold text-red-400 uppercase tracking-wider mb-1">
-                  ⚖️ Sacred Rules of ikA&apos;s Request Box:
+                  ⚖️ Request Box ke Zaroori Niyam:
                 </div>
-                <div>• <strong>1. 2-Min Vigil &amp; 11s Teleport:</strong> Unlocks after 2 mins active; jumps screen position every 11s.</div>
-                <div>• <strong>2. 3/Day &amp; 8h Gap:</strong> Max 3 requests/day with an 8-hour gap (unless unlocked with Secret Code for <strong>11 requests</strong>).</div>
-                <div>• <strong>3. Worthy Offering (Min 5 Words):</strong> Write at least 5 words (+1 Symbolic Apple 🍎 tribute).</div>
-                <div>• <strong>4. Chat Shortcut:</strong> You can also send requests in AI Chat by typing <code className="text-amber-300">Request to ikA: your message</code>!</div>
+                <div>• <strong>1. 2-Min Unlock &amp; Moveable:</strong> Portal par 2 minute active rehne ke baad (ya Secret Code se) box unlock hota hai. Ab aap ise screen par kahin bhi drag karke rakh sakte ho bina kisi jumping ke!</div>
+                <div>• <strong>2. Roz ki Limit:</strong> Normal students ke liye 3 requests/day (8 ghante ka gap). VIP Secret Code se <strong>11 requests</strong> bina cooldown ke milti hain!</div>
+                <div>• <strong>3. Kaam ki Baat Likho:</strong> Kam se kam 5 shabdon me apna message, feedback ya feature request detail me likho. (+1 Symbolic Apple 🍎 tribute).</div>
+                <div>• <strong>4. Chat Shortcut:</strong> AI Chat me direct type karke bhi bhej sakte ho: <code className="text-amber-300">Request to ikA: apna message</code>!</div>
               </div>
 
               {/* Request Submission Form */}
@@ -5829,7 +5813,7 @@ export default function CampusAIChat() {
                 className="space-y-3"
               >
                 <div className="flex flex-wrap gap-1.5">
-                  {['Feature / Upgrade', 'Mercy / Uncurse', 'Secret Confession', 'Academic Help'].map((cat) => (
+                  {['🚀 Naya Feature / Upgrade', '📚 Notes / Academic Help', '☕ Campus Gossip / Confession', '🙏 Mercy / Uncurse'].map((cat) => (
                     <button
                       type="button"
                       key={cat}
@@ -5850,7 +5834,7 @@ export default function CampusAIChat() {
                   required
                   value={requestTextInput}
                   onChange={(e) => setRequestTextInput(e.target.value)}
-                  placeholder="Inscribe your petition to Supreme Boss ikA (minimum 5 words)..."
+                  placeholder="Boss ikA ke liye apna message, feedback ya feature request yahan likho (kam se kam 5 shabd)..."
                   className="w-full bg-black/60 border border-white/15 focus:border-red-500 rounded-2xl p-3.5 text-xs text-white outline-none resize-none"
                 />
 
@@ -5864,7 +5848,7 @@ export default function CampusAIChat() {
                   type="submit"
                   className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-amber-600 hover:opacity-95 text-white text-xs font-black uppercase tracking-widest shadow-lg cursor-pointer"
                 >
-                  🍎 Offer 1 Apple &amp; Send Petition to Boss ikA
+                  🍎 1 Apple Offer Karo &amp; Boss ikA ko Bhejo 🚀
                 </button>
               </form>
 
@@ -5872,7 +5856,7 @@ export default function CampusAIChat() {
               {ikaRequests.filter((r) => r.studentAdmissionNo === currentUser.admissionNo).length > 0 && (
                 <div className="space-y-2 pt-2 border-t border-white/10">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                    📜 My Petitions &amp; Boss ikA&apos;s Verdicts
+                    📜 Meri Bheji Hui Requests &amp; Boss ikA ke Faisle:
                   </h4>
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                     {ikaRequests
@@ -5890,7 +5874,7 @@ export default function CampusAIChat() {
                                   : 'bg-amber-500/20 text-amber-300'
                               }`}
                             >
-                              {r.status === 'granted' ? '⚡ Granted' : r.status === 'denied' ? '💀 Denied' : '⏳ Pending'}
+                              {r.status === 'granted' ? '⚡ Manzoor' : r.status === 'denied' ? '💀 Radd' : '⏳ Review Me'}
                             </span>
                           </div>
                           <p className="text-gray-200">&ldquo;{r.text}&rdquo;</p>
@@ -5943,10 +5927,19 @@ export default function CampusAIChat() {
                 <span className="flex items-center gap-2"><span>🍔</span> Canteen Menus</span>
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">LIVE</span>
               </button>
-              <button type="button" onClick={() => {setCurrentWindow('data_analytics'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'data_analytics' ? 'bg-gradient-to-r from-red-600/30 to-emerald-600/30 text-white border border-red-500/40' : 'text-gray-300 hover:bg-white/5'}`}>
-                <span className="flex items-center gap-2"><span>⚡</span> DATA &amp; CYBER Analysis (HCL)</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">24 PY</span>
-              </button>
+              {isBoss && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleOpenUploadModal('home');
+                    setIsSidebarOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer bg-gradient-to-r from-red-600/25 to-amber-600/25 text-white border border-red-500/40 hover:from-red-600/40 hover:to-amber-600/40"
+                >
+                  <span className="flex items-center gap-2"><span>⛩️</span> Shinigami Tile Uploader</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-600 text-white font-mono font-bold">UPLOAD</span>
+                </button>
+              )}
               <button onClick={() => {setCurrentWindow('papers'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'papers' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>📄</span> Solved Sample Papers</button>
               <button onClick={() => {setCurrentWindow('placement'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'placement' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>🎯</span> Placement &amp; Packages</button>
               <button onClick={() => {setCurrentWindow('timetable'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'timetable' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>⏰</span> Class Time Table</button>
@@ -6104,7 +6097,7 @@ export default function CampusAIChat() {
             <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-emerald-400 font-bold">End Semester:</span><span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-semibold">{countdowns.endSem} days left</span></div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            <button type="button" onClick={() => setCurrentWindow('data_analytics')} className="text-[11px] text-rose-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🐍 10 Python Projects</button>
+            {isBoss ? (<button type="button" onClick={() => handleOpenUploadModal('home')} className="text-[11px] text-red-400 hover:underline font-bold whitespace-nowrap cursor-pointer">⛩️ Upload File</button>) : null}
             <button type="button" onClick={() => setCurrentWindow('canteen')} className="text-[11px] text-emerald-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🍔 Canteen Menus</button>
             <button onClick={() => setCurrentWindow('bunk_sgpa')} className="text-[11px] text-cyan-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🛡️🧮 Bunk &amp; SGPA</button>
             <button onClick={() => sendQuery('Ek mast campus joke sunao 😂', true)} className="text-[11px] text-amber-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">😂 250+ Jokes</button>
@@ -6198,39 +6191,20 @@ export default function CampusAIChat() {
                   </div>
                 </div>
 
-                {/* 1B. FEATURED HCLTECH CAREER SHAPER BANNER (COMPACT & SLEEK) */}
-                <div className="max-w-4xl mx-auto pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentWindow('data_analytics')}
-                    className="w-full px-4 py-3 rounded-2xl bg-gradient-to-r from-red-950/60 via-zinc-950/80 to-emerald-950/40 hover:from-red-950/80 hover:to-emerald-950/60 border border-red-500/40 hover:border-red-400/70 shadow-lg transition flex items-center justify-between gap-3 text-left cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600/30 to-red-600/30 border border-red-500/40 flex items-center justify-center text-lg flex-shrink-0">
-                        ⚡
-                      </div>
-                      <div className="truncate">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-xs sm:text-sm font-black text-white truncate">
-                            HCLTech Career Shaper — DATA &amp; CYBER Analysis Vault
-                          </h3>
-                          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold hidden sm:inline-block">
-                            📊 DATA (10) + 🛡️ CYBER (14)
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-gray-300 truncate mt-0.5">
-                          24 Ready-to-Run Python Scripts • Auto CSVs, EDA Charts &amp; Complete Cybersecurity Scanners • Copy &amp; Download .PY
-                        </p>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-emerald-600 text-white text-xs font-bold whitespace-nowrap flex-shrink-0">
-                      Explore DATA &amp; CYBER Vault →
-                    </span>
-                  </button>
+                {/* 1B. SHINIGAMI UPLOADED ASSETS & DOCUMENTS ON OVERVIEW */}
+                <div className="max-w-4xl mx-auto pt-1 w-full">
+                  <TileAttachments
+                    tileId="home"
+                    tileName="Overview & Campus Documents"
+                    uploads={tileUploads}
+                    isBoss={isBoss}
+                    onDelete={handleDeleteUpload}
+                    onOpenUploadModal={handleOpenUploadModal}
+                  />
                 </div>
 
-                {/* 2. UPCOMING / COMING SOON TILES DIRECTLY UNDER THE 4 TILES */}
-                <div className="max-w-4xl mx-auto pt-2 space-y-2">
+                {/* 2. UPCOMING / COMING SOON TILES DIRECTLY UNDER THE 4 TILES (HIDDEN ON MOBILE) */}
+                <div className="hidden md:block max-w-4xl mx-auto pt-2 space-y-2">
                   <div className="flex items-center justify-between px-1">
                     <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
@@ -6794,6 +6768,61 @@ export default function CampusAIChat() {
                       ))}
                     </div>
                   )}
+
+                  {/* 5. SHINIGAMI UNIVERSAL TILE UPLOADER & ASSET VAULT (UNDER DEATH NOTE) */}
+                  <div className="p-5 rounded-2xl bg-gradient-to-r from-red-950/70 via-black to-amber-950/50 border border-red-500/40 shadow-xl space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-2xl">⛩️</span>
+                        <div>
+                          <h4 className="text-base font-black text-white">Shinigami Universal Tile Uploader &amp; Asset Vault</h4>
+                          <p className="text-[11px] text-red-300">Upload images, pdfs, docs or any file to any tile for all students</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenUploadModal('home')}
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-black shadow cursor-pointer transition flex items-center gap-1.5"
+                      >
+                        <span>⚡</span> Upload Image / Doc / Any File
+                      </button>
+                    </div>
+
+                    {/* Summary Tile Badges */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2 pt-1 font-mono text-[10px]">
+                      {[
+                        { id: 'home', label: 'Home' },
+                        { id: 'papers', label: 'Papers' },
+                        { id: 'faculty', label: 'Faculty' },
+                        { id: 'timetable', label: 'TimeTable' },
+                        { id: 'placement', label: 'Placement' },
+                        { id: 'canteen', label: 'Canteen' },
+                        { id: 'bunk_sgpa', label: 'Bunk/SGPA' },
+                        { id: 'assignments', label: 'Assign' },
+                      ].map((tl) => {
+                        const count = tileUploads.filter((u) => u.tile === tl.id).length;
+                        return (
+                          <div
+                            key={tl.id}
+                            onClick={() => handleOpenUploadModal(tl.id)}
+                            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-center cursor-pointer transition"
+                          >
+                            <div className="text-gray-400 truncate">{tl.label}</div>
+                            <div className="text-sm font-black text-amber-300 mt-0.5">{count} files</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <TileAttachments
+                      tileId="all"
+                      tileName="All Uploaded Assets across All Tiles"
+                      uploads={tileUploads}
+                      isBoss={true}
+                      onDelete={handleDeleteUpload}
+                      onOpenUploadModal={handleOpenUploadModal}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -6806,6 +6835,14 @@ export default function CampusAIChat() {
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-12">
                 {/* SECTION 1: SAFE BUNK CALCULATOR */}
+                <TileAttachments
+                  tileId="bunk_sgpa"
+                  tileName="Safe Bunk & SGPA Suite"
+                  uploads={tileUploads}
+                  isBoss={isBoss}
+                  onDelete={handleDeleteUpload}
+                  onOpenUploadModal={handleOpenUploadModal}
+                />
                 <div className={`p-6 rounded-3xl ${themeClasses} border shadow-2xl space-y-5`}>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-2xl">🛡️</div>
@@ -6869,6 +6906,14 @@ export default function CampusAIChat() {
           {currentWindow === 'canteen' && (
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-5 animate-in fade-in zoom-in-95 duration-200 pb-12">
+                <TileAttachments
+                  tileId="canteen"
+                  tileName="Canteen Menus & Food Rates"
+                  uploads={tileUploads}
+                  isBoss={isBoss}
+                  onDelete={handleDeleteUpload}
+                  onOpenUploadModal={handleOpenUploadModal}
+                />
                 <div className="p-5 rounded-3xl bg-gradient-to-r from-orange-950/40 via-black to-amber-950/30 border border-orange-500/30 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300 text-[10px] font-bold uppercase">
@@ -6989,6 +7034,14 @@ export default function CampusAIChat() {
           {currentWindow === 'placement' && (
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-10">
+                <TileAttachments
+                  tileId="placement"
+                  tileName="Placement Reality & Career Documents"
+                  uploads={tileUploads}
+                  isBoss={isBoss}
+                  onDelete={handleDeleteUpload}
+                  onOpenUploadModal={handleOpenUploadModal}
+                />
                 <div className="flex items-center justify-between">
                   <div><h3 className="font-bold text-lg text-white">Campus Placement &amp; Package Reality</h3><p className="text-xs text-gray-400">Click any card to discuss that exact topic with the AI Oracle!</p></div>
                   <button onClick={() => sendQuery('Kya 50 LPA ka package lagta hai?', true)} className={`text-xs ${accentText} hover:underline cursor-pointer`}>Ask in AI Chat ↗</button>
@@ -7037,6 +7090,14 @@ export default function CampusAIChat() {
           {currentWindow === 'faculty' && (
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-10">
+                <TileAttachments
+                  tileId="faculty"
+                  tileName="Faculty Dossiers"
+                  uploads={tileUploads}
+                  isBoss={isBoss}
+                  onDelete={handleDeleteUpload}
+                  onOpenUploadModal={handleOpenUploadModal}
+                />
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 mb-1">
@@ -7074,6 +7135,8 @@ export default function CampusAIChat() {
                         </button>
                       </div>
                     )}
+
+                  
                     <button onClick={() => sendQuery('Show all faculty', true)} className={`text-xs ${accentText} hover:underline cursor-pointer`}>
                       View Full Directory in Chat ↗
                     </button>
@@ -7634,92 +7697,6 @@ export default function CampusAIChat() {
             </div>
           )}
 
-          {/* VIEW: HCLTECH CAREER SHAPER — DUAL TRACK: CYBER ANALYSIS (14 TOOLS) & DATA ANALYTICS (10 PROJECTS) */}
-          {currentWindow === 'data_analytics' && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
-              <div className="w-full max-w-4xl space-y-4 animate-in fade-in zoom-in-95 duration-200 pb-12">
-                {/* DUAL TRACK SWITCHER TABS */}
-                <div className="flex items-center justify-between flex-wrap gap-2 p-1.5 rounded-2xl bg-black/60 border border-white/10">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => setCareerShaperTrack('cyber_security')}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 cursor-pointer ${
-                        careerShaperTrack === 'cyber_security'
-                          ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg border border-red-400/40'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      <span>🛡️</span> Cyber Analysis ({isCSE8 ? 'CSE-8 Default' : 'Track 2'} • 14 Tools)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCareerShaperTrack('data_analytics')}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 cursor-pointer ${
-                        careerShaperTrack === 'data_analytics'
-                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg border border-emerald-400/40'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      <span>🐍</span> Data Analytics ({!isCSE8 ? 'CSE-2 Default' : 'Track 1'} • 10 Projects)
-                    </button>
-                  </div>
-                  <div className="text-[11px] text-gray-400 pr-2 hidden sm:block">
-                    Section Track: <span className="text-white font-mono font-bold">{isCSE8 ? 'Section CSE-8' : 'Section CSE-2'}</span>
-                  </div>
-                </div>
-
-                {careerShaperTrack === 'cyber_security' ? (
-                  <>
-                    <div className="p-5 rounded-3xl bg-gradient-to-r from-red-950/60 via-black to-amber-950/40 border border-red-500/35 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-300 text-[10px] font-bold uppercase">
-                          🛡️ HCLTech Career Shaper • Cyber Analysis Coursework (14 Tools)
-                        </div>
-                        <h3 className="text-lg sm:text-xl font-black text-white">14 Cyber Security Python Tools (Ready to Run!)</h3>
-                        <p className="text-xs text-gray-300">
-                          CLI Port Scanner, Keylogger, Caesar, DNS CLI, Web Vulnerability Scanner, Scapy Sniffer, Hash Cracker, Steganography, Canary Tokens, Phishing Generator, SSH Brute Force Detector, Base64 Tool, CIS Benchmark Auditor, and Firewall Rule Engine!
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => sendQuery('All 14 Cyber Security tools dikhao 🛡️', true)}
-                        className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold whitespace-nowrap cursor-pointer shadow"
-                      >
-                        💬 Open in AI Chat
-                      </button>
-                    </div>
-
-                    <CyberProjectCard projectId="all" />
-                  </>
-                ) : (
-                  <>
-                    <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-950/50 via-black to-teal-950/30 border border-emerald-500/35 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase">
-                          🐍 HCLTech Career Shaper • Data Analytics Coursework (10 Projects)
-                        </div>
-                        <h3 className="text-lg sm:text-xl font-black text-white">10 Data Analytics Python Projects (Copy &amp; Run!)</h3>
-                        <p className="text-xs text-gray-300">
-                          Every script auto-generates its local CSV, runs EDA metrics, and plots Matplotlib/Seaborn charts. You can also ask in chat (e.g. <strong>&ldquo;Project 3&rdquo;</strong>, <strong>&ldquo;Spotify code&rdquo;</strong>, or <strong>&ldquo;All HCL projects&rdquo;</strong>)!
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => sendQuery('All 10 HCLTech Data Analytics Python projects dikhao 🐍📊', true)}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold whitespace-nowrap cursor-pointer shadow"
-                      >
-                        💬 Open in AI Chat
-                      </button>
-                    </div>
-
-                    <DataAnalyticsProjectCard projectId="all" />
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* VIEW: SAMPLE PAPERS (ALL 10 SUBJECTS WITH ONE-CLICK SOLVED MT-2 ANSWER KEY) */}
           {currentWindow === 'papers' && (
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
@@ -7732,6 +7709,14 @@ export default function CampusAIChat() {
                     <button onClick={() => setSelectedTerm('mt2')} className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer ${selectedTerm === 'mt2' ? 'bg-purple-600 text-white' : 'text-gray-400'}`}>MT 2</button>
                   </div>
                 </div>
+                <TileAttachments
+                  tileId="papers"
+                  tileName="Sample Papers & Notes"
+                  uploads={tileUploads}
+                  isBoss={isBoss}
+                  onDelete={handleDeleteUpload}
+                  onOpenUploadModal={handleOpenUploadModal}
+                />
                 <input type="text" value={paperSearch} onChange={(e) => setPaperSearch(e.target.value)} placeholder="Search subject (e.g. Maths, Physics, C++, AI, BEE)..." className="w-full bg-black/30 border border-white/10 rounded-2xl px-4 py-3 text-xs text-gray-200 outline-none focus:border-red-500" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredPapers.map((paper) => (
@@ -7817,6 +7802,14 @@ export default function CampusAIChat() {
           {currentWindow === 'timetable' && (
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-10">
+                <TileAttachments
+                  tileId="timetable"
+                  tileName="Time Table & Schedules"
+                  uploads={tileUploads}
+                  isBoss={isBoss}
+                  onDelete={handleDeleteUpload}
+                  onOpenUploadModal={handleOpenUploadModal}
+                />
                 <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-900/40 to-purple-900/40 border border-blue-500/30 shadow-lg flex flex-col md:flex-row gap-4 justify-between items-center">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -8127,40 +8120,16 @@ export default function CampusAIChat() {
                 </p>
               </div>
 
-              {/* ONLY SHOW ASSIGNMENTS CARD ON THE ASSIGNMENTS TAB */}
+              {/* SHINIGAMI ASSIGNMENTS & RESOURCES ATTACHMENTS */}
               {currentWindow === 'assignments' && (
-                <div className="p-5 rounded-3xl bg-amber-950/20 border border-amber-500/30 space-y-3 mb-6 shadow-[0_0_20px_rgba(245,158,11,0.1)] text-left">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-500/20 pb-4">
-                    <div>
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                        25EL101 • Unit-2 (Single & Three-Phase AC Circuits)
-                      </span>
-                      <h4 className="text-sm sm:text-base font-bold text-white mt-2">
-                        ⚡ Electrical Engineering — Assignment Sheet-02 (Solved)
-                      </h4>
-                      <p className="text-[11px] text-gray-400 mt-1">
-                        Contains Q1 to Q10 fully solved with formulas.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        sendQuery('Assignment 02 of EE', true);
-                        setCurrentWindow('chat');
-                      }}
-                      className="whitespace-nowrap px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black cursor-pointer transition shadow-md"
-                    >
-                      📖 View Answers ↗
-                    </button>
-                  </div>
-
-                  <PaperDownloadCard
-                    title="⚡ Official Assignment Sheet-2 (Questions) — Basics of Electrical Engineering"
-                    filesCsv="/Assignment_Unit-2_EE.pdf"
-                  />
-                  
-                  <PaperDownloadCard
-                    title="✅ Official Assignment Sheet-2 (SOLUTIONS) — Step-by-Step Answers"
-                    filesCsv="/ee_assignment_2_solutions.pdf"
+                <div className="w-full text-left">
+                  <TileAttachments
+                    tileId="assignments"
+                    tileName="Assignments & Resources"
+                    uploads={tileUploads}
+                    isBoss={isBoss}
+                    onDelete={handleDeleteUpload}
+                    onOpenUploadModal={handleOpenUploadModal}
                   />
                 </div>
               )}
@@ -8195,10 +8164,10 @@ export default function CampusAIChat() {
               placeholder={
                 currentUser
                   ? isBoss
-                    ? 'Hukum kijiye Supreme Boss ikA (e.g. All 10 Data Analytics projects, Budget Tracker, Boys hostel canteen, AI MT2)...'
+                    ? 'Hukum kijiye Supreme Boss ikA (e.g. Upload file to tile, Boys hostel canteen, AI MT2, Safe bunk)...'
                     : isAgrima
-                    ? 'Aapka kya hukum hai My Queen Agrima? 🌸 (e.g. Data Analytics projects, Tea Men cafe, Solve full AI MT2)...'
-                    : `Ask anything, ${currentUser.name.split(' ')[0]} (e.g. Data Analytics projects, Project 1-10, Boys hostel canteen, Physics MT2)...`
+                    ? 'Aapka kya hukum hai My Queen Agrima? 🌸 (e.g. Tea Men cafe, Solve full AI MT2, Faculty dossiers)...'
+                    : `${currentUser.name.split(' ')[0]}, kuch bhi puch mere dost (e.g. Canteen menu, Safe bunk, MT2 solve ya koi bhi baat)...`
                   : 'Kuch bhi pucho dost...'
               }
               className="flex-1 bg-transparent px-2 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-100 placeholder-gray-500 outline-none"
