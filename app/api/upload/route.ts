@@ -17,6 +17,7 @@ export interface TileUploadItem {
   uploadedAt: string;
   uploadedAtMs: number;
   uploadedBy: string;
+  targetSection?: 'CSE-2' | 'CSE-8' | 'both';
 }
 
 // In-Memory Global Matrix for serverless fallback
@@ -176,6 +177,8 @@ export async function POST(req: NextRequest) {
     const description = (formData.get('description') as string) || '';
     const badge = (formData.get('badge') as string) || 'Notice';
     const uploader = (formData.get('uploader') as string) || 'Boss ikA (Shinigami)';
+    const rawTarget = (formData.get('targetSection') as string) || 'both';
+    const targetSection: 'CSE-2' | 'CSE-8' | 'both' = rawTarget === 'CSE-2' || rawTarget === 'CSE-8' ? rawTarget : 'both';
 
     if (!file) {
       return NextResponse.json({ success: false, error: 'Koi file select nahi ki gayi!' }, { status: 400 });
@@ -226,6 +229,7 @@ export async function POST(req: NextRequest) {
       }),
       uploadedAtMs: Date.now(),
       uploadedBy: uploader,
+      targetSection,
     };
 
     const currentList = getStoredUploads();

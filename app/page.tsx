@@ -2953,6 +2953,40 @@ export default function CampusAIChat() {
     setIsNuisanceUnlocked(isBoss || unlocked);
   }, [currentUser, isBoss]);
 
+  // 2.5s IN-CHAT AUTOMATIC NUISANCE RADAR & UNLOCK
+  useEffect(() => {
+    if (isNuisanceUnlocked || isBoss) return;
+    if (currentWindow !== 'home' && currentWindow !== 'chat') return;
+
+    const timer = setTimeout(() => {
+      unlockNuisanceCertificate();
+
+      const isFem = currentUser?.gender === 'F' || currentUser?.name?.toLowerCase().includes('agrima');
+      const degreeSample = isFem
+        ? '🌸 Dil-Todne Wali / 📸 Aesthetic Queen'
+        : '😏 Supreme Laundiya Baaz / 🏃‍♂️ Proxy Smuggler';
+
+      const unlockMsg: Message = {
+        role: 'assistant',
+        content: `🎰 *AI NUISANCE RADAR COMPLETED! [DEGREE CONFERRED]* 📜💀\n\nAbhi tumne ikA ke saath 2.5s chat complete kar liya hai! Tumhari chat history aur gender (${isFem ? 'Female 🌸' : 'Male 👑'}) ke aadhar par Supreme Boss ikA ne tumhara **Official Degree of Nuisance** unlock kar diya hai!\n\n🎖️ *Conferred Degree Category:* **${degreeSample}**\n\n👇 *Neeche button tap karke apna degree dekho, shuffler se reroll karo, font/theme badlo aur apni photo upload karke download karo:*\n\n[OPEN_CERTIFICATE|📜 Open & Download My Nuisance Degree]`,
+      };
+
+      setSessions((prev) =>
+        prev.map((s) => {
+          if (s.id === (activeSessionId || (prev[0] ? prev[0].id : ''))) {
+            const alreadyPosted = s.messages.some((m) => m.content.includes('[OPEN_CERTIFICATE|'));
+            if (!alreadyPosted) {
+              return { ...s, messages: [...s.messages, unlockMsg] };
+            }
+          }
+          return s;
+        })
+      );
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [currentWindow, isNuisanceUnlocked, isBoss, unlockNuisanceCertificate, currentUser, activeSessionId]);
+
   // SECTION CSE-2 VS CSE-8 DETECTION & BOSS OVERRIDE
   const [bossSectionOverride, setBossSectionOverride] = useState<'CSE-2' | 'CSE-8'>('CSE-2');
   // Shinigami Universal Tile Uploads State & Handlers
@@ -6645,22 +6679,38 @@ export default function CampusAIChat() {
 
                     <div
                       onClick={() => {
-                        unlockNuisanceCertificate();
-                        setCurrentWindow('nuisance_cert');
+                        if (!isNuisanceUnlocked) {
+                          alert('🔒 Nuisance Degree abhi locked hai! ikA ke sath chat me 2.5s guzaaro ya koi suggestion tap karo, tab degree unlock hogi!');
+                          setCurrentWindow('home');
+                        } else {
+                          setCurrentWindow('nuisance_cert');
+                        }
                       }}
-                      className="p-3 rounded-2xl bg-gradient-to-br from-amber-950/40 via-black to-black border border-amber-500/40 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform hover:border-amber-400"
+                      className={`p-3 rounded-2xl bg-gradient-to-br text-left active:scale-[0.98] transition-transform cursor-pointer ${
+                        isNuisanceUnlocked
+                          ? 'from-amber-950/40 via-black to-black border border-amber-500/40 hover:border-amber-400 shadow-lg'
+                          : 'from-zinc-950 via-black to-zinc-950 border border-zinc-700/60 opacity-80'
+                      }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-2xl">📜</span>
-                        <span className="text-[8px] font-mono px-1.5 py-0.5 rounded font-bold bg-amber-500 text-black">
-                          READY ✨
+                        <span className="text-2xl">{isNuisanceUnlocked ? '📜' : '🔒'}</span>
+                        <span
+                          className={`text-[8px] font-mono px-1.5 py-0.5 rounded font-bold ${
+                            isNuisanceUnlocked
+                              ? 'bg-amber-500 text-black'
+                              : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                          }`}
+                        >
+                          {isNuisanceUnlocked ? 'READY ✨' : 'LOCKED 🔒'}
                         </span>
                       </div>
                       <h4 className="text-xs font-black text-white mt-1.5">
-                        My Nuisance Degree
+                        {isNuisanceUnlocked ? 'My Nuisance Degree' : 'Nuisance Degree (Locked)'}
                       </h4>
                       <p className="text-[10px] text-gray-400 mt-0.5">
-                        View, customize &amp; download degree
+                        {isNuisanceUnlocked
+                          ? 'View, customize & download degree'
+                          : 'Chat 2.5s with ikA to unlock! 🔒'}
                       </p>
                     </div>
                   </div>
@@ -6706,6 +6756,7 @@ export default function CampusAIChat() {
                     tileName="Overview & Campus Documents"
                     uploads={tileUploads}
                     isBoss={isBoss}
+                    userSection={currentUser?.section}
                     onDelete={handleDeleteUpload}
                     onOpenUploadModal={handleOpenUploadModal}
                   />
@@ -6751,22 +6802,48 @@ export default function CampusAIChat() {
 
                     <div
                       onClick={() => {
-                        unlockNuisanceCertificate();
-                        setCurrentWindow('nuisance_cert');
+                        if (!isNuisanceUnlocked) {
+                          alert('🔒 Nuisance Degree abhi locked hai! ikA ke sath chat me 2.5s guzaaro ya koi suggestion tap karo, tab degree unlock hogi!');
+                          setCurrentWindow('home');
+                        } else {
+                          setCurrentWindow('nuisance_cert');
+                        }
                       }}
-                      className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-black to-red-950/30 hover:from-amber-950/60 hover:to-red-950/50 border border-amber-500/40 hover:border-amber-400 flex items-center justify-between cursor-pointer transition shadow-lg group"
+                      className={`p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-lg group ${
+                        isNuisanceUnlocked
+                          ? 'bg-gradient-to-r from-amber-950/40 via-black to-red-950/30 hover:from-amber-950/60 hover:to-red-950/50 border border-amber-500/40 hover:border-amber-400'
+                          : 'bg-zinc-950 border border-zinc-700/60 opacity-80'
+                      }`}
                     >
                       <div className="flex items-center gap-3 text-left">
-                        <span className="text-2xl group-hover:scale-110 transition-transform">📜</span>
+                        <span className="text-2xl group-hover:scale-110 transition-transform">
+                          {isNuisanceUnlocked ? '📜' : '🔒'}
+                        </span>
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <h4 className="text-xs font-bold text-white">📜 My Nuisance Certificate</h4>
-                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold">READY ✨</span>
+                            <h4 className="text-xs font-bold text-white">
+                              {isNuisanceUnlocked ? '📜 My Nuisance Certificate' : '🔒 Nuisance Degree (Locked)'}
+                            </h4>
+                            <span
+                              className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold ${
+                                isNuisanceUnlocked
+                                  ? 'bg-amber-500 text-black'
+                                  : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                              }`}
+                            >
+                              {isNuisanceUnlocked ? 'READY ✨' : 'LOCKED 🔒'}
+                            </span>
                           </div>
-                          <p className="text-[10px] text-gray-300">View, customize &amp; download your degree!</p>
+                          <p className="text-[10px] text-gray-300">
+                            {isNuisanceUnlocked
+                              ? 'View, customize & download your degree!'
+                              : 'Chat 2.5s with ikA to unlock your degree! 🔒'}
+                          </p>
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold text-amber-300 group-hover:translate-x-1 transition-transform">Claim ↗</span>
+                      <span className="text-[10px] font-bold text-amber-300 group-hover:translate-x-1 transition-transform">
+                        {isNuisanceUnlocked ? 'Claim ↗' : 'Locked 🔒'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -7343,6 +7420,7 @@ export default function CampusAIChat() {
                       tileName="All Uploaded Assets across All Tiles"
                       uploads={tileUploads}
                       isBoss={true}
+                      userSection={currentUser?.section}
                       onDelete={handleDeleteUpload}
                       onOpenUploadModal={handleOpenUploadModal}
                     />
@@ -7364,6 +7442,7 @@ export default function CampusAIChat() {
                   tileName="Safe Bunk & SGPA Suite"
                   uploads={tileUploads}
                   isBoss={isBoss}
+                  userSection={currentUser?.section}
                   onDelete={handleDeleteUpload}
                   onOpenUploadModal={handleOpenUploadModal}
                 />
@@ -7435,6 +7514,7 @@ export default function CampusAIChat() {
                   tileName="Canteen Menus & Food Rates"
                   uploads={tileUploads}
                   isBoss={isBoss}
+                  userSection={currentUser?.section}
                   onDelete={handleDeleteUpload}
                   onOpenUploadModal={handleOpenUploadModal}
                 />
@@ -7563,6 +7643,7 @@ export default function CampusAIChat() {
                   tileName="Placement Reality & Career Documents"
                   uploads={tileUploads}
                   isBoss={isBoss}
+                  userSection={currentUser?.section}
                   onDelete={handleDeleteUpload}
                   onOpenUploadModal={handleOpenUploadModal}
                 />
@@ -7619,6 +7700,7 @@ export default function CampusAIChat() {
                   tileName="Faculty Dossiers"
                   uploads={tileUploads}
                   isBoss={isBoss}
+                  userSection={currentUser?.section}
                   onDelete={handleDeleteUpload}
                   onOpenUploadModal={handleOpenUploadModal}
                 />
@@ -8238,6 +8320,7 @@ export default function CampusAIChat() {
                   tileName="Sample Papers & Notes"
                   uploads={tileUploads}
                   isBoss={isBoss}
+                  userSection={currentUser?.section}
                   onDelete={handleDeleteUpload}
                   onOpenUploadModal={handleOpenUploadModal}
                 />
@@ -8351,6 +8434,7 @@ export default function CampusAIChat() {
                   tileName="Time Table & Schedules"
                   uploads={tileUploads}
                   isBoss={isBoss}
+                  userSection={currentUser?.section}
                   onDelete={handleDeleteUpload}
                   onOpenUploadModal={handleOpenUploadModal}
                 />
@@ -8774,6 +8858,7 @@ export default function CampusAIChat() {
                     tileName="Assignments & Resources"
                     uploads={tileUploads}
                     isBoss={isBoss}
+                    userSection={currentUser?.section}
                     onDelete={handleDeleteUpload}
                     onOpenUploadModal={handleOpenUploadModal}
                   />

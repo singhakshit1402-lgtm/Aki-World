@@ -8,6 +8,7 @@ interface TileAttachmentsProps {
   tileName?: string;
   uploads: TileUploadItem[];
   isBoss: boolean;
+  userSection?: string;
   onDelete?: (id: string) => void;
   onOpenUploadModal?: (tileId: string) => void;
 }
@@ -17,12 +18,30 @@ export default function TileAttachments({
   tileName,
   uploads,
   isBoss,
+  userSection,
   onDelete,
   onOpenUploadModal,
 }: TileAttachmentsProps) {
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<TileUploadItem | null>(null);
+  const [bossSectionFilter, setBossSectionFilter] = useState<'all' | 'CSE-2' | 'CSE-8'>('all');
 
-  const tileItems = uploads.filter((u) => u.tile === tileId || u.tile === 'all');
+  const tileItems = uploads.filter((u) => {
+    const matchesTile = u.tile === tileId || u.tile === 'all';
+    if (!matchesTile) return false;
+
+    if (isBoss) {
+      if (bossSectionFilter === 'all') return true;
+      if (bossSectionFilter === 'CSE-2') return u.targetSection === 'CSE-2' || u.targetSection === 'both' || !u.targetSection;
+      if (bossSectionFilter === 'CSE-8') return u.targetSection === 'CSE-8' || u.targetSection === 'both' || !u.targetSection;
+      return true;
+    }
+
+    // Student filtering
+    if (!u.targetSection || u.targetSection === 'both') return true;
+    if (userSection && u.targetSection === userSection) return true;
+    if (!userSection) return true;
+    return false;
+  });
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -102,15 +121,56 @@ export default function TileAttachments({
           </span>
         </div>
 
-        {isBoss && onOpenUploadModal && (
-          <button
-            type="button"
-            onClick={() => onOpenUploadModal(tileId)}
-            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-black flex items-center gap-1.5 shadow cursor-pointer transition"
-          >
-            <span>＋</span> Upload to this Tile
-          </button>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Boss Section Filter Switcher */}
+          {isBoss && (
+            <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10 text-[10px] font-bold font-mono">
+              <button
+                type="button"
+                onClick={() => setBossSectionFilter('all')}
+                className={`px-2 py-0.5 rounded-lg transition ${
+                  bossSectionFilter === 'all'
+                    ? 'bg-amber-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={() => setBossSectionFilter('CSE-2')}
+                className={`px-2 py-0.5 rounded-lg transition ${
+                  bossSectionFilter === 'CSE-2'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                CSE-2
+              </button>
+              <button
+                type="button"
+                onClick={() => setBossSectionFilter('CSE-8')}
+                className={`px-2 py-0.5 rounded-lg transition ${
+                  bossSectionFilter === 'CSE-8'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                CSE-8
+              </button>
+            </div>
+          )}
+
+          {isBoss && onOpenUploadModal && (
+            <button
+              type="button"
+              onClick={() => onOpenUploadModal(tileId)}
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-black flex items-center gap-1.5 shadow cursor-pointer transition"
+            >
+              <span>＋</span> Upload to this Tile
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Empty State for Boss */}
@@ -182,12 +242,29 @@ export default function TileAttachments({
                   </div>
                 )}
 
-                {/* Badge and timestamp */}
-                <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 mb-1">
-                  <span className="px-2 py-0.5 rounded-md bg-white/10 text-amber-300 font-bold uppercase tracking-wider">
-                    {item.badge || item.fileType.toUpperCase()}
-                  </span>
-                  <span>{formatFileSize(item.fileSize)}</span>
+                {/* Badge, targetSection and timestamp */}
+                <div className="flex items-center justify-between text-[10px] font-mono text-gray-400 mb-1 gap-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="px-2 py-0.5 rounded-md bg-white/10 text-amber-300 font-bold uppercase tracking-wider">
+                      {item.badge || item.fileType.toUpperCase()}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider font-mono ${
+                        item.targetSection === 'CSE-2'
+                          ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
+                          : item.targetSection === 'CSE-8'
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      }`}
+                    >
+                      {item.targetSection === 'CSE-2'
+                        ? '🔵 CSE-2'
+                        : item.targetSection === 'CSE-8'
+                        ? '🟣 CSE-8'
+                        : '🌟 All Sections'}
+                    </span>
+                  </div>
+                  <span className="shrink-0">{formatFileSize(item.fileSize)}</span>
                 </div>
 
                 {/* Title */}

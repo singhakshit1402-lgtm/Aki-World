@@ -30,6 +30,7 @@ export default function ShinigamiUploadModal({
   onUploadSuccess,
 }: ShinigamiUploadModalProps) {
   const [selectedTile, setSelectedTile] = useState<string>(initialTileId);
+  const [targetSection, setTargetSection] = useState<'CSE-2' | 'CSE-8' | 'both'>('both');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -65,6 +66,7 @@ export default function ShinigamiUploadModal({
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('tile', selectedTile);
+      formData.append('targetSection', targetSection);
       formData.append('title', title.trim() || selectedFile.name);
       formData.append('description', description.trim());
       formData.append('badge', badge.trim());
@@ -142,10 +144,55 @@ export default function ShinigamiUploadModal({
             </div>
           </div>
 
+          {/* Target Audience / Section Filter */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-300 uppercase tracking-wider block">
+              2. Target Section (Kaunse Section ke liye hai?):
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setTargetSection('both')}
+                className={`px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  targetSection === 'both'
+                    ? 'bg-amber-600 text-white border-amber-400 shadow-md'
+                    : 'bg-white/5 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <span>🌟</span>
+                <span>Both (CSE-2 &amp; CSE-8)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTargetSection('CSE-2')}
+                className={`px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  targetSection === 'CSE-2'
+                    ? 'bg-blue-600 text-white border-blue-400 shadow-md'
+                    : 'bg-white/5 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <span>🔵</span>
+                <span>CSE-2 Only</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTargetSection('CSE-8')}
+                className={`px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  targetSection === 'CSE-8'
+                    ? 'bg-purple-600 text-white border-purple-400 shadow-md'
+                    : 'bg-white/5 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <span>🟣</span>
+                <span>CSE-8 Only</span>
+              </button>
+            </div>
+          </div>
+
           {/* File Picker */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-gray-300 uppercase tracking-wider block">
-              2. Select File (Image, PDF, DOC, ZIP, or Any Type):
+              3. Select File (Image, PDF, DOC, ZIP, or Any Type):
             </label>
             <div className="relative border-2 border-dashed border-red-500/40 hover:border-red-400 rounded-2xl p-5 text-center bg-black/40 hover:bg-black/60 transition cursor-pointer">
               <input
@@ -171,7 +218,7 @@ export default function ShinigamiUploadModal({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2 space-y-1">
               <label className="text-xs font-bold text-gray-300 uppercase tracking-wider block">
-                3. Title / Display Name:
+                4. Title / Display Name:
               </label>
               <input
                 type="text"
@@ -206,7 +253,7 @@ export default function ShinigamiUploadModal({
           {/* Description */}
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-300 uppercase tracking-wider block">
-              4. Short Description / Caption (Optional):
+              5. Short Description / Caption (Optional):
             </label>
             <textarea
               rows={2}
