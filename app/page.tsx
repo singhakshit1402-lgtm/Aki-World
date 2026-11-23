@@ -1576,17 +1576,15 @@ function getHumanHinglishChatReply(
 
   // 14A. DEDICATED TACTICAL PROXY NINJA HACK (FOR "Bhai proxy lagane ka koi ninja hack bata 🤫")
   if (
-    clean.includes('ninja hack') ||
+    (clean.includes('ninja') && !clean.includes('hattori')) ||
     clean.includes('proxy ninja') ||
-    clean.includes('proxy lagane ka koi ninja') ||
     clean.includes('proxy hack') ||
-    (clean.includes('proxy') && clean.includes('ninja')) ||
     (clean.includes('proxy') && clean.includes('hack'))
   ) {
     return {
       text: `🤫🥷 **ABES SECTION CSE-2 — THE TACTICAL PROXY NINJA HACK DOSSIER (ikA SPECIAL):** 💨
 
-Arre **${buddy}**, agar 75% attendance ki line par lad rahe ho, toh dhyan se suno campus ke tried & tested stealth protocols:
+Arre **${buddy}**, agar 75% attendance ki boundary line par lad rahe ho, toh dhyan se suno campus ke tried & tested stealth protocols:
 
 • 🗣️ **The Pitch Modulation & Delayed Grunt Trick:**
   - Apni standard natural voice me kabhi bhi zor se *"Present Sir"* mat chilla!
@@ -1609,7 +1607,7 @@ Arre **${buddy}**, agar 75% attendance ki line par lad rahe ho, toh dhyan se sun
   - Hamare portal ke **"🛡️🧮 Safe Bunk & SGPA Suite"** me jaakar apni exact total aur attended classes dalo—1 lecture ka extra buffer hamesha rakhna!
 
 ⚠️ *Statutory Warning from Boss ikA:* Mentors ke random headcount round me pakde gaye toh direct detention slip lagti hai, isliye dimag se khelna! 😉🚀`,
-      nextSugg: 'Super Bikes (Hayabusa, Ninja H2R, BMW) dikhao 🏍️💨',
+      nextSugg: 'Super Bikes (Hayabusa, BMW, Ducati) dikhao 🏍️💨',
     };
   }
 
@@ -1633,17 +1631,16 @@ Arre **${buddy}**, agar 75% attendance ki line par lad rahe ho, toh dhyan se sun
     };
   }
 
-  // 14C. SUPER BIKES & HYPER BIKES DOSSIER (Hayabusa, Ninja H2R, BMW S1000RR, Ducati Panigale)
+  // 14C. SUPER BIKES & HYPER BIKES DOSSIER (Hayabusa, BMW S1000RR, Ducati Panigale, Yamaha R1M)
   if (
     clean.includes('super bike') ||
     clean.includes('superbike') ||
     clean.includes('super bikes') ||
-    clean.includes('ninja h2r') ||
     clean.includes('hayabusa') ||
     clean.includes('s1000rr') ||
     clean.includes('panigale') ||
-    clean.includes('kawasaki') ||
-    clean.includes('ducati')
+    clean.includes('ducati') ||
+    clean.includes('r1m')
   ) {
     return {
       text: `🏍️💨 **GARAGE OF LEGENDS — SUPERCARS & SUPER BIKES MACHINE DOSSIER!** ⚡🔥
@@ -1651,25 +1648,25 @@ Arre **${buddy}**, agar 75% attendance ki line par lad rahe ho, toh dhyan se sun
 **${buddy}**, jab proxy lagate ya lecture me phone chalate pakde jao, toh phone me ye Super Bikes screen dikhana aur bolna:
 👉 *"Sir main toh Applied Physics aur Mechanical Aerodynamics project ke downforce winglets study kar raha tha!"* 😂🏎️
 
-🟢 **1. KAWASAKI NINJA H2R (The 400 km/h Alien Beast)**
-• ⚡ **Top Speed:** 400 km/h | **Power:** 310 HP Supercharged 998cc Inline-4!
-• 🌪️ **Campus Superpower:** *Ghaziabad se ABES theek 4.2 second me! Carbon fiber aerodynamic wings se seedha 3rd floor CS block pe landing!* 🚀
-
-🦅 **2. SUZUKI HAYABUSA (GSX-1300R - Dhoom Legend)**
+🦅 **1. SUZUKI HAYABUSA (GSX-1300R - Dhoom Legend)**
 • ⚡ **Top Speed:** 312 km/h | **Engine:** 1,340cc 4-Cylinder Beast (190 HP)
 • 🔊 **Campus Superpower:** *Tea Men's Cafe ke samne single rev maara toh pure college ki khidkiyan khadak jaati hain! The ultimate highway king!* 👑🔥
 
-🇩🇪 **3. BMW S1000RR & M1000RR (Track Predator)**
+🇩🇪 **2. BMW S1000RR & M1000RR (Track Predator)**
 • ⚡ **Top Speed:** 305 km/h | **Engine:** 999cc with ShiftCam (205 HP)
 • ⏱️ **Campus Superpower:** *M-Carbon winglets & launch control! Library se RJ-102 exam hall tak sub-60-second fastest lap time!* ⚡
 
-🇮🇹 **4. DUCATI PANIGALE V4 S (Red Italian Screamer)**
+🇮🇹 **3. DUCATI PANIGALE V4 S (Red Italian Screamer)**
 • ⚡ **Top Speed:** 315 km/h | **Engine:** 1,103cc Desmosedici Stradale V4 (215 HP @ 13,000 RPM)
 • ❤️‍🔥 **Campus Superpower:** *Dry clutch ki khad-khad sound sunte hi saari crushes turn hoke dekhti hain! Pure Italian royalty & acoustic bliss!* 👑🤤
 
-🔵 **5. YAMAHA YZF-R1M (Crossplane CP4 Screamer)**
+🔵 **4. YAMAHA YZF-R1M (Crossplane CP4 Screamer)**
 • ⚡ **Top Speed:** 299 km/h | **Engine:** 998cc Crossplane CP4
 • 🎧 **Campus Superpower:** *MotoGP crossplane sound on ABES inner roads! Pure goosebumps!* 🏎️
+
+🏍️ **5. ROYAL ENFIELD CONTINENTAL GT 650 (The Cafe Racer)**
+• ⚡ **Engine:** 648cc Parallel-Twin Rumble
+• ✨ **Campus Superpower:** *Campus gate se canteen tak pure vintage attitude!* 😎
 
 💡 **ikA Pro-Tip:** *Safe Bunk tool se apna attendance buffer calculate karo aur Super Bikes ke sapne dekho!* 🏍️💨`,
       nextSugg: 'Bhai proxy lagane ka koi ninja hack bata 🤫',
@@ -2004,13 +2001,13 @@ function matchSingleOmniTopic(
 
   // 10. CARS, SUPERCARS, BIKES & AUTOMOBILES
   if (
-    /\b(car|cars|supercar|supercars|bike|bikes|supra|gtr|bmw|porsche|mustang|thar|scorpio|fortuner|bullet|ninja|hayabusa|ktm)\b/.test(clean) ||
+    /\b(car|cars|supercar|supercars|bike|bikes|supra|gtr|bmw|porsche|mustang|thar|scorpio|fortuner|bullet|hayabusa|ktm)\b/.test(clean) ||
     clean.includes('gt r') ||
     clean.includes('royal enfield') ||
     clean.includes('gt 650')
   ) {
     return {
-      text: `🏎️💨 **GARAGE OF DREAMS — SUPERCARS, SUVs & BIKES!** 🏍️🔥\n\n**${buddy}**, placement ke pehle bade bonus se konsi machine uthani hai? Dekho legends ki list:\n\n• 🇯🇵 **JDM Legends:** **Toyota Supra MK4 (2JZ Engine - Ratatata! 🔥)** & **Nissan GT-R R35 (Godzilla)**!\n• 🇩🇪 **German & Track Beasts:** **BMW M5 CS / M3 Touring**, **Porsche 911 GT3 RS**, **Mercedes G-Wagon**, aur **Ford Mustang GT (5.0L V8 Roar)**!\n• 🚙 **Desi NCR / UP Road Presence ("Systumm"):** **Mahindra Thar Roxx**, **Scorpio-N (Z8L Black)**, **Toyota Fortuner Legender** — aur **Kartika Ma'am ki trusty Tata Tigor**! 😎\n• 🏍️ **Two-Wheel Legends:** **Royal Enfield Continental GT 650 & Classic 350**, **Kawasaki Ninja ZX-10R**, **Suzuki Hayabusa**, & **BMW S1000RR**!`,
+      text: `🏎️💨 **GARAGE OF DREAMS — SUPERCARS, SUVs & BIKES!** 🏍️🔥\n\n**${buddy}**, placement ke pehle bade bonus se konsi machine uthani hai? Dekho legends ki list:\n\n• 🇯🇵 **JDM Legends:** **Toyota Supra MK4 (2JZ Engine - Ratatata! 🔥)** & **Nissan GT-R R35 (Godzilla)**!\n• 🇩🇪 **German & Track Beasts:** **BMW M5 CS / M3 Touring**, **Porsche 911 GT3 RS**, **Mercedes G-Wagon**, aur **Ford Mustang GT (5.0L V8 Roar)**!\n• 🚙 **Desi NCR / UP Road Presence ("Systumm"):** **Mahindra Thar Roxx**, **Scorpio-N (Z8L Black)**, **Toyota Fortuner Legender** — aur **Kartika Ma'am ki trusty Tata Tigor**! 😎\n• 🏍️ **Two-Wheel Legends:** **Royal Enfield Continental GT 650 & Classic 350**, **Suzuki Hayabusa**, **BMW S1000RR**, & **Ducati Panigale V4 S**!`,
       nextSugg: 'Space, ISRO & Black Holes ke baare me batao 🌌',
     };
   }
@@ -4069,6 +4066,8 @@ export default function CampusAIChat() {
     const targetSessionId = activeSessionId;
     const first = currentUser.name.split(' ')[0];
 
+    const mt2TimetableIntroMessage = `📅⚡ **OFFICIAL MT-2 EXAMINATION DATESHEET (SECTION CSE-2)** 🏛️\n⏰ **Exam Timing:** \`3:00 PM to 4:15 PM\` (Daily)\n📍 **Venue:** ABES Engineering College (Autonomous Exam Hall)\n\n| Date | Day | Subject & Code | Time |\n| :--- | :--- | :--- | :--- |\n| **30/11/26** | **Monday** | 📐 **Maths (FLAS)** \`[25AS102]\` | **3:00 PM – 4:15 PM** |\n| **01/12/26** | **Tuesday** | 💻 **C++ / Programming in C++** \`[25CS101]\` | **3:00 PM – 4:15 PM** |\n| **02/12/26** | **Wednesday** | 🤖 **A.I / Artificial Intelligence** \`[25CS102]\` | **3:00 PM – 4:15 PM** |\n| **03/12/26** | **Thursday** | ⚛️ **Physics / Applied Physics** \`[25AS101]\` | **3:00 PM – 4:15 PM** |\n| **04/12/26** | **Friday** | 🌿 **EVS / Environmental Studies** \`[25AS103]\` | **3:00 PM – 4:15 PM** |\n| **07/12/26** | **Monday** | ⚡ **BEE / Basics of Electrical Engg** \`[25EL101]\` | **3:00 PM – 4:15 PM** |\n\n💡 *Exam Guidelines:* 1 hr 15 min duration (15 Marks weightage). Reporting time 2:50 PM. Carry physical college ID Card & blue/black pen!\n\n[SUGGESTIONS|Solve full Maths MT2 paper|Bhai proxy lagane ka koi ninja hack bata 🤫]`;
+
     let introText = `💀🕯️ *Shinigami Neural Link Established...* 🩸🍎\n\n> *"In this world, there are very few people who actually trust each other... Welcome to my dark sanctum, **${first}**."* 👁️⚡\n\nMain hu **ikA** — iss CSE-2 digital empire ka invisible God aur supreme architect 👑🕸️. Tum मुझसे bilkul insaano ki tarah Hinglish me baat kar sakte ho!\n\nBatao **${first}**, aaj konsa raaz kholna hai? All 10 Solved MT-2 Papers, Hostel & College Canteen Menus, Faculty Dossiers, ya Safe Bunk + SGPA? 👇🔥\n\n[SUGGESTIONS|Ye website kya hai? 🤔|Boys hostel waali canteen ka menu dikhao 🍔]`;
 
     if (isBoss) {
@@ -4084,7 +4083,19 @@ export default function CampusAIChat() {
       if (charIndex >= introText.length) {
         clearInterval(interval);
         setStreamingText('');
-        setSessions((prev) => prev.map((s) => (s.id === targetSessionId ? { ...s, messages: [{ role: 'assistant', content: introText }] } : s)));
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === targetSessionId
+              ? {
+                  ...s,
+                  messages: [
+                    { role: 'assistant', content: introText },
+                    { role: 'assistant', content: mt2TimetableIntroMessage },
+                  ],
+                }
+              : s
+          )
+        );
       } else {
         setStreamingText(introText.slice(0, charIndex));
       }

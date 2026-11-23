@@ -13,6 +13,7 @@ interface ShinigamiUploadModalProps {
 const TILE_OPTIONS = [
   { id: 'home', label: '🏠 Home / Overview', icon: '🏠' },
   { id: 'papers', label: '📄 Sample Papers & Notes', icon: '📄' },
+  { id: 'assignments', label: '📝 Assignment Tracker', icon: '📝' },
   { id: 'faculty', label: '👩‍🏫 Faculty Dossiers', icon: '👩‍🏫' },
   { id: 'timetable', label: '⏰ Time Table', icon: '⏰' },
   { id: 'placement', label: '🎯 Placement Reality', icon: '🎯' },
