@@ -1574,32 +1574,84 @@ function getHumanHinglishChatReply(
     };
   }
 
-  // 14A. SPECIFIC NINJA PROXY HACK & SUPER BIKES SCREEN DIVERSION (BIFURCATED)
+  // 14A. DEDICATED TACTICAL PROXY NINJA HACK (FOR "Bhai proxy lagane ka koi ninja hack bata 🤫")
   if (
     clean.includes('ninja hack') ||
-    clean.includes('ninja proxy') ||
-    clean.includes('ninja')
+    clean.includes('proxy ninja') ||
+    clean.includes('proxy lagane ka koi ninja') ||
+    clean.includes('proxy hack') ||
+    (clean.includes('proxy') && clean.includes('ninja')) ||
+    (clean.includes('proxy') && clean.includes('hack'))
   ) {
     return {
-      text: `🤫🥷 **BIFURCATED NINJA ATTENDANCE & SUPER BIKES DOSSIER (ikA SPECIAL):** 💨
+      text: `🤫🥷 **ABES SECTION CSE-2 — THE TACTICAL PROXY NINJA HACK DOSSIER (ikA SPECIAL):** 💨
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🥷 **PART 1: THE TACTICAL PROXY NINJA HACK (ATTENDANCE STEALTH)**
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-• 🗣️ **The Pitch Modulation Trick:** Apni standard aawaz me zor se *"Present Sir"* mat chilla! Halka sa pitch drop karke ya throat-clear grunt ke sath *"Yes Ma'am/Sir"* bolo—faculty kabhi ek isolated mumble pe double-check nahi karti!
-• 🎯 **The Roll Number Golden Stealth Zone:**
-  - ❌ **Roll 1 to 15 (RED HIGH-RISK ZONE):** Shuru me teachers 100% focused aur alert hote hain—yahan proxy lagana seedha mentor suspension hai!
-  - ✅ **Roll 35 to 65 (GOLDEN STEALTH ZONE):** Roll call speed 2x ho jaati hai, tab do dosto ke beech me ek sharp call nikalna 99.4% safe rehta hai!
-• 🤝 **The 2-Wingman Squad Protocol:** Hamesha do wingmen ready rakho—jaise hi teacher roll bole, ek banda floor pe bottle/pen gira ke distract kare aur dusra front side se attendance bole!
-• 🛡️ **The 75.1% Safe Boundary:** Sabse golden rule—kabhi 74.9% pe mat jeeyo! ikA ke **Safe Bunk & SGPA Suite** se apni classes count karo aur 1 lecture ka extra buffer hamesha rakhna!
+Arre **${buddy}**, agar 75% attendance ki line par lad rahe ho, toh dhyan se suno campus ke tried & tested stealth protocols:
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🏍️💨 **PART 2: THE SUPER BIKES SCREEN DIVERSION (IF CAUGHT!)**
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-*Bhai agar proxy lagate waqt ya lecture me phone chalate pakde gaye, toh phone me ye Super Bikes screen dikhana aur bolna:*
-👉 **"Sir main toh Applied Physics aur Mechanical Aerodynamics project ke liye supersonic downforce winglets study kar raha tha!"** 😂🏎️
+• 🗣️ **The Pitch Modulation & Delayed Grunt Trick:**
+  - Apni standard natural voice me kabhi bhi zor se *"Present Sir"* mat chilla!
+  - Roll call me pitch ko 1–2 octave drop karke throat-clear grunt ke sath *"Yes Ma'am/Sir"* bolo. Faculty continuous fast roll flow me kabhi ek isolated subtle voice pe cross-check nahi karti!
 
-🟢 **1. KAWASAKI NINJA H2R (The True Ninja Hack!)**
+• 🎯 **The Roll Number Golden Stealth Zones (CSE-2 Matrix):**
+  - ❌ **Roll 1 to 15 (RED HIGH-RISK ZONE):** Shuru me class teacher (Prerana Ma'am / Divyanshi Ma'am) 100% alert rehti hain. Yahan proxy lagana seedha mentor suspension aur parent call hai!
+  - ✅ **Roll 35 to 65 (GOLDEN STEALTH ZONE):** Beech me attendance speed 2x ho jaati hai! Agar tumhara roll is slot me hai, do doston ke beech me ek sharp call nikalna 99.4% safe rehta hai!
+
+• 👥 **The 2-Wingman Squad Protocol:**
+  - Hamesha do wingmen ready rakho:
+    1. **Wingman A (The Distractor):** Theek target roll se 2 number pehle classroom floor par water bottle ya heavy steel scale gira dega taaki teacher ka eye-contact register se hatt jaye.
+    2. **Wingman B (The Caller):** Back bench side se slightly muffled call punch karega!
+
+• 🪑 **The Diagonal Seat Shift (Spatial Confusion):**
+  - Teacher hamesha roll number aur student ke physical bench area ko subconscious relate karte hain. Proxy lagate waqt absent dost ki expected row se 1 bench diagonal shift baitho, glance cross-verify nahi hoti!
+
+• 🛡️ **The 75.1% Safe Boundary Rule:**
+  - Sabse golden rule: **Kabhi 74.9% pe mat jiyo!**
+  - Hamare portal ke **"🛡️🧮 Safe Bunk & SGPA Suite"** me jaakar apni exact total aur attended classes dalo—1 lecture ka extra buffer hamesha rakhna!
+
+⚠️ *Statutory Warning from Boss ikA:* Mentors ke random headcount round me pakde gaye toh direct detention slip lagti hai, isliye dimag se khelna! 😉🚀`,
+      nextSugg: 'Super Bikes (Hayabusa, Ninja H2R, BMW) dikhao 🏍️💨',
+    };
+  }
+
+  // 14B. GENERAL PROXY & ATTENDANCE QUERIES (WITHOUT NINJA)
+  if (
+    clean.includes('bhai proxy') ||
+    clean.includes('proxy lagane') ||
+    clean.includes('proxy') ||
+    clean.includes('attendance hack') ||
+    clean.includes('attendance kam') ||
+    clean.includes('attendance short')
+  ) {
+    return {
+      text: `🛡️🧮 **ATTENDANCE REALITY & 75% SAFE BUNK GUIDE (${buddy})** ⚡
+
+• 📊 **The Autonomous 75% Rule:** ABES Autonomous curriculum me **75% minimum attendance** mandatory hai. Agar 74.9% bhi hui, toh end-sem admit card detain ho sakta hai!
+• 🏃‍♂️ **Normal Proxy Reality:** First year (CSE-2) me Class Mentors (Prerana Ma'am & Divyanshi Ma'am) roz attendance register cross-verify karti hain. Isliye blind proxy se bacho!
+• 🧮 **Safe Bunk Calculator:** Hamare portal ke **"🛡️🧮 Safe Bunk & SGPA"** tool me apni total classes aur attended classes daalo—wo exact bata dega ki tum kitni classes bina kisi risk ke bunk kar sakte ho!
+• 🩺 **Medical Rule:** Sirf genuine authorized medical certificates hi dean office se approve hote hain, isliye 75.1% ka safe margin pehle hi bana kar chalo!`,
+      nextSugg: 'Bhai proxy lagane ka koi ninja hack bata 🤫',
+    };
+  }
+
+  // 14C. SUPER BIKES & HYPER BIKES DOSSIER (Hayabusa, Ninja H2R, BMW S1000RR, Ducati Panigale)
+  if (
+    clean.includes('super bike') ||
+    clean.includes('superbike') ||
+    clean.includes('super bikes') ||
+    clean.includes('ninja h2r') ||
+    clean.includes('hayabusa') ||
+    clean.includes('s1000rr') ||
+    clean.includes('panigale') ||
+    clean.includes('kawasaki') ||
+    clean.includes('ducati')
+  ) {
+    return {
+      text: `🏍️💨 **GARAGE OF LEGENDS — SUPERCARS & SUPER BIKES MACHINE DOSSIER!** ⚡🔥
+
+**${buddy}**, jab proxy lagate ya lecture me phone chalate pakde jao, toh phone me ye Super Bikes screen dikhana aur bolna:
+👉 *"Sir main toh Applied Physics aur Mechanical Aerodynamics project ke downforce winglets study kar raha tha!"* 😂🏎️
+
+🟢 **1. KAWASAKI NINJA H2R (The 400 km/h Alien Beast)**
 • ⚡ **Top Speed:** 400 km/h | **Power:** 310 HP Supercharged 998cc Inline-4!
 • 🌪️ **Campus Superpower:** *Ghaziabad se ABES theek 4.2 second me! Carbon fiber aerodynamic wings se seedha 3rd floor CS block pe landing!* 🚀
 
@@ -1617,29 +1669,9 @@ function getHumanHinglishChatReply(
 
 🔵 **5. YAMAHA YZF-R1M (Crossplane CP4 Screamer)**
 • ⚡ **Top Speed:** 299 km/h | **Engine:** 998cc Crossplane CP4
-• 🎧 **Campus Superpower:** *MotoGP sound on ABES inner roads! Pure goosebumps!* 🏎️
+• 🎧 **Campus Superpower:** *MotoGP crossplane sound on ABES inner roads! Pure goosebumps!* 🏎️
 
 💡 **ikA Pro-Tip:** *Safe Bunk tool se apna attendance buffer calculate karo aur Super Bikes ke sapne dekho!* 🏍️💨`,
-      nextSugg: 'B.Tech 1st Sem ka full Academic Calendar dikhao 📅',
-    };
-  }
-
-  // 14B. GENERAL PROXY & ATTENDANCE QUERIES (WITHOUT SUPER BIKES)
-  if (
-    clean.includes('bhai proxy') ||
-    clean.includes('proxy lagane') ||
-    clean.includes('proxy') ||
-    clean.includes('attendance hack') ||
-    clean.includes('attendance kam') ||
-    clean.includes('attendance short')
-  ) {
-    return {
-      text: `🛡️🧮 **ATTENDANCE REALITY & 75% SAFE BUNK GUIDE (${buddy})** ⚡
-
-• 📊 **The Autonomous 75% Rule:** ABES Autonomous curriculum me **75% minimum attendance** mandatory hai. Agar 74.9% bhi hui, toh end-sem admit card detain ho sakta hai!
-• 🏃‍♂️ **Normal Proxy Reality:** First year (CSE-2) me Class Mentors (Prerana Ma'am & Divyanshi Ma'am) roz attendance register cross-verify karti hain. Isliye blind proxy se bacho!
-• 🧮 **Safe Bunk Calculator:** Hamare portal ke **"🛡️🧮 Safe Bunk & SGPA"** tool me apni total classes aur attended classes daalo—wo exact bata dega ki tum kitni classes bina kisi risk ke bunk kar sakte ho!
-• 🩺 **Medical Rule:** Sirf genuine authorized medical certificates hi dean office se approve hote hain, isliye 75.1% ka safe margin pehle hi bana kar chalo!`,
       nextSugg: 'Bhai proxy lagane ka koi ninja hack bata 🤫',
     };
   }

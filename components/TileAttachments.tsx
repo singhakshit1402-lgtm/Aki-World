@@ -47,6 +47,43 @@ export default function TileAttachments({
     }
   };
 
+  // Safe new-tab opener: converts dataUrl to a blob objectURL so Chrome/Firefox NEVER block navigation!
+  const openFileInNewTab = (item: TileUploadItem, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (typeof window === 'undefined') return;
+
+    // 1. Direct server/external URL
+    if (item.fileUrl && !item.fileUrl.startsWith('data:')) {
+      window.open(item.fileUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // 2. Base64 Data URL -> Blob URL (Opens instantly in native browser PDF/Image viewer)
+    if (item.dataUrl) {
+      try {
+        const parts = item.dataUrl.split(',');
+        const mime = parts[0].match(/:(.*?);/)?.[1] || item.mimeType || 'application/octet-stream';
+        const byteCharacters = atob(parts[1]);
+        const byteNumbers = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const blob = new Blob([byteNumbers.buffer as ArrayBuffer], { type: mime });
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank', 'noopener,noreferrer');
+        return;
+      } catch {
+        // Fallback
+      }
+    }
+
+    // 3. Fallback server streaming endpoint
+    const fallbackUrl = `/api/upload?fileId=${encodeURIComponent(item.id)}`;
+    window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+  };
+
   if (tileItems.length === 0 && !isBoss) {
     return null;
   }
@@ -100,13 +137,14 @@ export default function TileAttachments({
           {tileItems.map((item) => (
             <div
               key={item.id}
-              className="group relative p-3.5 rounded-2xl bg-black/60 hover:bg-black/80 border border-white/10 hover:border-red-500/50 shadow-lg flex flex-col justify-between transition-all duration-200"
+              onClick={(e) => openFileInNewTab(item, e)}
+              className="group relative p-3.5 rounded-2xl bg-black/60 hover:bg-black/85 border border-white/10 hover:border-red-500/50 shadow-lg flex flex-col justify-between transition-all duration-200 cursor-pointer"
             >
               <div>
                 {/* Image preview banner */}
                 {item.fileType === 'image' && (
                   <div
-                    onClick={() => setSelectedPreviewImage(item)}
+                    onClick={(e) => openFileInNewTab(item, e)}
                     className="relative w-full h-36 rounded-xl overflow-hidden bg-black/80 mb-2.5 cursor-pointer group-hover:scale-[1.02] transition"
                   >
                     <img
@@ -115,11 +153,32 @@ export default function TileAttachments({
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-black/30 group-hover:bg-transparent transition flex items-center justify-center">
-                      <span className="opacity-0 group-hover:opacity-100 px-2.5 py-1 rounded-lg bg-black/75 text-[10px] text-white font-semibold backdrop-blur-sm transition">
-                        🔍 Click to Zoom
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition flex items-center justify-center">
+                      <span className="opacity-0 group-hover:opacity-100 px-2.5 py-1 rounded-lg bg-black/80 text-[10px] text-white font-bold backdrop-blur-sm transition flex items-center gap-1 border border-white/20">
+                        <span>↗</span> Open in New Tab
                       </span>
                     </div>
+                  </div>
+                )}
+
+                {/* Non-image document / PDF preview box */}
+                {item.fileType !== 'image' && (
+                  <div
+                    onClick={(e) => openFileInNewTab(item, e)}
+                    className="w-full p-3 rounded-xl bg-white/[0.03] group-hover:bg-red-950/20 border border-white/5 group-hover:border-red-500/30 mb-2.5 flex items-center justify-between transition"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-2xl">{getFileIcon(item.fileType)}</span>
+                      <div>
+                        <span className="text-[11px] font-bold text-gray-200 group-hover:text-red-300 font-mono transition block truncate max-w-[170px]">
+                          {item.fileName}
+                        </span>
+                        <span className="text-[9px] text-gray-400">
+                          {formatFileSize(item.fileSize)} • Click to Open ↗
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-red-400 group-hover:translate-x-0.5 transition-transform font-bold">↗</span>
                   </div>
                 )}
 
@@ -151,30 +210,29 @@ export default function TileAttachments({
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-white/[0.08]">
-                {item.fileType === 'image' ? (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPreviewImage(item)}
-                    className="flex-1 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
-                  >
-                    <span>👁️</span> View Full
-                  </button>
-                ) : null}
+                <button
+                  type="button"
+                  onClick={(e) => openFileInNewTab(item, e)}
+                  className="flex-1 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow transition cursor-pointer"
+                >
+                  <span>↗</span> Open in New Tab
+                </button>
 
                 <a
                   href={item.dataUrl || item.fileUrl}
                   download={item.fileName}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow transition cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Direct Download"
+                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center justify-center gap-1 transition cursor-pointer"
                 >
-                  <span>⬇️</span> Download
+                  <span>⬇️</span>
                 </a>
 
                 {isBoss && onDelete && (
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (confirm(`Kya aap "${item.title}" file ko delete karna chahte hain?`)) {
                         onDelete(item.id);
                       }
@@ -209,10 +267,17 @@ export default function TileAttachments({
                 </p>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => openFileInNewTab(selectedPreviewImage, e)}
+                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold flex items-center gap-1 shadow cursor-pointer transition"
+                >
+                  <span>↗</span> Open in New Tab
+                </button>
                 <a
                   href={selectedPreviewImage.dataUrl || selectedPreviewImage.fileUrl}
                   download={selectedPreviewImage.fileName}
-                  className="px-3 py-1 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold"
+                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold cursor-pointer"
                 >
                   ⬇️ Download
                 </a>
