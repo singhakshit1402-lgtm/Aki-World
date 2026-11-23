@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import RegisterModal, { CSE8_ROSTER } from '@/components/RegisterModal';
 import PaperDownloadCard from '@/components/PaperDownloadCard';
 import TileAttachments from '@/components/TileAttachments';
+import PersonalCardStudio from '@/components/PersonalCardStudio';
+import NuisanceCertificate from '@/components/NuisanceCertificate';
 import ShinigamiUploadModal from '@/components/ShinigamiUploadModal';
 import type { TileUploadItem } from '@/app/api/upload/route';
 import {
@@ -167,7 +169,9 @@ type WindowView =
   | 'boss_intro'
   | 'canteen'
   | 'cabin'
-  | 'assignments';
+  | 'assignments'
+  | 'card_studio'
+  | 'nuisance_cert';
 
 const ALL_PAPERS = [
   { id: 'maths', name: 'Fundamentals of Linear Algebra & Statistics', code: '25AS102', short: 'Maths / FLAS', icon: '📐', mt1: '/papers/sem1/maths_mt1.jpg', mt2: '/papers/sem1/maths_mt2.jpg' },
@@ -1570,16 +1574,35 @@ function getHumanHinglishChatReply(
     };
   }
 
-  // 14. BOYS TALK: "Proxy lagane ka hack" / "Attendance kaise badhaye"
+  // 14. BOYS TALK: "Proxy lagane ka ninja hack" -> SUPER BIKES REVEAL & COVER-UP!
   if (
+    clean.includes('ninja hack') ||
+    clean.includes('ninja') ||
+    clean.includes('bhai proxy') ||
+    clean.includes('proxy lagane') ||
     clean.includes('proxy') ||
     clean.includes('attendance hack') ||
-    clean.includes('proxy lagane') ||
     clean.includes('attendance kam')
   ) {
     return {
-      text: `🤫⚡ **Shhh... aawaz niche kar ${buddy}, HOD sir ke kaan bohot tej hain! 😂**\n\nDekh bhai, proxy lagana engineering ka 8th wonder hai, par isme risk 100% hai:\n• 🎯 **Golden Rule #1:** Roll No 1 se 15 ke beech kabhi proxy mat maarna—teacher ka concentration tab sabse high hota hai!\n• 🎙️ **Voice Modulation:** Apni natural aawaz se halki alag pitch me *"Present Sir!"* bolna, par lagataar do roll numbers pe mat bolna warna pakde jaoge! 💀\n• 🛡️ **The True Hacker Move:** Proxy ka risk kyu lena jab tumhare paas **Safe Bunk Calculator** hai? Sidebar me jao, apni attendance check karo—agar 75%+ buffer hai toh seedha aaram se bunk maaro bina chori-chupe ke! 😎🔥`,
-      nextSugg: 'Safe bunk & SGPA kaise check karu? 🧮',
+      text: `🤫🏍️💨 **ARRE BHAI! TUMNE KAHA "NINJA HACK" — TOH SUPREME ikA NE SEEDHA SUPER BIKES KA GARAGE KHOL DIYA!** 🔥\n\n*Bhai proxy lagane me kyu faste ho jab seedha 400 km/h ki Super Bike pe baith ke college gate se full throttle nikal sakte ho?!* 😎\n*Aur agar teacher ne bench pe aake screen dekh li na, toh seedha bol dena:* **"Sir main Mechanical & Automotive Aerodynamics ki research kar raha tha!"** 🏎️💨\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏍️ **THE SUPREME CAMPUS SUPERBIKE ARSENAL:**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n🟢 **1. KAWASAKI NINJA H2R (The True Ninja Hack!)**\n• ⚡ **Top Speed:** 400 km/h | **Power:** 310 HP Supercharged Inline-4!\n• 🌪️ **Campus Superpower:** *Ghaziabad se ABES theek 4.2 second me pahuchne ka record! Carbon fiber aerodynamic wings se seedha 3rd floor CS block pe landing!* 🚀\n\n🦅 **2. SUZUKI HAYABUSA (GSX-1300R - Dhoom Legend)**\n• ⚡ **Top Speed:** 312 km/h | **Engine:** 1,340cc 4-Cylinder Beast (190 HP)\n• 🔊 **Campus Superpower:** *Tea Men's Cafe ke bahar single rev maara toh poore hostel ki khidkiyan khadak jaati hain! The ultimate campus highway king!* 👑🔥\n\n🇩🇪 **3. BMW S1000RR & M1000RR (Track Predator)**\n• ⚡ **Top Speed:** 305 km/h | **Engine:** 999cc with ShiftCam (205 HP)\n• 🏁 **Campus Superpower:** *M-Carbon winglets aur launch control! End-sem exam shuru hone se theek 2 minute pe library se exam hall tak fastest lap time!* ⏱️⚡\n\n🇮🇹 **4. DUCATI PANIGALE V4 S (Red Italian Screamer)**\n• ⚡ **Top Speed:** 315 km/h | **Engine:** 1,103cc Desmosedici Stradale V4 (215 HP @ 13,000 RPM)\n• ❤️‍🔥 **Campus Superpower:** *Dry clutch ki khad-khad sound sunte hi saari crushes turn hoke dekhti hain! Pure Italian royalty & acoustic bliss!* 👑🤤\n\n🔵 **5. YAMAHA YZF-R1M (Crossplane CP4 Screamer)**\n• ⚡ **Top Speed:** 299 km/h | **Engine:** 998cc Crossplane CP4\n• 🎧 **Campus Superpower:** *MotoGP sound on ABES inner roads! Pure goosebumps!* 🏎️\n\n💡 **ikA Pro-Tip:** *Bhai proxy me pakde gaye toh mentor cabin... par Ninja H2R pe nikle toh police bhi bas dekhti reh jayegi! Safe bunk check karo aur Super Bikes ke sapne dekho!* 😂🏍️💨`,
+      nextSugg: '📜 Mera Nuisance Certificate banao 😂',
+    };
+  }
+
+  // 14B. NUISANCE CERTIFICATE / LAUNDIYA BAAZ DEGREE TRIGGER
+  if (
+    clean.includes('nuisance') ||
+    clean.includes('certificate') ||
+    clean.includes('degree') ||
+    clean.includes('laundiya baaz') ||
+    clean.includes('laundiyabaaz') ||
+    clean.includes('shaitan') ||
+    clean.includes('praman patra')
+  ) {
+    return {
+      text: `📜💀 **ARRE BHAI! TERA OFFICIAL NUISANCE CERTIFICATE READY HAI!** 😂🔥\n\n*Supreme ikA ne tumhari saari campus bakchodi, crush chats, proxy attempts aur canteen records ka AI scan complete kar liya hai!*\n\n👉 **Apna Certificate dekhne aur download karne ke liye:**\n• Sidebar me **"📜 Certificate of Nuisance"** button dabao!\n• Ya fir Overview screen par seedha Nuisance tile open karo!\n\n*(Isme tumhara official title, IPC Campus Dharayein aur Supreme Boss ikA ka Red Wax Seal laga hua hai!)* 👑📜`,
+      nextSugg: '📜 Mera Nuisance Certificate banao 😂',
     };
   }
 
@@ -2492,7 +2515,15 @@ function MoreComingSoonBanner({ sectionName }: { sectionName: string }) {
 }
 
 export default function CampusAIChat() {
-  const [currentUser, setCurrentUser] = useState<StudentUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<StudentUser | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const savedUserStr = sessionStorage.getItem('campus_tab_user') || localStorage.getItem('campus_user');
+      return savedUserStr ? JSON.parse(savedUserStr) : null;
+    } catch {
+      return null;
+    }
+  });
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   const [currentWindow, setCurrentWindow] = useState<WindowView>('home');
@@ -2517,17 +2548,39 @@ export default function CampusAIChat() {
   const [sellPrice, setSellPrice] = useState('');
   const [sellContact, setSellContact] = useState('');
 
-  // SHINIGAMI EYES STATES + FLYING ANNOUNCEMENT STATES
-  const [bannedList, setBannedList] = useState<BannedEntry[]>([]);
+  // SHINIGAMI EYES STATES + FLYING ANNOUNCEMENT STATES (SYNCHRONOUS STORAGE PERSISTENCE)
+  const [bannedList, setBannedList] = useState<BannedEntry[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const saved = localStorage.getItem(DEATHNOTE_BANS_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [banInputTarget, setBanInputTarget] = useState('');
   const [banInputReason, setBanInputReason] = useState('Eliminated by Sovereign Decree of Boss ikA');
-  const [blockAllAtOnce, setBlockAllAtOnce] = useState<boolean>(false);
+  const [blockAllAtOnce, setBlockAllAtOnce] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('shinigami_block_all') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [stealthCloak, setStealthCloak] = useState<boolean>(false);
   const [sovereignBroadcast, setSovereignBroadcast] = useState<string>('');
   const [broadcastInput, setBroadcastInput] = useState<string>('');
   const [activeBroadcastOverlay, setActiveBroadcastOverlay] = useState<string | null>(null);
   const [activeStudentsRoster, setActiveStudentsRoster] = useState<ActiveStudent[]>([]);
-  const [isRealmFrozenByBoss, setIsRealmFrozenByBoss] = useState<boolean>(false);
+  const [isRealmFrozenByBoss, setIsRealmFrozenByBoss] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('shinigami_realm_freeze') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
   // HORROR STINGER VISUAL STATE ('ryuk_laugh' | 'bell' | 'thunder' | null)
   const [activeHorrorEvent, setActiveHorrorEvent] = useState<HorrorStingerType>(null);
@@ -2539,14 +2592,69 @@ export default function CampusAIChat() {
   const [puppetTargets, setPuppetTargets] = useState<Record<string, boolean>>({});
 
   // Target Student Effects (Heart Attack, 2-Phase Error 500 + Thunder, Void Evaporation, Cursed Spoof)
-  const [myHeartAttackTimer, setMyHeartAttackTimer] = useState<{ remainingSeconds: number; reason: string } | null>(null);
-  const [myGaslight500, setMyGaslight500] = useState<boolean>(false);
+  const [myHeartAttackTimer, setMyHeartAttackTimer] = useState<{ remainingSeconds: number; reason: string } | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const saved = localStorage.getItem('shinigami_my_heart_attack');
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed.expiresAt === 'number') {
+        const remaining = Math.max(0, Math.ceil((parsed.expiresAt - Date.now()) / 1000));
+        if (remaining > 0) {
+          return { remainingSeconds: remaining, reason: parsed.reason || 'Written in the Death Note — 40-Second Heart Attack Protocol 💀' };
+        }
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+  const [myGaslight500, setMyGaslight500] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('shinigami_my_gaslight500') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [panicProgress, setPanicProgress] = useState<number>(0);
-  const [error500Stage, setError500Stage] = useState<'idle' | 'breach' | 'haunted'>('idle');
-  const [myEvaporateCurse, setMyEvaporateCurse] = useState<boolean>(false);
+  const [error500Stage, setError500Stage] = useState<'idle' | 'breach' | 'haunted'>(() => {
+    if (typeof window === 'undefined') return 'idle';
+    try {
+      const isGas = localStorage.getItem('shinigami_my_gaslight500') === 'true';
+      if (!isGas) return 'idle';
+      const stage = localStorage.getItem('shinigami_error500_stage');
+      return stage === 'breach' ? 'breach' : 'haunted';
+    } catch {
+      return 'idle';
+    }
+  });
+  const [myEvaporateCurse, setMyEvaporateCurse] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('shinigami_my_evaporate') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [evaporateTargets, setEvaporateTargets] = useState<Record<string, boolean>>({});
-  const [evaporationStage, setEvaporationStage] = useState<'none' | 'dissolving' | 'void'>('none');
-  const [myCursedSpoof, setMyCursedSpoof] = useState<CursedSpoofState | null>(null);
+  const [evaporationStage, setEvaporationStage] = useState<'none' | 'dissolving' | 'void'>(() => {
+    if (typeof window === 'undefined') return 'none';
+    try {
+      return localStorage.getItem('shinigami_my_evaporate') === 'true' ? 'void' : 'none';
+    } catch {
+      return 'none';
+    }
+  });
+  const [myCursedSpoof, setMyCursedSpoof] = useState<CursedSpoofState | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const saved = localStorage.getItem('shinigami_my_cursed_spoof');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   // 2-WAY DIRECT SHINIGAMI CHAT (Boss ikA <-> Student)
   const [directChatMessages, setDirectChatMessages] = useState<DirectChatMessage[]>([]);
@@ -2818,6 +2926,16 @@ export default function CampusAIChat() {
         return;
       }
 
+      if (data.type === 'DEATH_NOTE_BAN' && data.ban) {
+        setBannedList((prev) => [data.ban, ...prev.filter((b) => b.target.toLowerCase() !== data.target.toLowerCase())]);
+        return;
+      }
+
+      if (data.type === 'DEATH_NOTE_UNBAN' && data.target) {
+        setBannedList((prev) => prev.filter((b) => b.target.toUpperCase().trim() !== data.target));
+        return;
+      }
+
       if (isBoss) return;
       const myAdm = (currentUser?.admissionNo || '').toUpperCase().trim();
       const isTargeted = data.target === 'ALL' || (myAdm && data.target === myAdm);
@@ -2829,9 +2947,26 @@ export default function CampusAIChat() {
           launchHorrorExperience(data.sound);
         }
       } else if (data.type === 'GASLIGHT_500') {
-        setMyGaslight500((prev) => (typeof data.value === 'boolean' ? data.value : !prev));
+        setMyGaslight500((prev) => {
+          const next = typeof data.value === 'boolean' ? data.value : !prev;
+          try {
+            if (next) localStorage.setItem('shinigami_my_gaslight500', 'true');
+            else {
+              localStorage.removeItem('shinigami_my_gaslight500');
+              localStorage.removeItem('shinigami_error500_stage');
+            }
+          } catch {}
+          return next;
+        });
       } else if (data.type === 'EVAPORATE') {
-        setMyEvaporateCurse((prev) => (typeof data.value === 'boolean' ? data.value : !prev));
+        setMyEvaporateCurse((prev) => {
+          const next = typeof data.value === 'boolean' ? data.value : !prev;
+          try {
+            if (next) localStorage.setItem('shinigami_my_evaporate', 'true');
+            else localStorage.removeItem('shinigami_my_evaporate');
+          } catch {}
+          return next;
+        });
       } else if (data.type === 'PUPPET_MODE') {
         setPuppetTargets((prev) => ({
           ...prev,
@@ -2969,7 +3104,14 @@ export default function CampusAIChat() {
         if (typeof data.requestBoxSecretCode === 'string' && data.requestBoxSecretCode) {
           setRequestBoxSecretCode(data.requestBoxSecretCode);
         }
-        if (typeof data.blockAllAtOnce === 'boolean') setBlockAllAtOnce(data.blockAllAtOnce);
+        if (typeof data.blockAllAtOnce === 'boolean') {
+          setBlockAllAtOnce(data.blockAllAtOnce);
+          try { localStorage.setItem('shinigami_block_all', String(data.blockAllAtOnce)); } catch {}
+        }
+        if (typeof data.realmFreeze === 'boolean') {
+          setIsRealmFrozenByBoss(data.realmFreeze);
+          try { localStorage.setItem('shinigami_realm_freeze', String(data.realmFreeze)); } catch {}
+        }
         if (typeof data.stealthCloak === 'boolean') setStealthCloak(data.stealthCloak);
 
         const mergedMap: Record<string, ActiveStudent> = {};
@@ -2995,7 +3137,6 @@ export default function CampusAIChat() {
         );
         setActiveStudentsRoster(mergedRoster);
 
-        if (typeof data.realmFreeze === 'boolean') setIsRealmFrozenByBoss(data.realmFreeze);
         if (Array.isArray(data.directMessages)) {
           setDirectChatMessages((prev) => {
             if (data.directMessages.length > prev.length) setIsStudentWhisperBoxOpen(true);
@@ -3004,11 +3145,51 @@ export default function CampusAIChat() {
         }
         if (Array.isArray(data.pendingIntercepts)) setPendingIntercepts(data.pendingIntercepts);
         if (data.puppetTargets) setPuppetTargets(data.puppetTargets);
-        if (data.myHeartAttackTimer !== undefined) setMyHeartAttackTimer(data.myHeartAttackTimer);
-        if (typeof data.myGaslight500 === 'boolean') setMyGaslight500(data.myGaslight500);
-        if (typeof data.myEvaporateCurse === 'boolean') setMyEvaporateCurse(data.myEvaporateCurse);
+        if (data.myHeartAttackTimer !== undefined) {
+          setMyHeartAttackTimer(data.myHeartAttackTimer);
+          try {
+            if (data.myHeartAttackTimer && data.myHeartAttackTimer.remainingSeconds > 0) {
+              localStorage.setItem('shinigami_my_heart_attack', JSON.stringify({
+                expiresAt: Date.now() + data.myHeartAttackTimer.remainingSeconds * 1000,
+                reason: data.myHeartAttackTimer.reason,
+              }));
+            } else {
+              localStorage.removeItem('shinigami_my_heart_attack');
+            }
+          } catch {}
+        }
+        if (typeof data.myGaslight500 === 'boolean') {
+          setMyGaslight500(data.myGaslight500);
+          try {
+            if (data.myGaslight500) {
+              localStorage.setItem('shinigami_my_gaslight500', 'true');
+            } else {
+              localStorage.removeItem('shinigami_my_gaslight500');
+              localStorage.removeItem('shinigami_error500_stage');
+            }
+          } catch {}
+        }
+        if (typeof data.myEvaporateCurse === 'boolean') {
+          setMyEvaporateCurse(data.myEvaporateCurse);
+          try {
+            if (data.myEvaporateCurse) {
+              localStorage.setItem('shinigami_my_evaporate', 'true');
+            } else {
+              localStorage.removeItem('shinigami_my_evaporate');
+            }
+          } catch {}
+        }
         if (data.evaporateTargets) setEvaporateTargets(data.evaporateTargets);
-        if (data.myCursedSpoof !== undefined) setMyCursedSpoof(data.myCursedSpoof);
+        if (data.myCursedSpoof !== undefined) {
+          setMyCursedSpoof(data.myCursedSpoof);
+          try {
+            if (data.myCursedSpoof) {
+              localStorage.setItem('shinigami_my_cursed_spoof', JSON.stringify(data.myCursedSpoof));
+            } else {
+              localStorage.removeItem('shinigami_my_cursed_spoof');
+            }
+          } catch {}
+        }
 
         if (data.audioStinger && !isBoss) {
           if (Date.now() - lastStingerTimestampRef.current > 1500) {
@@ -3050,41 +3231,57 @@ export default function CampusAIChat() {
     return () => clearInterval(interval);
   }, [syncWithServer]);
 
-  // Trigger 1.15s Dissolve-to-Ash Animation whenever an Evaporate-cursed user opens any tile, tool, or chat
+  // Trigger Dissolve-to-Ash Animation; stays locked in 'void' even across browser refreshes!
   useEffect(() => {
     if (!myEvaporateCurse || isBoss) {
       setEvaporationStage('none');
+      try { localStorage.removeItem('shinigami_my_evaporate'); } catch {}
       return;
     }
-    if (currentWindow !== 'home' && currentWindow !== 'boss_intro') {
-      setEvaporationStage('dissolving');
-      playHorrorAudioStinger('bell');
-      const timer = setTimeout(() => {
-        setEvaporationStage('void');
-      }, 1150);
-      return () => clearTimeout(timer);
-    } else {
-      setEvaporationStage('none');
-    }
-  }, [currentWindow, myEvaporateCurse, isBoss]);
+    try { localStorage.setItem('shinigami_my_evaporate', 'true'); } catch {}
+    if (evaporationStage === 'void') return;
+    setEvaporationStage('dissolving');
+    playHorrorAudioStinger('bell');
+    const timer = setTimeout(() => {
+      setEvaporationStage('void');
+    }, 1150);
+    return () => clearTimeout(timer);
+  }, [currentWindow, myEvaporateCurse, isBoss, evaporationStage]);
 
-  // PHASE 1 -> PHASE 2: Run the Error 500 Breach Line to 100% WITH THUNDER AUDIO, then haunt the entire website
+  // PHASE 1 -> PHASE 2: Error 500 Breach & Haunted; immediately resumes 'haunted' on page refresh!
   useEffect(() => {
     if (!myGaslight500 || isBoss) {
       setError500Stage('idle');
       setPanicProgress(0);
+      try {
+        localStorage.removeItem('shinigami_my_gaslight500');
+        localStorage.removeItem('shinigami_error500_stage');
+      } catch {}
+      return;
+    }
+
+    try {
+      localStorage.setItem('shinigami_my_gaslight500', 'true');
+    } catch {}
+
+    if (error500Stage === 'haunted') {
+      try { localStorage.setItem('shinigami_error500_stage', 'haunted'); } catch {}
       return;
     }
 
     setError500Stage('breach');
     setPanicProgress(0);
+    try { localStorage.setItem('shinigami_error500_stage', 'breach'); } catch {}
     playHorrorAudioStinger('thunder');
 
     const fillInterval = setInterval(() => {
       setPanicProgress((prev) => {
         if (prev >= 100) {
           clearInterval(fillInterval);
-          setTimeout(() => setError500Stage('haunted'), 600);
+          setTimeout(() => {
+            setError500Stage('haunted');
+            try { localStorage.setItem('shinigami_error500_stage', 'haunted'); } catch {}
+          }, 600);
           return 100;
         }
         return prev + 4;
@@ -3092,7 +3289,7 @@ export default function CampusAIChat() {
     }, 150);
 
     return () => clearInterval(fillInterval);
-  }, [myGaslight500, isBoss]);
+  }, [myGaslight500, isBoss, error500Stage]);
 
   // Persistent Horror Siren & Heartbeat Pulse while user navigates in 'haunted' mode (uses singleton AudioContext!)
   useEffect(() => {
@@ -4113,7 +4310,10 @@ export default function CampusAIChat() {
       reason: banInputReason.trim() || 'Eliminated by Sovereign Decree of Boss ikA',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
-    setBannedList((prev) => [newBan, ...prev.filter((b) => b.target.toLowerCase() !== target.toLowerCase())]);
+    const updated = [newBan, ...bannedList.filter((b) => b.target.toLowerCase() !== target.toLowerCase())];
+    setBannedList(updated);
+    try { localStorage.setItem(DEATHNOTE_BANS_KEY, JSON.stringify(updated)); } catch {}
+    broadcastLocalEffect({ type: 'DEATH_NOTE_BAN', ban: newBan, target: target.toUpperCase().trim() });
     setBanInputTarget('');
     await fetch('/api/chat', {
       method: 'POST',
@@ -4123,7 +4323,10 @@ export default function CampusAIChat() {
   };
 
   const handleRemoveBan = async (targetToUnban: string) => {
-    setBannedList((prev) => prev.filter((b) => b.target !== targetToUnban));
+    const updated = bannedList.filter((b) => b.target !== targetToUnban);
+    setBannedList(updated);
+    try { localStorage.setItem(DEATHNOTE_BANS_KEY, JSON.stringify(updated)); } catch {}
+    broadcastLocalEffect({ type: 'DEATH_NOTE_UNBAN', target: targetToUnban.toUpperCase().trim() });
     await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -5923,6 +6126,14 @@ export default function CampusAIChat() {
                 <span className="flex items-center gap-2"><span>🛡️🧮</span> Safe Bunk &amp; SGPA</span>
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">2-IN-1</span>
               </button>
+              <button onClick={() => {setCurrentWindow('card_studio'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentWindow === 'card_studio' ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg' : 'text-red-200 hover:bg-red-500/10 border border-red-500/20'}`}>
+                <span className="flex items-center gap-2"><span>🎴</span> Mera ikA World Card</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-600 text-white font-mono font-bold animate-pulse">PRO 3D</span>
+              </button>
+              <button onClick={() => {setCurrentWindow('nuisance_cert'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentWindow === 'nuisance_cert' ? 'bg-gradient-to-r from-amber-600 to-red-600 text-white shadow-lg' : 'text-amber-200 hover:bg-amber-500/10 border border-amber-500/20'}`}>
+                <span className="flex items-center gap-2"><span>📜</span> Certificate of Nuisance</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500 text-black font-mono font-black">NEW 🔥</span>
+              </button>
               <button onClick={() => {setCurrentWindow('canteen'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'canteen' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}>
                 <span className="flex items-center gap-2"><span>🍔</span> Canteen Menus</span>
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">LIVE</span>
@@ -6117,7 +6328,7 @@ export default function CampusAIChat() {
           }
         >
           {/* SHINIGAMI VOID EVAPORATION CURSE OVERLAY */}
-          {!isBoss && myEvaporateCurse && evaporationStage === 'void' && currentWindow !== 'home' && (
+          {!isBoss && myEvaporateCurse && evaporationStage === 'void' && (
             <div className="absolute inset-0 z-[850] bg-black flex flex-col items-center justify-center p-6 text-center select-none animate-in fade-in duration-500">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-950/45 via-black to-black pointer-events-none" />
               <div className="relative z-10 max-w-xl space-y-6 p-8 rounded-3xl bg-black/90 border border-red-600/60 shadow-[0_0_80px_rgba(220,38,38,0.65)]">
@@ -6164,6 +6375,56 @@ export default function CampusAIChat() {
                   </div>
                 </div>
 
+                {/* 1A. MOBILE SCREEN TILES: SAFE BUNK & SGPA (PROMINENT TILE) + QUICK CARDS */}
+                <div className="block md:hidden max-w-xl mx-auto pt-2 space-y-3 w-full">
+                  {/* HERO SAFE BUNK TILE FOR MOBILE */}
+                  <div
+                    onClick={() => setCurrentWindow('bunk_sgpa')}
+                    className="p-4 rounded-2xl bg-gradient-to-r from-yellow-950/60 via-black to-amber-950/40 border-2 border-yellow-500/50 shadow-[0_0_25px_rgba(234,179,8,0.25)] cursor-pointer text-left flex items-center justify-between group active:scale-[0.98] transition-transform"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">
+                        🛡️
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-black text-white group-hover:text-yellow-300 transition-colors">Safe Bunk &amp; SGPA</h3>
+                          <span className="text-[9px] font-mono font-black px-1.5 py-0.5 rounded bg-yellow-500 text-black">75% BUFFER</span>
+                        </div>
+                        <p className="text-[11px] text-gray-300 mt-0.5 leading-snug">Autonomous 75% rule &amp; SGPA calculator — calculate exact safe bunks!</p>
+                      </div>
+                    </div>
+                    <span className="text-yellow-400 font-bold text-xs ml-2">Open ↗</span>
+                  </div>
+
+                  {/* MOBILE 2-GRID: Mera ikA Card & Nuisance Certificate */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div
+                      onClick={() => setCurrentWindow('card_studio')}
+                      className="p-3 rounded-2xl bg-gradient-to-br from-red-950/40 via-black to-black border border-red-500/40 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl">🎴</span>
+                        <span className="text-[8px] font-mono px-1 rounded bg-red-600 text-white font-bold">3D CARD</span>
+                      </div>
+                      <h4 className="text-xs font-black text-white mt-1.5">Mera ikA Card</h4>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Claim Hinglish soul card</p>
+                    </div>
+
+                    <div
+                      onClick={() => setCurrentWindow('nuisance_cert')}
+                      className="p-3 rounded-2xl bg-gradient-to-br from-amber-950/40 via-black to-black border border-amber-500/40 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl">📜</span>
+                        <span className="text-[8px] font-mono px-1 rounded bg-amber-500 text-black font-black">AI SCAN</span>
+                      </div>
+                      <h4 className="text-xs font-black text-white mt-1.5">Nuisance Degree</h4>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Official Laundiyabaaz degree</p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* 1. THE 4 MAIN OVERVIEW TILES */}
                 <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-3.5 max-w-4xl mx-auto pt-1">
                   <div onClick={() => setCurrentWindow('faculty')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-pink-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
@@ -6181,9 +6442,15 @@ export default function CampusAIChat() {
                       </div>
                     </div>
                   </div>
-                  <div onClick={() => setCurrentWindow('placement')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-emerald-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
-                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-lg">🎯</div><span className="text-[10px] font-semibold text-emerald-400">Packages</span></div>
-                    <div><h3 className="text-sm font-bold text-white">Placement Reality</h3><p className="text-[11px] text-gray-400 mt-0.5">5 to 60 LPA &amp; CGPA truth</p></div>
+                  <div onClick={() => setCurrentWindow('bunk_sgpa')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-yellow-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32 group">
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">🛡️</div>
+                      <span className="text-[10px] font-semibold text-yellow-400">75% Buffer</span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white group-hover:text-yellow-300 transition-colors">Safe Bunk &amp; SGPA</h3>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Autonomous 75% rule &amp; SGPA calculator</p>
+                    </div>
                   </div>
                   <div onClick={() => setCurrentWindow('papers')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
                     <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-lg">📄</div><span className="text-[10px] font-semibold text-emerald-400">All 10 Solved!</span></div>
@@ -6213,15 +6480,21 @@ export default function CampusAIChat() {
                     <span className="text-[10px] text-gray-500 font-mono">v2.0 Pipeline</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div onClick={() => setCurrentWindow('cabin')} className="p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-dashed border-amber-500/30 flex items-center justify-between cursor-pointer transition">
+                    <div
+                      onClick={() => setCurrentWindow('card_studio')}
+                      className="p-3.5 rounded-2xl bg-gradient-to-r from-red-950/40 via-black to-amber-950/30 hover:from-red-950/60 hover:to-amber-950/50 border border-red-500/40 hover:border-red-400 flex items-center justify-between cursor-pointer transition shadow-lg group"
+                    >
                       <div className="flex items-center gap-3 text-left">
-                        <span className="text-xl">🧭</span>
+                        <span className="text-2xl group-hover:scale-110 transition-transform">🎴</span>
                         <div>
-                          <h4 className="text-xs font-bold text-white">Cabin Navigator</h4>
-                          <p className="text-[10px] text-gray-400">Exact faculty rooms &amp; blocks</p>
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs font-bold text-white">Mera ikA World Card</h4>
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-600 text-white font-bold animate-pulse">NEW ✨</span>
+                          </div>
+                          <p className="text-[10px] text-gray-300">Upload photo &amp; claim your unique Hinglish soul card!</p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">SOON</span>
+                      <span className="text-[10px] font-bold text-amber-300 group-hover:translate-x-1 transition-transform">Claim ↗</span>
                     </div>
 
                     <div onClick={() => setCurrentWindow('assignments')} className="p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-dashed border-amber-500/30 flex items-center justify-between cursor-pointer transition">
@@ -6799,6 +7072,7 @@ export default function CampusAIChat() {
                         { id: 'canteen', label: 'Canteen' },
                         { id: 'bunk_sgpa', label: 'Bunk/SGPA' },
                         { id: 'assignments', label: 'Assign' },
+                        { id: 'personal_cards', label: 'Cards 🎴' },
                       ].map((tl) => {
                         const count = tileUploads.filter((u) => u.tile === tl.id).length;
                         return (
@@ -8098,6 +8372,15 @@ export default function CampusAIChat() {
                 <MoreComingSoonBanner sectionName="P2P Student Marketplace" />
               </div>
             </div>
+          )}
+
+          {/* VIEW: PERSONALISED ikA WORLD CARD STUDIO */}
+          {currentWindow === 'card_studio' && (
+            <PersonalCardStudio
+              currentUser={currentUser}
+              onBackToOverview={() => setCurrentWindow('home')}
+              isBoss={isBoss}
+            />
           )}
 
           {/* VIEW: COMING SOON MODULES (CABIN NAVIGATOR & ASSIGNMENT TRACKER) */}

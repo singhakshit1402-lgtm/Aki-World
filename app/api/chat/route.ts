@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getPushSubscriberCount,
@@ -30,6 +32,30 @@ export interface DirectChatMessage {
   sender: 'ikA' | 'student';
   text: string;
   timestamp: string;
+}
+
+export interface StudentCardRecord {
+  admissionNo: string;
+  name: string;
+  section: string;
+  rollNo?: number;
+  group?: string;
+  photoUrl: string;
+  archetypeId: string;
+  archetypeTitle: string;
+  archetypeEmoji: string;
+  themeId: string;
+  customQuote: string;
+  customAlias: string;
+  tier: string;
+  auraScore: string;
+  stats: {
+    attendance: number;
+    examClutch: number;
+    canteenSpeed: number;
+    sleepHours: number;
+  };
+  updatedAt: string;
 }
 
 export interface BannedEntry {
@@ -111,6 +137,7 @@ interface ShinigamiMatrixStore {
   jokeCursor: number;
   ikaRequests: IkaRequestItem[];
   requestBoxSecretCode: string;
+  studentCards: Record<string, StudentCardRecord>;
 }
 
 // ============================================================================
@@ -146,10 +173,74 @@ if (!g.__SHINIGAMI_MATRIX__) {
     jokeCursor: 0,
     ikaRequests: [],
     requestBoxSecretCode: 'IKA1402',
+    studentCards: {},
   };
 }
 
 const MATRIX = g.__SHINIGAMI_MATRIX__;
+if (!MATRIX.studentCards) MATRIX.studentCards = {};
+
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const MATRIX_FILE = isVercel
+  ? path.join('/tmp', 'shinigami_matrix.json')
+  : path.join(process.cwd(), 'data', 'shinigami_matrix.json');
+
+function loadMatrixFromDisk(): void {
+  try {
+    if (fs.existsSync(MATRIX_FILE)) {
+      const raw = fs.readFileSync(MATRIX_FILE, 'utf8');
+      const loaded = JSON.parse(raw);
+      if (loaded && typeof loaded === 'object') {
+        if (Array.isArray(loaded.bans)) MATRIX.bans = loaded.bans;
+        if (typeof loaded.blockAllAtOnce === 'boolean') MATRIX.blockAllAtOnce = loaded.blockAllAtOnce;
+        if (typeof loaded.realmFreeze === 'boolean') MATRIX.realmFreeze = loaded.realmFreeze;
+        if (typeof loaded.stealthCloak === 'boolean') MATRIX.stealthCloak = loaded.stealthCloak;
+        if (loaded.heartAttackTimers && typeof loaded.heartAttackTimers === 'object') MATRIX.heartAttackTimers = loaded.heartAttackTimers;
+        if (loaded.gaslightTargets && typeof loaded.gaslightTargets === 'object') MATRIX.gaslightTargets = loaded.gaslightTargets;
+        if (loaded.evaporateTargets && typeof loaded.evaporateTargets === 'object') MATRIX.evaporateTargets = loaded.evaporateTargets;
+        if (loaded.puppetTargets && typeof loaded.puppetTargets === 'object') MATRIX.puppetTargets = loaded.puppetTargets;
+        if (loaded.cursedSpoofs && typeof loaded.cursedSpoofs === 'object') MATRIX.cursedSpoofs = loaded.cursedSpoofs;
+        if (Array.isArray(loaded.marketplace)) MATRIX.marketplace = loaded.marketplace;
+        if (typeof loaded.broadcast === 'string') MATRIX.broadcast = loaded.broadcast;
+        if (typeof loaded.broadcastId === 'number') MATRIX.broadcastId = loaded.broadcastId;
+        if (Array.isArray(loaded.ikaRequests)) MATRIX.ikaRequests = loaded.ikaRequests;
+        if (typeof loaded.requestBoxSecretCode === 'string') MATRIX.requestBoxSecretCode = loaded.requestBoxSecretCode;
+        if (loaded.studentCards && typeof loaded.studentCards === 'object') MATRIX.studentCards = loaded.studentCards;
+      }
+    }
+  } catch (err) {
+    console.error('Error loading shinigami matrix from disk:', err);
+  }
+}
+
+function persistMatrixToDisk(): void {
+  try {
+    const dir = path.dirname(MATRIX_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const toSave = {
+      marketplace: MATRIX.marketplace,
+      broadcast: MATRIX.broadcast,
+      broadcastId: MATRIX.broadcastId,
+      bans: MATRIX.bans,
+      blockAllAtOnce: MATRIX.blockAllAtOnce,
+      realmFreeze: MATRIX.realmFreeze,
+      stealthCloak: MATRIX.stealthCloak,
+      heartAttackTimers: MATRIX.heartAttackTimers,
+      gaslightTargets: MATRIX.gaslightTargets,
+      evaporateTargets: MATRIX.evaporateTargets,
+      puppetTargets: MATRIX.puppetTargets,
+      cursedSpoofs: MATRIX.cursedSpoofs,
+      ikaRequests: MATRIX.ikaRequests,
+      requestBoxSecretCode: MATRIX.requestBoxSecretCode,
+      studentCards: MATRIX.studentCards || {},
+    };
+    fs.writeFileSync(MATRIX_FILE, JSON.stringify(toSave, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error persisting shinigami matrix to disk:', err);
+  }
+}
+
+loadMatrixFromDisk();
 
 // ============================================================================
 // COMPLETE SAMPLE PAPERS CATALOG (MT-1 & MT-2)
@@ -455,6 +546,8 @@ export async function POST(req: NextRequest) {
         ikaRequests: MATRIX.ikaRequests,
         requestBoxSecretCode: MATRIX.requestBoxSecretCode,
         pushSubscriberCount: isBoss ? getPushSubscriberCount() : 0,
+        studentCards: isBoss ? MATRIX.studentCards : undefined,
+        myCard: currentAdm && MATRIX.studentCards ? MATRIX.studentCards[currentAdm] || null : null,
       });
     }
 
@@ -531,6 +624,47 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (body.action === 'SAVE_STUDENT_CARD' && body.cardData) {
+      const card = body.cardData as StudentCardRecord;
+      const adm = (card.admissionNo || currentAdm).toUpperCase().trim();
+      if (adm) {
+        MATRIX.studentCards[adm] = {
+          ...card,
+          admissionNo: adm,
+          updatedAt: new Date().toISOString(),
+        };
+        persistMatrixToDisk();
+        return NextResponse.json({ success: true, card: MATRIX.studentCards[adm] });
+      }
+      return NextResponse.json({ success: false, error: 'Admission No missing' }, { status: 400 });
+    }
+
+    if (body.action === 'GET_ALL_STUDENT_CARDS') {
+      if (!MATRIX.studentCards) MATRIX.studentCards = {};
+      return NextResponse.json({
+        success: true,
+        cards: Object.values(MATRIX.studentCards),
+      });
+    }
+
+    if (body.action === 'DELETE_STUDENT_CARD' && body.admissionNo) {
+      if (!MATRIX.studentCards) MATRIX.studentCards = {};
+      const adm = String(body.admissionNo).toUpperCase().trim();
+      if (MATRIX.studentCards[adm]) {
+        delete MATRIX.studentCards[adm];
+        persistMatrixToDisk();
+      }
+      return NextResponse.json({ success: true, cards: Object.values(MATRIX.studentCards) });
+    }
+
+    if (body.action === 'GET_STUDENT_CARD') {
+      const adm = (body.admissionNo || currentAdm).toUpperCase().trim();
+      return NextResponse.json({
+        success: true,
+        card: MATRIX.studentCards[adm] || null,
+      });
+    }
+
     if (body.action === 'SET_BLOCK_ALL_AT_ONCE') {
       MATRIX.blockAllAtOnce = !!body.blockAll;
       return NextResponse.json({ success: true, blockAllAtOnce: MATRIX.blockAllAtOnce });
@@ -603,6 +737,7 @@ export async function POST(req: NextRequest) {
           screenGlitch: !!body.screenGlitch,
         };
       }
+      persistMatrixToDisk();
       return NextResponse.json({ success: true, spoof: MATRIX.cursedSpoofs[target] || null });
     }
 

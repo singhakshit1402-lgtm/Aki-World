@@ -4,12 +4,13 @@ import path from 'path';
 
 export interface TileUploadItem {
   id: string;
-  tile: string; // 'home' | 'papers' | 'faculty' | 'timetable' | 'placement' | 'canteen' | 'bunk_sgpa' | 'all'
+  tile: string; // 'home' | 'papers' | 'faculty' | 'timetable' | 'placement' | 'canteen' | 'bunk_sgpa' | 'assignments' | 'personal_cards' | 'all'
   title: string;
   description?: string;
   badge?: string;
   fileName: string;
   fileUrl: string;
+  dataUrl?: string; // Instant base64 data URI (100% resilient on serverless Vercel)
   fileType: 'image' | 'pdf' | 'doc' | 'code' | 'archive' | 'other';
   mimeType: string;
   fileSize: number;
@@ -18,36 +19,66 @@ export interface TileUploadItem {
   uploadedBy: string;
 }
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'uploads.json');
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
+// In-Memory Global Matrix for serverless fallback
+const g = globalThis as unknown as { __SHINIGAMI_UPLOADS__?: TileUploadItem[] };
+if (!g.__SHINIGAMI_UPLOADS__) {
+  g.__SHINIGAMI_UPLOADS__ = [];
+}
+
+// Vercel serverless environment uses /tmp as the only writable path
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DATA_FILE = isVercel
+  ? path.join('/tmp', 'uploads.json')
+  : path.join(process.cwd(), 'data', 'uploads.json');
+const UPLOADS_DIR = isVercel
+  ? path.join('/tmp', 'uploads')
+  : path.join(process.cwd(), 'public', 'uploads');
 
 function ensureDirectories() {
-  if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  try {
+    const dataDir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    if (!fs.existsSync(DATA_FILE)) {
+      fs.writeFileSync(DATA_FILE, JSON.stringify([]), 'utf8');
+    }
+  } catch {
+    // Non-fatal on read-only environments
   }
-  const dataDir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify([]), 'utf8');
+
+  try {
+    if (!fs.existsSync(UPLOADS_DIR)) {
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+  } catch {
+    // Non-fatal if public/uploads is read-only on Vercel
   }
 }
 
 function getStoredUploads(): TileUploadItem[] {
   ensureDirectories();
   try {
-    const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        g.__SHINIGAMI_UPLOADS__ = parsed;
+        return parsed;
+      }
+    }
+  } catch {}
+  return g.__SHINIGAMI_UPLOADS__ || [];
 }
 
 function saveStoredUploads(items: TileUploadItem[]) {
+  g.__SHINIGAMI_UPLOADS__ = items;
   ensureDirectories();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(items, null, 2), 'utf8');
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(items, null, 2), 'utf8');
+  } catch {
+    // Non-fatal if filesystem is read-only
+  }
 }
 
 function detectFileType(fileName: string, mime: string): TileUploadItem['fileType'] {
@@ -70,10 +101,50 @@ function detectFileType(fileName: string, mime: string): TileUploadItem['fileTyp
   return 'other';
 }
 
-// GET /api/upload -> returns all uploads
+// GET /api/upload -> returns all uploads, or filters by ?tile=..., or streams binary by ?fileId=...
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const fileId = searchParams.get('fileId');
+
+    // Handle binary file streaming
+    if (fileId) {
+      const all = getStoredUploads();
+      const item = all.find((u) => u.id === fileId);
+      if (!item) {
+        return new NextResponse('File not found', { status: 404 });
+      }
+
+      if (item.dataUrl) {
+        const parts = item.dataUrl.split(',');
+        if (parts[1]) {
+          const buffer = Buffer.from(parts[1], 'base64');
+          return new NextResponse(buffer, {
+            headers: {
+              'Content-Type': item.mimeType || 'application/octet-stream',
+              'Content-Disposition': `inline; filename="${encodeURIComponent(item.fileName)}"`,
+            },
+          });
+        }
+      }
+
+      // Fallback to disk if dataUrl missing
+      try {
+        const localPath = path.join(UPLOADS_DIR, item.fileName);
+        if (fs.existsSync(localPath)) {
+          const buffer = fs.readFileSync(localPath);
+          return new NextResponse(buffer, {
+            headers: {
+              'Content-Type': item.mimeType || 'application/octet-stream',
+              'Content-Disposition': `inline; filename="${encodeURIComponent(item.fileName)}"`,
+            },
+          });
+        }
+      } catch {}
+
+      return new NextResponse('File data unavailable', { status: 404 });
+    }
+
     const tileFilter = searchParams.get('tile');
     const all = getStoredUploads();
 
@@ -107,25 +178,38 @@ export async function POST(req: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const mime = file.type || 'application/octet-stream';
 
-    // Sanitize filename & create unique destination
+    // Create Base64 Data URL — 100% serverless resilient (instant rendering in img src & downloads everywhere)
+    const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`;
+
+    // Generate unique ID and safe filename
     const safeName = file.name.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
     const uniqueFileName = `${Date.now()}_${safeName}`;
-    const destinationPath = path.join(UPLOADS_DIR, uniqueFileName);
+    const uploadId = `up-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-    await fs.promises.writeFile(destinationPath, buffer);
+    // Try writing to disk, but gracefully catch and ignore if filesystem is read-only (e.g. Vercel)
+    try {
+      const destinationPath = path.join(UPLOADS_DIR, uniqueFileName);
+      fs.writeFileSync(destinationPath, buffer);
+    } catch {
+      // Ignored safely on Vercel serverless /var/task
+    }
 
-    const fileType = detectFileType(file.name, file.type || '');
+    const fileType = detectFileType(file.name, mime);
+
+    // Use dataUrl for instant display and fallback to /api/upload?fileId=...
     const newItem: TileUploadItem = {
-      id: `up-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      id: uploadId,
       tile,
       title: title.trim() || file.name,
       description: description.trim(),
       badge: badge.trim() || 'Notice',
       fileName: file.name,
-      fileUrl: `/uploads/${uniqueFileName}`,
+      fileUrl: dataUrl, // Instant base64 data URL guarantees zero ENOENT or 404 on Vercel!
+      dataUrl,
       fileType,
-      mimeType: file.type || 'application/octet-stream',
+      mimeType: mime,
       fileSize: file.size,
       uploadedAt: new Date().toLocaleString('en-IN', {
         timeZone: 'Asia/Kolkata',
@@ -169,9 +253,9 @@ export async function DELETE(req: NextRequest) {
     const target = currentList.find((i) => i.id === id);
 
     if (target) {
-      // Delete file from disk if it exists
+      // Try delete file from disk if it exists
       try {
-        const filePath = path.join(process.cwd(), 'public', target.fileUrl.replace(/^\//, ''));
+        const filePath = path.join(UPLOADS_DIR, target.fileName);
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }

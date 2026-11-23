@@ -18,6 +18,7 @@ const TILE_OPTIONS = [
   { id: 'placement', label: '🎯 Placement Reality', icon: '🎯' },
   { id: 'canteen', label: '🍔 Canteen Menus', icon: '🍔' },
   { id: 'bunk_sgpa', label: '🛡️🧮 Safe Bunk & SGPA Suite', icon: '🛡️' },
+  { id: 'personal_cards', label: '🎴 Student Soul Cards', icon: '🎴' },
   { id: 'all', label: '🌟 All Tiles (Universal)', icon: '🌟' },
 ];
 

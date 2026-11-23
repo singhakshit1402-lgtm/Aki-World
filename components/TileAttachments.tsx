@@ -110,7 +110,7 @@ export default function TileAttachments({
                     className="relative w-full h-36 rounded-xl overflow-hidden bg-black/80 mb-2.5 cursor-pointer group-hover:scale-[1.02] transition"
                   >
                     <img
-                      src={item.fileUrl}
+                      src={item.dataUrl || item.fileUrl}
                       alt={item.title}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -162,7 +162,7 @@ export default function TileAttachments({
                 ) : null}
 
                 <a
-                  href={item.fileUrl}
+                  href={item.dataUrl || item.fileUrl}
                   download={item.fileName}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -210,7 +210,7 @@ export default function TileAttachments({
               </div>
               <div className="flex items-center gap-2">
                 <a
-                  href={selectedPreviewImage.fileUrl}
+                  href={selectedPreviewImage.dataUrl || selectedPreviewImage.fileUrl}
                   download={selectedPreviewImage.fileName}
                   className="px-3 py-1 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold"
                 >
@@ -227,7 +227,7 @@ export default function TileAttachments({
 
             <div className="p-4 overflow-auto flex items-center justify-center bg-black/90 max-h-[75vh]">
               <img
-                src={selectedPreviewImage.fileUrl}
+                src={selectedPreviewImage.dataUrl || selectedPreviewImage.fileUrl}
                 alt={selectedPreviewImage.title}
                 className="max-w-full max-h-[70vh] object-contain rounded-xl"
               />
