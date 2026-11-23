@@ -25,6 +25,7 @@ import {
   syncExistingPushSubscription,
   showDeviceAnnouncementNotification,
 } from '@/lib/clientPush';
+import { getNextShayari } from '@/lib/shayariBank';
 
 export interface StudentUser {
   name: string;
@@ -767,11 +768,16 @@ const CSE2_IMPORTANT_SUGGESTIONS: string[] = [
 
 const BOYS_CASUAL_TALK_SUGGESTIONS: string[] = [
   'Crush ko propose kaise karu bhai? 😏',
+  'Crush ke liye ek nayi shayari sunao 💖',
   'Bhai proxy lagane ka koi ninja hack bata 🤫',
+  'Ek kadak engineering shayari sunao ⚡',
   'Class bunk karke canteen me kya khayein? 🍔',
+  'Dosti aur yaari wali ek shayari sunao 🤝',
   'Single laundo ke liye koi kadak motivation de 😂🔥',
   'Hostel me ladko ka kya scene chal raha hai? 😂',
+  'Dard bhari breakup shayari sunao 💔',
   'Ek ekdum kadak campus roast sunao 🤣',
+  'Boss ikA ki Shinigami shayari sunao 🍎',
   'Bhai thodi college gossip batao ☕',
   'Class me neend aaye toh kya karein? 😴',
   'Backbenchers ka secret survival rule kya hai? 😎',
@@ -780,11 +786,14 @@ const BOYS_CASUAL_TALK_SUGGESTIONS: string[] = [
 
 const GIRLS_CASUAL_TALK_SUGGESTIONS: string[] = [
   'Campus me sabse acchi coffee kahan milti hai? ☕✨',
+  'Crush ke liye ek cute shayari sunao 💖',
   'Boring class me timepass kaise karein? 😴',
+  'Ek pyari si campus dosti shayari sunao 🌸',
   'Aao thodi college gossips karte hain 🎧',
   'Thoda mood fresh karo ek mast joke se 😂',
   'Hostel room decor aur study aesthetic tips 🌸',
   "Tea Men's Cafe pe best snacks kya hain? 🥪",
+  'Boss ikA ki mysterious shayari sunao 🍎✨',
 ];
 
 const MASTER_SUGGESTION_POOL: string[] = [
@@ -1558,7 +1567,7 @@ function getHumanHinglishChatReply(
     };
   }
 
-  // 13. BOYS TALK: "Crush ko propose kaise karu?" / "Crush se baat kaise karu?"
+  // 13. BOYS TALK: "Crush ko propose kaise karu?" / "Crush se baat kaise karu?" / "Crush ke liye shayari"
   if (
     clean.includes('crush') ||
     clean.includes('propose') ||
@@ -1568,9 +1577,15 @@ function getHumanHinglishChatReply(
     clean.includes('flirt') ||
     clean.includes('impressed')
   ) {
+    const { formattedText, nextSugg, shayari } = getNextShayari({
+      genre: 'crush',
+      userName: first,
+      userGender: isFemale ? 'F' : 'M',
+      isBoss,
+    });
     return {
-      text: `😏🔥 **Arre ${buddy}, dil ki ghanti baj gayi kya?! Sun dhyan se ikA ka 3-Step Campus Wingman Formula:**\n\n• 1️⃣ **The Innocent Academic Hook:** Direct jaake hero mat ban! Class ke notes ya kisi assignment ka bahana bana (*"Yaar vo maths ke step me sir ne kya likha tha samajh nahi aaya, zara copy dikhana?"*). Easiest conversation starter! 📚✍️\n• 2️⃣ **Canteen Icebreaker:** 2 din normal baat hone ke baad casual bol: *"Yaar Tea Men's Cafe ki cold coffee ya K.J Cafe ke Kurkure Momos khane chal rahe ho?"* Food is the universal answer! ☕🥟\n• 3️⃣ **Be Real & Confident:** Fake perfume aur fake accent mat marna. Bas neat kapde, clean smile aur thodi funny vibe rakh!\n\n*Aur agar 'Haan' bol diya na, toh sabse pehli treat apne bhai ikA ko milni chahiye!* 😉🚀`,
-      nextSugg: 'Bhai proxy lagane ka koi ninja hack bata 🤫',
+      text: `😏💖 **Arre ${buddy}, Crush ko dil ki baat bolni hai ya impress karna hai? Suno Boss ikA ki Nayi Crush Shayari (#${shayari.id} / 113):** 🌹✨\n\n${formattedText}\n\n💡 **Boss ikA's 3-Step Campus Wingman Formula:**\n• 1️⃣ **The Innocent Academic Hook:** Direct jaake hero mat bano! Class notes ya kisi assignment ka bahana banao (*"Yaar vo maths ke step me sir ne kya likha tha samajh nahi aaya, zara copy dikhana?"*). Easiest conversation starter! 📚✍️\n• 2️⃣ **Canteen Icebreaker:** 2 din normal baat hone ke baad casual bolo: *"Tea Men's Cafe ki cold coffee ya K.J Cafe ke Kurkure Momos khane chalein?"* Food is the universal answer! ☕🥟\n• 3️⃣ **Smile & Deliver:** Ye wali shayari sunao aur bas ek charming smile do—100% flat! 😉🚀\n\n*Aur agar 'Haan' bol diya na, toh sabse pehli treat apne Boss ikA ko milni chahiye!* 🤝🎉`,
+      nextSugg,
     };
   }
 
@@ -2066,23 +2081,54 @@ function matchSingleOmniTopic(
     };
   }
 
-  // 15. SHAYARI, LOVE/CRUSH, PAISA/BROKE, ROAST & RIDDLES
+  // 15. 100+ MULTI-GENRE CAMPUS SHAYARI ENGINE, LOVE/CRUSH, PAISA/BROKE, ROAST & RIDDLES
   if (
     /\b(gf|bf)\b/.test(clean) || clean.includes('girlfriend') ||
     clean.includes('boyfriend') || clean.includes('crush') || clean.includes('bandi') ||
     clean.includes('single') || clean.includes('pyaar') || clean.includes('mohabbat') ||
     clean.includes('dil toot') || clean.includes('breakup') || clean.includes('shadi')
   ) {
+    const isBreakup = clean.includes('dil toot') || clean.includes('breakup') || clean.includes('dhokha') || clean.includes('sad') || clean.includes('chhod diya');
+    const { formattedText, nextSugg, shayari } = getNextShayari({
+      genre: isBreakup ? 'dard_breakup' : 'crush',
+      userName: first,
+      userGender: isFemale ? 'F' : 'M',
+      isBoss,
+    });
     return {
-      text: `💘😂 **Arre ${buddy}, Engineering aur Ishq ka purana choli-daaman ka saath hai!** 🌹⚡\n\n> *"Dil lagana hi hai toh C++ ke pointers aur DSA ke trees se lagao... kam se kam segmentation fault dekar sach toh bolte hain, dhokha nahi dete!"* 😭💔\n\nWaise tension mat lo **${first}**, pehle **15+ LPA ka package** phodte hain, fir dekho kaise rishte waalon ki line lagti hai! 🚀😎`,
-      nextSugg: 'Ek mast campus joke sunao 😂',
+      text: isBreakup
+        ? `💔🥀 **Arre ${buddy}, Dil toota hai toh akele mat ro... Suno Boss ikA ka dard-bhara sher (#${shayari.id} / 113):** 🌧️\n\n${formattedText}\n\n💪 *Yaad rakhna mere sher:* Ek 20+ LPA ka package aur ek sachha yaar, 100 fake crushes se behtar hota hai! Tension mat lo, pehle career phodte hain! 🚀🔥`
+        : `💘🌹 **Arre ${buddy}, Engineering aur Ishq ki dastaan! Suno Boss ikA ki Romantic Shayari (#${shayari.id} / 113):** ✨\n\n${formattedText}\n\n😉 *Waise pehle 15+ LPA ka package phodte hain, fir dekho rishto ki line lagti hai!* 🚀😎`,
+      nextSugg,
     };
   }
 
-  if (clean.includes('shayari') || /\bsher\b/.test(clean) || clean.includes('quote') || clean.includes('dialogue')) {
+  if (
+    clean.includes('shayari') ||
+    /\bsher\b/.test(clean) ||
+    clean.includes('quote') ||
+    clean.includes('dialogue') ||
+    clean.includes('kavita') ||
+    clean.includes('poetry')
+  ) {
+    let genre: string | undefined = undefined;
+    if (clean.includes('crush') || clean.includes('pyaar') || clean.includes('ishq') || clean.includes('propose') || clean.includes('gf') || clean.includes('bf')) genre = 'crush';
+    else if (clean.includes('eng') || clean.includes('code') || clean.includes('btech') || clean.includes('dsa') || clean.includes('exam') || clean.includes('pointer')) genre = 'engineering';
+    else if (clean.includes('proxy') || clean.includes('attend') || clean.includes('bunk') || clean.includes('safe bunk')) genre = 'attendance_proxy';
+    else if (clean.includes('dard') || clean.includes('breakup') || clean.includes('sad') || clean.includes('dil toot') || clean.includes('dhokha')) genre = 'dard_breakup';
+    else if (clean.includes('dost') || clean.includes('yaar') || clean.includes('bhai') || clean.includes('maggi') || clean.includes('backbench')) genre = 'dosti_yaari';
+    else if (clean.includes('death') || clean.includes('ryuk') || clean.includes('boss') || clean.includes('shinigami') || clean.includes('note')) genre = 'shinigami_boss';
+
+    const { formattedText, nextSugg } = getNextShayari({
+      genre,
+      userName: first,
+      userGender: isFemale ? 'F' : 'M',
+      isBoss,
+    });
+
     return {
-      text: `🎙️🔥 **Irshaad फरमाइए ${buddy} — Boss ikA's Special Engineering & Death Note Shayari:** 🥀⚡\n\n> *"Kitabon ke panno me kismat dhoondhne nikle the,* 📚\n> *75% attendance ke chakkar me subah 8:50 pe uthne nikle the!* 😴\n> *Duniya darti hogi exam ke red pen se,* ✍️\n> *Hum CSE-2 ke parinde hain—Boss ikA ke samrajya me toofan banne nikle the!"* 👑🔥🍎`,
-      nextSugg: 'Ek mast campus joke sunao 😂',
+      text: formattedText,
+      nextSugg,
     };
   }
 
@@ -2265,8 +2311,31 @@ const SYLLABUS_VAULT: Record<string, { title: string; code: string; credits: str
 const CALENDAR_PDF_TAG = `[DOWNLOAD_PAPER|📅 Official ABES Academic Calendar — ODD Sem 2026-27 (PDF)|/academic_calendar.pdf]`;
 const SYLLABUS_PDF_TAG = `[DOWNLOAD_PAPER|📘 Official ABES B.Tech 1st Year Autonomous Syllabus (105-Page PDF)|/btech_syllabus.pdf]`;
 
-export function getAcademicCalendarAndSyllabusReply(rawQuery: string): { text: string; nextSugg: string } | null {
+export function getAcademicCalendarAndSyllabusReply(rawQuery: string, userSection?: string): { text: string; nextSugg: string } | null {
   const q = rawQuery.toLowerCase().trim();
+
+  // 0. SPECIFIC SECTION CSE-8 OFFICIAL WEEKLY TIMETABLE & CLASS SCHEDULE
+  const isCSE8Target = q.includes('cse8') || q.includes('cse-8') || q.includes('cse 8') || q.includes('sec 8') || q.includes('section 8');
+  const isCSE2Target = q.includes('cse2') || q.includes('cse-2') || q.includes('cse 2') || q.includes('section 2') || q.includes('sec 2');
+  const isTimetableIntent =
+    q.includes('timetable') ||
+    q.includes('time table') ||
+    q.includes('schedule') ||
+    q.includes('routine') ||
+    q.includes('class table') ||
+    q.includes('classes') ||
+    q.includes('lectures') ||
+    q.includes('room');
+
+  if (
+    (isCSE8Target && (isTimetableIntent || q.includes('live') || q.includes('today') || q.includes('aaj ka') || q.includes('kab hai'))) ||
+    (userSection === 'CSE-8' && isTimetableIntent && !isCSE2Target && !q.includes('mt2') && !q.includes('mt-2') && !q.includes('exam date') && !q.includes('datesheet'))
+  ) {
+    return {
+      text: `📅⏰ **OFFICIAL SECTION CSE-8 WEEKLY TIME TABLE (ODD SEMESTER 2026–27)** 🏛️\n*(w.e.f. 28.10.2026 • ABES Engineering College, Ghaziabad)*\n📍 **Classrooms:** **RJ-204** (Monday) • **RJ-205** (Tuesday) • **RJ-207** (Wednesday, Thursday & Friday)\n\n| Day & Room | P-I (08:50-09:40) | P-II (09:40-10:30) | P-III (10:40-11:30) | P-IV (11:30-12:20) | P-V (12:20-01:10) | Lunch (01:10-02:00) | P-VII & VIII (02:00-03:40) | P-IX (03:40-04:30) |\n| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n| **Mon** *(RJ-204)* | ⚙️ ME-BMEA *(MYK)* | ⚙️ ME-BMEA *(MYK)* | 📐 AS-FLAS *(BP)* | 💻 CS-PC++ *(SA)* | 💻 CS-PC++ *(SA)* | 🥪 Lunch | 🔬 **CS-PC++ Lab [25CS151]**<br>G1: SA (KCLG-05) • G2: MML (KCLG-06) | 🗣️ HU-SS *(AV)* |\n| **Tue** *(RJ-205)* | ⚙️ ME-BMEA *(MYK)* | 📐 AS-FLAS *(BP)* | 🗣️ HU-SS *(AV)* | 💻 CS-PC++ *(SA)* | 📐 AS-FLAS-T *(BP)* | 🥪 Lunch | 🔬 **G1:** ME-DM Lab (MYK, VB)<br>**G2:** HU-PC Lab (SS, KC-510) | 🤝 Mentor-Mentee *(MYK/BP)* |\n| **Wed** *(RJ-207)* | 📐 AS-FLAS *(BP)* | 💻 CS-PC++ *(SA)* | ⚙️ ME-BMEA *(MYK)* | 💡 HU-DT *(SSH)* | 💡 HU-DT *(SSH)* | 🥪 Lunch | 🌐 **VA-WDW-I [25VA151]** *(KC-509 Lab)*<br>Rohit Pratap Singh (RPS) | 📚 Library / Sports |\n| **Thu** *(RJ-207)* | 🗣️ HU-SS *(AV)* | 📐 AS-FLAS *(BP)* | 💻 CS-PC++ *(SA)* | ⚙️ ME-BMEA *(MYK)* | ⚙️ ME-BMEA-T *(MYK)* | 🥪 Lunch | 🔬 **G1:** HU-PC Lab (SS, KC-510)<br>**G2:** ME-DM Lab (MYK, VB) | 🏆 VA-FSA *(BH-115/216)* |\n| **Fri** *(RJ-207)* | 💻 CS-PC++ *(SA)* | 📐 AS-FLAS *(BP)* | 💡 HU-DT *(SSH)* | ⚙️ ME-BMEA *(MYK)* | 🗣️ HU-SS *(AV)* | 🥪 Lunch | 🌐 **VA-WDW-I [25VA151]** *(KC-509 Lab)*<br>Rohit Pratap Singh (RPS) | 🎭 Club Activity *(RJ-207)* |\n\n---\n\n### 👨‍🏫 Official Section CSE-8 Faculty Roster:\n• ⚙️ **MYK:** Mr. Mayank Kushwaha *(Class Mentor-1 • ME-BMEA & DM Lab)*\n• 📐 **BP:** Dr. Bhanumati Panda *(Class Mentor-2 • AS-FLAS)*\n• 💻 **SA:** Mr. Shahbaz Alam *(CS-PC++ & Lab)*\n• 🗣️ **AV:** Dr. Aditya Vats *(HU-SS Soft Skills)*\n• 💡 **SSH:** Dr. Shweta Sharma *(HU-DT Design Thinking)*\n• 🗣️ **SS:** Dr. Shruti Sharma *(HU-PC Lab)*\n• 🌐 **RPS:** Rohit Pratap Singh *(VA-WDW-I Web Dev Lab)*\n\n[DOWNLOAD_PAPER|📅 Official ABES Section CSE-8 Time Table (PDF)|/cse8.pdf]`,
+      nextSugg: 'Mr. Mayank Kushwaha ke baare me batao',
+    };
+  }
 
   // Direct request for PDFs / Official Documents
   if (q.includes('pdf') && (q.includes('calendar') || q.includes('syllabus') || q.includes('abes') || q.includes('official') || q.includes('download'))) {
@@ -2416,7 +2485,8 @@ function getOmniBrainHinglishReply(
   first: string,
   isFemale: boolean,
   isBoss: boolean,
-  isAgrima: boolean
+  isAgrima: boolean,
+  userSection?: string
 ): { text: string; nextSugg: string } | null {
   const evaluateClause = (clause: string): { text: string; nextSugg: string } | null => {
 
@@ -2427,7 +2497,7 @@ function getOmniBrainHinglishReply(
     const canteen = getCanteenMenuReply(clause);
     if (canteen) return canteen;
 
-    const calOrSyllabus = getAcademicCalendarAndSyllabusReply(clause);
+    const calOrSyllabus = getAcademicCalendarAndSyllabusReply(clause, userSection);
     if (calOrSyllabus) return calOrSyllabus;
 
     const c = clause.toLowerCase();
@@ -2486,7 +2556,7 @@ function getOmniBrainHinglishReply(
 
   // Single command checks
 
-  const singleCalOrSyllabus = getAcademicCalendarAndSyllabusReply(rawQuery);
+  const singleCalOrSyllabus = getAcademicCalendarAndSyllabusReply(rawQuery, userSection);
   if (singleCalOrSyllabus) return singleCalOrSyllabus;
 
   return matchSingleOmniTopic(rawQuery, first, isFemale, isBoss, isAgrima);
@@ -3922,18 +3992,26 @@ export default function CampusAIChat() {
 
     // 1st Option: ALWAYS IMPORTANT / ACADEMIC
     let opt1 = preferredFirst && importantPool.includes(preferredFirst) ? preferredFirst : '';
+    let opt2 = preferredFirst && casualPool.includes(preferredFirst) ? preferredFirst : '';
+
     if (!opt1) {
       const unusedImportant = importantPool.filter(
-        (item) => !usedSuggestionsRef.current.some((u) => item.toLowerCase().includes(u.slice(0, 10)) || u.includes(item.toLowerCase().slice(0, 10)))
+        (item) => item !== opt2 && !usedSuggestionsRef.current.some((u) => item.toLowerCase().includes(u.slice(0, 10)) || u.includes(item.toLowerCase().slice(0, 10)))
       );
       opt1 = unusedImportant.length > 0 ? unusedImportant[0] : importantPool[Math.floor(Math.random() * importantPool.length)];
     }
 
-    // 2nd Option: ALWAYS NORMAL TALK / CASUAL / BOYS FUN BANTER
-    const unusedCasual = casualPool.filter(
-      (item) => item !== opt1 && !usedSuggestionsRef.current.some((u) => item.toLowerCase().includes(u.slice(0, 10)) || u.includes(item.toLowerCase().slice(0, 10)))
-    );
-    const opt2 = unusedCasual.length > 0 ? unusedCasual[0] : casualPool.find((c) => c !== opt1) || casualPool[0];
+    // 2nd Option: ALWAYS NORMAL TALK / CASUAL / BOYS FUN BANTER / FRESH SHAYARI
+    if (!opt2) {
+      if (preferredFirst && preferredFirst !== opt1) {
+        opt2 = preferredFirst;
+      } else {
+        const unusedCasual = casualPool.filter(
+          (item) => item !== opt1 && !usedSuggestionsRef.current.some((u) => item.toLowerCase().includes(u.slice(0, 10)) || u.includes(item.toLowerCase().slice(0, 10)))
+        );
+        opt2 = unusedCasual.length > 0 ? unusedCasual[0] : casualPool.find((c) => c !== opt1) || casualPool[0];
+      }
+    }
 
     usedSuggestionsRef.current.push(opt1.toLowerCase());
     usedSuggestionsRef.current.push(opt2.toLowerCase());
@@ -4818,7 +4896,7 @@ export default function CampusAIChat() {
     }
 
     // 0. Check Multi-Command & Universal Omni-Brain First!
-    const omniBrain = getOmniBrainHinglishReply(rawQuery, first, isFemale, isBoss, isAgrima);
+    const omniBrain = getOmniBrainHinglishReply(rawQuery, first, isFemale, isBoss, isAgrima, isCSE8 ? 'CSE-8' : 'CSE-2');
     if (omniBrain) {
       return wrapQueenOrBoss(omniBrain.text, omniBrain.nextSugg);
     }
