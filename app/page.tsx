@@ -1699,8 +1699,8 @@ Arre **${buddy}**, agar 75% attendance ki boundary line par lad rahe ho, toh dhy
     clean.includes('praman patra')
   ) {
     return {
-      text: `📜💀 **ARRE BHAI! TERA OFFICIAL NUISANCE CERTIFICATE UNLOCK HO GAYA HAI!** 😂🔥\n\n*Supreme ikA ne tumhari saari campus bakchodi, crush chats, proxy attempts, late-night canteen visits aur lecture gossip ka AI scan complete kar liya hai!*\n\n👉 **Apna Certificate dekhne aur download karne ke liye:**\n• Overview screen par jaake **Upcoming Expansions** me **"📜 My Nuisance Certificate"** tile open karo!\n• Wahan tum **12 different hilarious categories** (Laundiyabaaz, Dil-Todne Wali, 2 AM Maggi Chef, 1st Bench Sleeper, Speed Demon, etc.) me se choose karke high-res PNG download ya direct WhatsApp share kar sakte ho! 👑📜`,
-      nextSugg: 'Ye website kya hai? 🤔',
+      text: `📜💀 **ARRE ${buddy}! TERA OFFICIAL NUISANCE CERTIFICATE READY HAI!** 😂🔥\n\n*Supreme ikA ne tumhari saari campus bakchodi, crush chats, proxy attempts, late-night canteen visits aur lecture gossip ka AI scan complete kar liya hai!*\n\n• 🪪 **Awarded To:** **${first}**\n• 🎖️ **Hilarious Categories:** Laundiyabaaz, Dil-Todne Wali, 2 AM Maggi Chef, Proxy Smuggler, 1st Bench Sleeper, NH-24 Speed Demon, One-Shot Exam Clutch God, etc.\n\n👇 **Neeche button dabakar apna high-res Gold Parchment Certificate abhi kholo aur WhatsApp pe dosto ko share karo:**\n\n[OPEN_CERTIFICATE|📜 Open & Download My Nuisance Certificate]`,
+      nextSugg: 'Crush ke liye ek nayi shayari sunao 💖',
     };
   }
 
@@ -2576,10 +2576,12 @@ function playHorrorAudioStinger(type: string) {
 function FormattedMessage({
   text,
   onSelectSuggestion,
+  onOpenCertificate,
   isAgrima,
 }: {
   text: string;
   onSelectSuggestion?: (query: string, isFromSuggestion?: boolean) => void;
+  onOpenCertificate?: () => void;
   isAgrima?: boolean;
 }) {
   const lines = text.split('\n');
@@ -2642,6 +2644,24 @@ function FormattedMessage({
                 className="px-3.5 py-1.5 rounded-full bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 text-xs font-semibold border border-purple-500/30 transition shadow-sm hover:scale-105 cursor-pointer"
               >
                 🔥 {suggestionMatch[2]}
+              </button>
+            </div>
+          );
+        }
+        const certMatch = line.match(/^\[OPEN_CERTIFICATE\|(.*)\]$/);
+        if (certMatch) {
+          return (
+            <div key={i} className="my-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (onOpenCertificate) onOpenCertificate();
+                }}
+                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-white font-black text-xs shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer flex items-center gap-2.5 border border-amber-300/40"
+              >
+                <span className="text-base">📜</span>
+                <span>{certMatch[1] || 'Open My Nuisance Certificate'}</span>
+                <span className="text-amber-200 font-normal">→</span>
               </button>
             </div>
           );
@@ -6625,25 +6645,22 @@ export default function CampusAIChat() {
 
                     <div
                       onClick={() => {
-                        if (isNuisanceUnlocked) {
-                          setCurrentWindow('nuisance_cert');
-                        } else {
-                          sendQuery('Ye website kya hai? 🤔', true);
-                        }
+                        unlockNuisanceCertificate();
+                        setCurrentWindow('nuisance_cert');
                       }}
-                      className="p-3 rounded-2xl bg-gradient-to-br from-amber-950/40 via-black to-black border border-amber-500/40 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform"
+                      className="p-3 rounded-2xl bg-gradient-to-br from-amber-950/40 via-black to-black border border-amber-500/40 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform hover:border-amber-400"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-2xl">📜</span>
-                        <span className={`text-[8px] font-mono px-1 rounded font-bold ${isNuisanceUnlocked ? 'bg-amber-500 text-black' : 'bg-white/10 text-gray-300'}`}>
-                          {isNuisanceUnlocked ? 'UNLOCKED ✨' : 'LOCKED 🔒'}
+                        <span className="text-[8px] font-mono px-1.5 py-0.5 rounded font-bold bg-amber-500 text-black">
+                          READY ✨
                         </span>
                       </div>
                       <h4 className="text-xs font-black text-white mt-1.5">
-                        {isNuisanceUnlocked ? 'My Nuisance Degree' : 'Nuisance Degree'}
+                        My Nuisance Degree
                       </h4>
                       <p className="text-[10px] text-gray-400 mt-0.5">
-                        {isNuisanceUnlocked ? 'View & share degree' : 'Unlock via chat'}
+                        View, customize &amp; download degree
                       </p>
                     </div>
                   </div>
@@ -6734,28 +6751,22 @@ export default function CampusAIChat() {
 
                     <div
                       onClick={() => {
-                        if (isNuisanceUnlocked) {
-                          setCurrentWindow('nuisance_cert');
-                        } else {
-                          sendQuery('Ye website kya hai? 🤔', true);
-                        }
+                        unlockNuisanceCertificate();
+                        setCurrentWindow('nuisance_cert');
                       }}
-                      className="p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-dashed border-amber-500/40 flex items-center justify-between cursor-pointer transition"
+                      className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-black to-red-950/30 hover:from-amber-950/60 hover:to-red-950/50 border border-amber-500/40 hover:border-amber-400 flex items-center justify-between cursor-pointer transition shadow-lg group"
                     >
                       <div className="flex items-center gap-3 text-left">
-                        <span className="text-xl">📜</span>
+                        <span className="text-2xl group-hover:scale-110 transition-transform">📜</span>
                         <div>
-                          <h4 className="text-xs font-bold text-white">
-                            {isNuisanceUnlocked ? '📜 My Nuisance Certificate' : '📜 Certificate of Nuisance'}
-                          </h4>
-                          <p className="text-[10px] text-gray-400">
-                            {isNuisanceUnlocked ? 'View, customize & download your degree' : 'Tap to unlock official nuisance degree'}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs font-bold text-white">📜 My Nuisance Certificate</h4>
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold">READY ✨</span>
+                          </div>
+                          <p className="text-[10px] text-gray-300">View, customize &amp; download your degree!</p>
                         </div>
                       </div>
-                      <span className={`text-[9px] font-mono px-2 py-0.5 rounded border ${isNuisanceUnlocked ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold' : 'bg-white/10 text-gray-400 border-white/20'}`}>
-                        {isNuisanceUnlocked ? 'UNLOCKED ✨' : 'SOON 🔒'}
-                      </span>
+                      <span className="text-[10px] font-bold text-amber-300 group-hover:translate-x-1 transition-transform">Claim ↗</span>
                     </div>
                   </div>
                 </div>
@@ -8289,7 +8300,19 @@ export default function CampusAIChat() {
                   <div key={index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     {msg.role === 'assistant' && <div className={`w-8 h-8 rounded-xl ${ikaRedBlackBox} flex-shrink-0 flex items-center justify-center text-[10px] font-black`}>ikA</div>}
                     <div className={`max-w-[90%] md:max-w-[85%] rounded-3xl px-5 py-4 ${msg.role === 'user' ? `${accentBg} text-white rounded-tr-sm shadow-md border border-white/20` : 'bg-black/60 border border-white/10 text-gray-200 backdrop-blur-md'}`}>
-                      {msg.role === 'user' ? <p className="text-sm">{msg.content}</p> : <FormattedMessage text={msg.content} onSelectSuggestion={(q, fromSugg) => sendQuery(q, fromSugg)} isAgrima={isAgrima} />}
+                      {msg.role === 'user' ? (
+                        <p className="text-sm">{msg.content}</p>
+                      ) : (
+                        <FormattedMessage
+                          text={msg.content}
+                          onSelectSuggestion={(q, fromSugg) => sendQuery(q, fromSugg)}
+                          onOpenCertificate={() => {
+                            unlockNuisanceCertificate();
+                            setCurrentWindow('nuisance_cert');
+                          }}
+                          isAgrima={isAgrima}
+                        />
+                      )}
                     </div>
                   </div>
                 ))}
@@ -8297,7 +8320,15 @@ export default function CampusAIChat() {
                   <div className="flex gap-4 justify-start">
                     <div className={`w-8 h-8 rounded-xl ${ikaRedBlackBox} flex-shrink-0 flex items-center justify-center text-[10px] font-black animate-pulse`}>ikA</div>
                     <div className="max-w-[90%] md:max-w-[85%] rounded-3xl px-5 py-4 bg-black/60 border border-white/10 text-gray-200 backdrop-blur-md">
-                      <FormattedMessage text={streamingText} onSelectSuggestion={(q, fromSugg) => sendQuery(q, fromSugg)} isAgrima={isAgrima} />
+                      <FormattedMessage
+                        text={streamingText}
+                        onSelectSuggestion={(q, fromSugg) => sendQuery(q, fromSugg)}
+                        onOpenCertificate={() => {
+                          unlockNuisanceCertificate();
+                          setCurrentWindow('nuisance_cert');
+                        }}
+                        isAgrima={isAgrima}
+                      />
                     </div>
                   </div>
                 )}
@@ -8485,31 +8516,30 @@ export default function CampusAIChat() {
                   </div>
                 )}
 
-                {/* OFFICIAL CSE-2 MT-2 EXAMINATION DATESHEET (CSE-2 ONLY) */}
-                {!isCSE8 && (
-                  <div className="p-5 rounded-3xl bg-gradient-to-br from-red-950/40 via-black to-amber-950/20 border border-red-500/40 shadow-xl space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">📅⚡</span>
-                          <h4 className="text-sm sm:text-base font-black text-white">
-                            ABES Section CSE-2 — Official MT-2 Exam Datesheet
-                          </h4>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-600/30 text-red-300 border border-red-500/40 font-bold">
-                            EXCLUSIVE CSE-2
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-1">
-                          ⏰ <strong>Exam Timing:</strong> <span className="text-amber-300 font-mono font-bold">3:00 PM to 4:15 PM</span> (Daily) • Autonomous Exam Hall
-                        </p>
+                {/* OFFICIAL MT-2 EXAMINATION DATESHEET (FOR CSE-2 & CSE-8) */}
+                <div className="p-5 rounded-3xl bg-gradient-to-br from-red-950/40 via-black to-amber-950/20 border border-red-500/40 shadow-xl space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">📅⚡</span>
+                        <h4 className="text-sm sm:text-base font-black text-white">
+                          ABES {isCSE8 ? 'Section CSE-8' : 'Section CSE-2'} — Official MT-2 Exam Datesheet
+                        </h4>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-600/30 text-red-300 border border-red-500/40 font-bold">
+                          {isCSE8 ? 'SECTION CSE-8' : 'SECTION CSE-2'}
+                        </span>
                       </div>
-                      <button
-                        onClick={() => sendQuery('MT2 examination datesheet dikhao', true)}
-                        className="px-3.5 py-1.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-200 text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-                      >
-                        <span>💬</span> Ask In Chat
-                      </button>
+                      <p className="text-xs text-gray-400 mt-1">
+                        ⏰ <strong>Exam Timing:</strong> <span className="text-amber-300 font-mono font-bold">3:00 PM to 4:15 PM</span> (Daily) • Autonomous Exam Hall
+                      </p>
                     </div>
+                    <button
+                      onClick={() => sendQuery(isCSE8 ? 'CSE-8 MT2 examination datesheet dikhao' : 'MT2 examination datesheet dikhao', true)}
+                      className="px-3.5 py-1.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-200 text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                    >
+                      <span>💬</span> Ask In Chat
+                    </button>
+                  </div>
 
                     <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/40">
                       <table className="w-full text-left text-xs text-gray-300">
@@ -8567,7 +8597,6 @@ export default function CampusAIChat() {
                       <span className="text-red-400">Strictly carry physical College ID card &amp; admit badge!</span>
                     </div>
                   </div>
-                )}
 
                 {/* OFFICIAL PDF DOCUMENTS UNDER TIMETABLE (VIEW & DOWNLOAD) */}
                 <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/10 space-y-4">
@@ -8702,6 +8731,17 @@ export default function CampusAIChat() {
             <PersonalCardStudio
               currentUser={currentUser}
               onBackToOverview={() => setCurrentWindow('home')}
+              isBoss={isBoss}
+            />
+          )}
+
+          {/* VIEW: NUISANCE CERTIFICATE STUDIO */}
+          {currentWindow === 'nuisance_cert' && (
+            <NuisanceCertificate
+              currentUser={currentUser}
+              messages={activeSession?.messages || []}
+              sessions={sessions}
+              onBack={() => setCurrentWindow('home')}
               isBoss={isBoss}
             />
           )}
