@@ -2997,17 +2997,29 @@ export default function CampusAIChat() {
   useEffect(() => {
     const loadTileUploads = async () => {
       try {
+        let localCached: TileUploadItem[] = [];
         const cached = localStorage.getItem('shinigami_tile_uploads');
         if (cached) {
           try {
-            setTileUploads(JSON.parse(cached));
+            localCached = JSON.parse(cached);
+            if (Array.isArray(localCached) && localCached.length > 0) {
+              setTileUploads(localCached);
+            }
           } catch {}
         }
+
         const res = await fetch('/api/upload');
         const data = await res.json();
         if (res.ok && Array.isArray(data.uploads)) {
-          setTileUploads(data.uploads);
-          localStorage.setItem('shinigami_tile_uploads', JSON.stringify(data.uploads));
+          // Robust merge by ID: keep both server-side seed documents and any locally uploaded files
+          const mergedMap = new Map<string, TileUploadItem>();
+          data.uploads.forEach((item: TileUploadItem) => mergedMap.set(item.id, item));
+          localCached.forEach((item: TileUploadItem) => mergedMap.set(item.id, item));
+          const combined = Array.from(mergedMap.values()).sort(
+            (a, b) => (b.uploadedAtMs || 0) - (a.uploadedAtMs || 0)
+          );
+          setTileUploads(combined);
+          localStorage.setItem('shinigami_tile_uploads', JSON.stringify(combined));
         }
       } catch {}
     };
@@ -3016,18 +3028,30 @@ export default function CampusAIChat() {
 
   const handleDeleteUpload = async (id: string) => {
     try {
-      const res = await fetch(`/api/upload?id=${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (res.ok && Array.isArray(data.uploads)) {
-        setTileUploads(data.uploads);
-        localStorage.setItem('shinigami_tile_uploads', JSON.stringify(data.uploads));
-      }
+      setTileUploads((prev) => {
+        const remaining = prev.filter((u) => u.id !== id);
+        localStorage.setItem('shinigami_tile_uploads', JSON.stringify(remaining));
+        return remaining;
+      });
+      await fetch(`/api/upload?id=${id}`, { method: 'DELETE' });
     } catch {}
   };
 
-  const handleUploadSuccess = (_newItem: TileUploadItem, allUploads: TileUploadItem[]) => {
-    setTileUploads(allUploads);
-    localStorage.setItem('shinigami_tile_uploads', JSON.stringify(allUploads));
+  const handleUploadSuccess = (newItem: TileUploadItem, allUploads: TileUploadItem[]) => {
+    setTileUploads((prev) => {
+      const mergedMap = new Map<string, TileUploadItem>();
+      // 1. Add all returned from server
+      allUploads.forEach((u) => mergedMap.set(u.id, u));
+      // 2. Add existing previous
+      prev.forEach((u) => mergedMap.set(u.id, u));
+      // 3. Ensure newly created item is present
+      if (newItem) mergedMap.set(newItem.id, newItem);
+      const combined = Array.from(mergedMap.values()).sort(
+        (a, b) => (b.uploadedAtMs || 0) - (a.uploadedAtMs || 0)
+      );
+      localStorage.setItem('shinigami_tile_uploads', JSON.stringify(combined));
+      return combined;
+    });
   };
 
   const handleOpenUploadModal = (tileId: string) => {

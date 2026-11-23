@@ -26,7 +26,12 @@ export default function TileAttachments({
   const [bossSectionFilter, setBossSectionFilter] = useState<'all' | 'CSE-2' | 'CSE-8'>('all');
 
   const tileItems = uploads.filter((u) => {
-    const matchesTile = u.tile === tileId || u.tile === 'all';
+    // If tileId is 'home' (Overview), show uploads for 'home', 'all', 'timetable', 'papers', 'assignments' so multiple files always display on screen
+    const matchesTile =
+      tileId === 'home'
+        ? u.tile === 'home' || u.tile === 'all' || u.tile === 'timetable' || u.tile === 'papers' || u.tile === 'assignments'
+        : u.tile === tileId || u.tile === 'all';
+
     if (!matchesTile) return false;
 
     if (isBoss) {
@@ -103,7 +108,7 @@ export default function TileAttachments({
     window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
   };
 
-  if (tileItems.length === 0 && !isBoss) {
+  if (tileItems.length === 0 && !isBoss && !onOpenUploadModal) {
     return null;
   }
 
@@ -161,7 +166,7 @@ export default function TileAttachments({
             </div>
           )}
 
-          {isBoss && onOpenUploadModal && (
+          {onOpenUploadModal && (
             <button
               type="button"
               onClick={() => onOpenUploadModal(tileId)}
@@ -173,8 +178,8 @@ export default function TileAttachments({
         </div>
       </div>
 
-      {/* Empty State for Boss */}
-      {tileItems.length === 0 && isBoss && (
+      {/* Empty State */}
+      {tileItems.length === 0 && (
         <div className="p-4 rounded-2xl bg-white/[0.02] border border-dashed border-red-500/30 text-center space-y-2">
           <p className="text-xs text-gray-400">
             Iss tile me abhi koi image ya document upload nahi hai.

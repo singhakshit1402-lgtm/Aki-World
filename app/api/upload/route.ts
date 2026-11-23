@@ -33,6 +33,8 @@ const isVercel = Boolean(
   (typeof process.cwd === 'function' && (process.cwd().startsWith('/var/task') || process.cwd().includes('task'))) ||
   process.env.NODE_ENV === 'production'
 );
+
+const SEED_DATA_FILE = path.join(process.cwd(), 'data', 'uploads.json');
 const DATA_FILE = isVercel
   ? path.join('/tmp', 'uploads.json')
   : path.join(process.cwd(), 'data', 'uploads.json');
@@ -46,35 +48,51 @@ function ensureDirectories() {
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
-    if (!fs.existsSync(DATA_FILE)) {
-      fs.writeFileSync(DATA_FILE, JSON.stringify([]), 'utf8');
-    }
-  } catch {
-    // Non-fatal on read-only environments
-  }
+  } catch {}
 
   try {
     if (!fs.existsSync(UPLOADS_DIR)) {
       fs.mkdirSync(UPLOADS_DIR, { recursive: true });
     }
-  } catch {
-    // Non-fatal if public/uploads is read-only on Vercel
-  }
+  } catch {}
 }
 
 function getStoredUploads(): TileUploadItem[] {
   ensureDirectories();
+  const mergedMap = new Map<string, TileUploadItem>();
+
+  // 1. Read seed file from repository if present (guarantees multiple campus documents are always available)
   try {
-    if (fs.existsSync(DATA_FILE)) {
-      const raw = fs.readFileSync(DATA_FILE, 'utf8');
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        g.__SHINIGAMI_UPLOADS__ = parsed;
-        return parsed;
+    if (fs.existsSync(SEED_DATA_FILE)) {
+      const seedRaw = fs.readFileSync(SEED_DATA_FILE, 'utf8');
+      const seedParsed = JSON.parse(seedRaw);
+      if (Array.isArray(seedParsed)) {
+        seedParsed.forEach((item: TileUploadItem) => mergedMap.set(item.id, item));
       }
     }
   } catch {}
-  return g.__SHINIGAMI_UPLOADS__ || [];
+
+  // 2. Read runtime data file (/tmp/uploads.json on Vercel)
+  try {
+    if (fs.existsSync(DATA_FILE) && DATA_FILE !== SEED_DATA_FILE) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        parsed.forEach((item: TileUploadItem) => mergedMap.set(item.id, item));
+      }
+    }
+  } catch {}
+
+  // 3. In-memory global uploads
+  if (Array.isArray(g.__SHINIGAMI_UPLOADS__)) {
+    g.__SHINIGAMI_UPLOADS__.forEach((item: TileUploadItem) => mergedMap.set(item.id, item));
+  }
+
+  const result = Array.from(mergedMap.values()).sort(
+    (a, b) => (b.uploadedAtMs || 0) - (a.uploadedAtMs || 0)
+  );
+  g.__SHINIGAMI_UPLOADS__ = result;
+  return result;
 }
 
 function saveStoredUploads(items: TileUploadItem[]) {
