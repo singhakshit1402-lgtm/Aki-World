@@ -1,5 +1,37 @@
 [
   {
+    "id": "up-seed-cpp-assign-3",
+    "tile": "assignments",
+    "title": "C++ Solved Assignment No. 3 [25CS101]",
+    "description": "Unit 3: Looping Syntax (for, while, do-while), Loop Differences, Armstrong Number Flowchart & Code, Prime Numbers m to n, Star Pyramid, Matrix Diagonals",
+    "badge": "C++ Solved",
+    "fileName": "cpp_assignment_3.pdf",
+    "fileUrl": "/cpp_assignment_3.pdf",
+    "fileType": "pdf",
+    "mimeType": "application/pdf",
+    "fileSize": 240171,
+    "uploadedAt": "24 Nov 2026, 01:30 am",
+    "uploadedAtMs": 1795464001000,
+    "uploadedBy": "Admin / Shinigami",
+    "targetSection": "both"
+  },
+  {
+    "id": "up-seed-cpp-assign-2",
+    "tile": "assignments",
+    "title": "C++ Solved Assignment No. 2 [25CS101]",
+    "description": "Unit 2: Operators, Precedence, Triangle Classification Flowchart & Code, Switch Calculator, Palindrome Number, Formula Switch",
+    "badge": "C++ Solved",
+    "fileName": "cpp_assignment_2.pdf",
+    "fileUrl": "/cpp_assignment_2.pdf",
+    "fileType": "pdf",
+    "mimeType": "application/pdf",
+    "fileSize": 264488,
+    "uploadedAt": "24 Nov 2026, 01:30 am",
+    "uploadedAtMs": 1795464000000,
+    "uploadedBy": "Admin / Shinigami",
+    "targetSection": "both"
+  },
+  {
     "id": "up-seed-mt2-photo",
     "tile": "timetable",
     "title": "Official MT-2 Handwritten Datesheet & Timing Note",

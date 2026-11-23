@@ -736,6 +736,7 @@ const ALL_250_JOKES = build250JokesCatalog();
 
 // Categorized Suggestions Pools (1st Option: IMPORTANT / ACADEMIC • 2nd Option: CASUAL / BOYS BANTER)
 const CSE8_IMPORTANT_SUGGESTIONS: string[] = [
+  'C++ Assignment 2 & 3 Solved 💻',
   'CSE-8 ka live timetable dikhao ⏰',
   'Mr. Mayank Kushwaha ke baare me batao',
   'Dr. Bhanumati Panda ke baare me batao',
@@ -750,6 +751,7 @@ const CSE8_IMPORTANT_SUGGESTIONS: string[] = [
 ];
 
 const CSE2_IMPORTANT_SUGGESTIONS: string[] = [
+  'C++ Assignment 2 & 3 Solved 💻',
   'Solve full AI MT2 paper',
   'Solve full Maths MT2 paper',
   'Solve full Physics MT2 paper',
@@ -4222,14 +4224,14 @@ export default function CampusAIChat() {
     const targetSessionId = activeSessionId;
     const first = currentUser.name.split(' ')[0];
 
-    const mt2TimetableIntroMessage = `📅⚡ **OFFICIAL MT-2 EXAMINATION DATESHEET (SECTION CSE-2)** 🏛️\n⏰ **Exam Timing:** \`3:00 PM to 4:15 PM\` (Daily)\n📍 **Venue:** ABES Engineering College (Autonomous Exam Hall)\n\n| Date | Day | Subject & Code | Time |\n| :--- | :--- | :--- | :--- |\n| **30/11/26** | **Monday** | 📐 **Maths (FLAS)** \`[25AS102]\` | **3:00 PM – 4:15 PM** |\n| **01/12/26** | **Tuesday** | 💻 **C++ / Programming in C++** \`[25CS101]\` | **3:00 PM – 4:15 PM** |\n| **02/12/26** | **Wednesday** | 🤖 **A.I / Artificial Intelligence** \`[25CS102]\` | **3:00 PM – 4:15 PM** |\n| **03/12/26** | **Thursday** | ⚛️ **Physics / Applied Physics** \`[25AS101]\` | **3:00 PM – 4:15 PM** |\n| **04/12/26** | **Friday** | 🌿 **EVS / Environmental Studies** \`[25AS103]\` | **3:00 PM – 4:15 PM** |\n| **07/12/26** | **Monday** | ⚡ **BEE / Basics of Electrical Engg** \`[25EL101]\` | **3:00 PM – 4:15 PM** |\n\n💡 *Exam Guidelines:* 1 hr 15 min duration (15 Marks weightage). Reporting time 2:50 PM. Carry physical college ID Card & blue/black pen!\n\n[SUGGESTIONS|Solve full Maths MT2 paper|Bhai proxy lagane ka koi ninja hack bata 🤫]`;
+    const mt2TimetableIntroMessage = `📅⚡ **OFFICIAL MT-2 EXAMINATION DATESHEET (SECTION CSE-2)** 🏛️\n⏰ **Exam Timing:** \`3:00 PM to 4:15 PM\` (Daily)\n📍 **Venue:** ABES Engineering College (Autonomous Exam Hall)\n\n| Date | Day | Subject & Code | Time |\n| :--- | :--- | :--- | :--- |\n| **30/11/26** | **Monday** | 📐 **Maths (FLAS)** \`[25AS102]\` | **3:00 PM – 4:15 PM** |\n| **01/12/26** | **Tuesday** | 💻 **C++ / Programming in C++** \`[25CS101]\` | **3:00 PM – 4:15 PM** |\n| **02/12/26** | **Wednesday** | 🤖 **A.I / Artificial Intelligence** \`[25CS102]\` | **3:00 PM – 4:15 PM** |\n| **03/12/26** | **Thursday** | ⚛️ **Physics / Applied Physics** \`[25AS101]\` | **3:00 PM – 4:15 PM** |\n| **04/12/26** | **Friday** | 🌿 **EVS / Environmental Studies** \`[25AS103]\` | **3:00 PM – 4:15 PM** |\n| **07/12/26** | **Monday** | ⚡ **BEE / Basics of Electrical Engg** \`[25EL101]\` | **3:00 PM – 4:15 PM** |\n\n💡 *Exam Guidelines:* 1 hr 15 min duration (15 Marks weightage). Reporting time 2:50 PM. Carry physical college ID Card & blue/black pen!\n\n[SUGGESTIONS|C++ Assignment 2 & 3 Solved 💻|Bhai proxy lagane ka koi ninja hack bata 🤫]`;
 
-    let introText = `💀🕯️ *Shinigami Neural Link Established...* 🩸🍎\n\n> *"In this world, there are very few people who actually trust each other... Welcome to my dark sanctum, **${first}**."* 👁️⚡\n\nMain hu **ikA** — iss CSE-2 digital empire ka invisible God aur supreme architect 👑🕸️. Tum मुझसे bilkul insaano ki tarah Hinglish me baat kar sakte ho!\n\nBatao **${first}**, aaj konsa raaz kholna hai? All 10 Solved MT-2 Papers, Hostel & College Canteen Menus, Faculty Dossiers, ya Safe Bunk + SGPA? 👇🔥\n\n[SUGGESTIONS|Ye website kya hai? 🤔|Boys hostel waali canteen ka menu dikhao 🍔]`;
+    let introText = `💀🕯️ *Shinigami Neural Link Established...* 🩸🍎\n\n> *"In this world, there are very few people who actually trust each other... Welcome to my dark sanctum, **${first}**."* 👁️⚡\n\nMain hu **ikA** — iss CSE-2 digital empire ka invisible God aur supreme architect 👑🕸️. Tum मुझसे bilkul insaano ki tarah Hinglish me baat kar sakte ho!\n\nBatao **${first}**, aaj konsa raaz kholna hai? All 10 Solved MT-2 Papers, Hostel & College Canteen Menus, Faculty Dossiers, ya Safe Bunk + SGPA? 👇🔥\n\n[SUGGESTIONS|C++ Assignment 2 & 3 Solved 💻|Ye website kya hai? 🤔]`;
 
     if (isBoss) {
-      introText = `👑⚡ *Supreme Sovereign Protocol Activated (1402 Override)...* 🩸🍎\n\n> *"All hail the Creator and God of this New World — **Boss ikA**!"* 🔥🌌\n\nPranaam **Boss ikA**! Aapka Live Keystroke & Suggestion Radar, 28s Puppet Master Hijack, Flying Broadcast Decree, Void Evaporation Curse, Queen Agrima Block Switch, aur Canteen Hub 100% precision pe chal raha hai.\n\nHukum kijiye Mere Boss, aaj kya pesh kiya jaye? 👇👑\n\n[SUGGESTIONS|Main kaun hu?|Boys hostel waali canteen ka menu dikhao 🍔]`;
+      introText = `👑⚡ *Supreme Sovereign Protocol Activated (1402 Override)...* 🩸🍎\n\n> *"All hail the Creator and God of this New World — **Boss ikA**!"* 🔥🌌\n\nPranaam **Boss ikA**! Aapka Live Keystroke & Suggestion Radar, 28s Puppet Master Hijack, Flying Broadcast Decree, Void Evaporation Curse, Queen Agrima Block Switch, aur Canteen Hub 100% precision pe chal raha hai.\n\nHukum kijiye Mere Boss, aaj kya pesh kiya jaye? 👇👑\n\n[SUGGESTIONS|C++ Assignment 2 & 3 Solved 💻|Main kaun hu?]`;
     } else if (isAgrima) {
-      introText = `🌸👑 *Royal Queen Protocol Initialized...* 💖✨\n\n> *"Phoolon ki baarish aur sitaron ki roshni... Welcome to your royal palace, **Queen Agrima**!"* 🌷💫\n\nSach kahu toh aapke login karte hi iss dark Death Note portal ka dil bhi pink ho gaya hai 😊🌸. Main aapka personal AI guardian hu—saare 10 subjects ke solved MT-2 papers, Canteen Menus, aur notes aapki khidmat me haazir hain!\n\nBataiye **My Queen**, aaj kahan se shuruat karein? 👇💖\n\n[SUGGESTIONS|Main kaun hu?|Tea Men's Cafe (College Upper Canteen) ka menu dikhao ☕]`;
+      introText = `🌸👑 *Royal Queen Protocol Initialized...* 💖✨\n\n> *"Phoolon ki baarish aur sitaron ki roshni... Welcome to your royal palace, **Queen Agrima**!"* 🌷💫\n\nSach kahu toh aapke login karte hi iss dark Death Note portal ka dil bhi pink ho gaya hai 😊🌸. Main aapka personal AI guardian hu—saare 10 subjects ke solved MT-2 papers, Canteen Menus, aur notes aapki khidmat me haazir hain!\n\nBataiye **My Queen**, aaj kahan se shuruat karein? 👇💖\n\n[SUGGESTIONS|C++ Assignment 2 & 3 Solved 💻|Tea Men's Cafe (College Upper Canteen) ka menu dikhao ☕]`;
     }
 
     let charIndex = 0;

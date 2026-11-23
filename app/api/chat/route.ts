@@ -916,6 +916,55 @@ export async function POST(req: NextRequest) {
       return `${content}\n\n[SUGGESTIONS|${s1}|${s2}]`;
     };
 
+    
+    // Check C++ Solved Assignments (25CS101 Unit 2 & Unit 3)
+    const hasCppWord = clean.includes('c ') || clean.includes('cpp') || clean.includes('cplusplus') || clean.includes('25cs101') || clean.includes('programming in c');
+    const hasAssignWord = clean.includes('assignment') || clean.includes('assign') || clean.includes('asignment') || clean.includes('tracker');
+    const isAssign2Req = (clean.includes('2') || clean.includes('two') || clean.includes('unit 2')) && (hasCppWord || hasAssignWord);
+    const isAssign3Req = (clean.includes('3') || clean.includes('three') || clean.includes('unit 3')) && (hasCppWord || hasAssignWord);
+
+    if (
+      (hasCppWord && hasAssignWord) ||
+      clean === 'c assignment' ||
+      clean === 'cpp assignment' ||
+      clean.includes('armstrong') ||
+      clean.includes('triangle') ||
+      (clean.includes('prime') && (clean.includes('m to n') || hasCppWord)) ||
+      clean.includes('palindrome') ||
+      (clean.includes('matrix') && clean.includes('diagonal')) ||
+      (clean.includes('pyramid') && hasCppWord) ||
+      clean.includes('break and continue') ||
+      clean.includes('for and while')
+    ) {
+      if (isAssign2Req) {
+        return NextResponse.json({
+          reply: formatRoleReply(
+            "📘⚡ **OFFICIAL ABES C++ ASSIGNMENT NO. 2 [25CS101] — FULL SOLVED PAPERS** 🏛️\n*(Autonomous B.Tech 1st Year • Session 2026–27 • Unit 2: Operators & Selection Control)*\n\n[DOWNLOAD_PAPER|📘 C++ Solved Assignment No. 2 (PDF)|/cpp_assignment_2.pdf]\n\n### 📋 All 5 Questions Solved Step-by-Step:\n• **Q.1:** Operators in C/C++, 8 Category Table, Precedence vs Associativity (`10 + 20 * 3 - 8 / 4 * 2 = 66`).\n• **Q.2:** Triangle Classification (Equilateral, Isosceles, Scalene, Right-Angled) Flowchart & Code.\n• **Q.3:** Break in switch-case & Character-based Menu Calculator program.\n• **Q.4:** Arbitrary Palindrome Number Checker program using `long long`.\n• **Q.5:** Formula value of `y` calculation using Switch Case for N = 1, 2, 3, 4 with zero-division safeguard.",
+            'C++ Assignment 3 Solved 📙',
+            'Triangle classification c++'
+          ),
+        });
+      }
+
+      if (isAssign3Req) {
+        return NextResponse.json({
+          reply: formatRoleReply(
+            "📙⚡ **OFFICIAL ABES C++ ASSIGNMENT NO. 3 [25CS101] — FULL SOLVED PAPERS** 🏛️\n*(Autonomous B.Tech 1st Year • Session 2026–27 • Unit 3: Looping Constructs & Arrays)*\n\n[DOWNLOAD_PAPER|📙 C++ Solved Assignment No. 3 (PDF)|/cpp_assignment_3.pdf]\n\n### 📋 All 6 Questions Solved Step-by-Step:\n• **Q.1:** Syntax of all Looping Statements with Examples (`for`, `while`, `do-while`).\n• **Q.2:** Differences: break vs continue, for vs while, while vs do-while.\n• **Q.3:** Armstrong Number Checker program with complete Flowchart logic (e.g. 153).\n• **Q.4:** Prime Numbers from m to n (m < n) user input range program.\n• **Q.5:** Centered Star Pyramid Pattern (5 rows) nested loops program.\n• **Q.6:** Square Matrix of order n: Primary Diagonal Sum, Secondary Diagonal Sum, Max and Min elements.",
+            'C++ Assignment 2 Solved 📘',
+            'Armstrong number c++'
+          ),
+        });
+      }
+
+      return NextResponse.json({
+        reply: formatRoleReply(
+          "💻⚡ **OFFICIAL ABES PROGRAMMING IN C++ [25CS101] ASSIGNMENT SOLUTIONS HUB** 🏛️\n*(Autonomous B.Tech 1st Year • Session 2026–27 • Sections CSE-2 & CSE-8)*\n\nDono official assignments **100% solved** step-by-step verified code, flowcharts aur official PDF download ke saath ready hain! Yahan se direct open aur download karo:\n\n[DOWNLOAD_PAPER|📘 C++ Solved Assignment No. 2 (PDF)|/cpp_assignment_2.pdf]\n[DOWNLOAD_PAPER|📙 C++ Solved Assignment No. 3 (PDF)|/cpp_assignment_3.pdf]\n\n--- \n\n### 📚 Quick Subject Breakdown:\n• **📘 Assignment No. 2 (Unit 2):** Operators Table, Precedence vs Associativity, Triangle Classification, Switch Calculator, Palindrome Number, Formula Switch.\n• **📙 Assignment No. 3 (Unit 3):** Looping Syntax (`for`, `while`, `do-while`), Differences, Armstrong Number & Flowchart, Prime Numbers m to n, Star Pyramid, Matrix Diagonals Sum.\n\n💡 *Tip: Tum kisi bhi individual question ka solution direct pooch sakte ho (e.g. \"Armstrong number c++\", \"Triangle classification\", \"Break vs continue\")!* 👇",
+          'C++ Assignment 3 Solved 📙',
+          'C++ Assignment 2 Solved 📘'
+        ),
+      });
+    }
+
     // Fallback conversational response on server
     return NextResponse.json({
       reply: formatRoleReply(
