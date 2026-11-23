@@ -26,7 +26,12 @@ if (!g.__SHINIGAMI_UPLOADS__) {
 }
 
 // Vercel serverless environment uses /tmp as the only writable path
-const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const isVercel = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  (typeof process.cwd === 'function' && (process.cwd().startsWith('/var/task') || process.cwd().includes('task'))) ||
+  process.env.NODE_ENV === 'production'
+);
 const DATA_FILE = isVercel
   ? path.join('/tmp', 'uploads.json')
   : path.join(process.cwd(), 'data', 'uploads.json');

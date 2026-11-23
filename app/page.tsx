@@ -1366,8 +1366,8 @@ function getHumanHinglishChatReply(
     clean === 'kya hai ye'
   ) {
     return {
-      text: `💀🍎 **Welcome to ikA's World — Section CSE-2 ka Ultimate Digital Empire!** ⚡🏰\n\nArre **${buddy}**, yeh koi normal college website nahi hai! Isko **Supreme Architect Boss ikA** ne khas **ABES Section CSE-2** ke liye banaya hai:\n\n• 📄 **10/10 Solved MT-2 Papers:** AI, C++, Maths, Physics, BEE, Electronics, EVS, DT, Mech & Soft Skills ke step-by-step answers!\n• 🍔 **Live Canteen Menus:** **Tea Men's Cafe** (Upper Canteen) aur **K.J Cafe** (Boys Hostel Canteen) ki poori price list!\n• 🛡️🧮 **Safe Bunk & SGPA Suite:** Ek hi window me 75% attendance buffer aur Autonomous SGPA calculator!\n• 👩‍🏫 **7 Faculty Dossiers:** Prerana Ma'am, Divyanshi Ma'am, Vimal Sir, Shivam Sir, Kartika Ma'am, Shailja Ma'am & Rahul Sir ki classroom survival guide!\n• 🧠 **Universal Omni-Brain AI:** Maths, Coding, Cricket, Anime, Cartoons, Gaming, Cars, Space, History, Gym, Finance aur 2–3 commands ek saath!\n\nBatao ${first}, sabse pehle kya try karna hai? 👇🔥`,
-      nextSugg: 'Boys hostel waali canteen ka menu dikhao 🍔',
+      text: `💀🍎 **Welcome to ikA's World — Section CSE-2 ka Ultimate Digital Empire!** ⚡🏰\n\nArre **${buddy}**, yeh koi boring regular college portal nahi hai! Isko **Supreme Architect Boss ikA** ne khas **ABES Section CSE-2** ke survival aur mauj ke liye design kiya hai:\n\n• 📅 **Official MT-2 Datesheet:** 30 Nov - 7 Dec 2026 (3:00 PM - 4:15 PM) ka complete schedule!\n• 📄 **10/10 Solved MT-2 Papers:** AI, C++, Maths, Physics, BEE, Electronics, EVS, DT, Mech & Soft Skills ke step-by-step verified solutions!\n• 🍔 **Live Canteen Menus:** **Tea Men's Cafe** (College Upper Canteen) aur **K.J Cafe** (Boys Hostel Canteen) ki exact rate list!\n• 🛡️🧮 **Safe Bunk & SGPA Suite:** 75% attendance rule ka exact buffer count aur autonomous SGPA calculator!\n• 👩‍🏫 **7 Faculty Dossiers:** Prerana Ma'am, Divyanshi Ma'am, Vimal Sir ("Are you getting it?"), Shivam Sir, Kartika Ma'am survival tactics!\n• 🎴 **Mera ikA World 3D Card:** Photo upload karke personalized Hinglish holographic 3D soul card!\n• 📜 **Official Degree of Nuisance:** Campus bakchodi certificate (Laundiyabaaz, 2 AM Maggi Chef, Proxy Smuggler, etc.)!\n\n🎉 **DEGREE UNLOCKED:** *Ye query puchte hi tumhara **Nuisance Certificate** UNLOCK ho chuka hai! Overview screen par Upcoming Expansions me jaake 'My Nuisance Certificate' tile kholo ya 'Mera certificate dikhao' bolo!* 👑📜`,
+      nextSugg: '📜 Mera Nuisance Certificate dikhao 😂',
     };
   }
 
@@ -1574,23 +1574,77 @@ function getHumanHinglishChatReply(
     };
   }
 
-  // 14. BOYS TALK: "Proxy lagane ka ninja hack" -> SUPER BIKES REVEAL & COVER-UP!
+  // 14A. SPECIFIC NINJA PROXY HACK & SUPER BIKES SCREEN DIVERSION (BIFURCATED)
   if (
     clean.includes('ninja hack') ||
-    clean.includes('ninja') ||
+    clean.includes('ninja proxy') ||
+    clean.includes('ninja')
+  ) {
+    return {
+      text: `🤫🥷 **BIFURCATED NINJA ATTENDANCE & SUPER BIKES DOSSIER (ikA SPECIAL):** 💨
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🥷 **PART 1: THE TACTICAL PROXY NINJA HACK (ATTENDANCE STEALTH)**
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 🗣️ **The Pitch Modulation Trick:** Apni standard aawaz me zor se *"Present Sir"* mat chilla! Halka sa pitch drop karke ya throat-clear grunt ke sath *"Yes Ma'am/Sir"* bolo—faculty kabhi ek isolated mumble pe double-check nahi karti!
+• 🎯 **The Roll Number Golden Stealth Zone:**
+  - ❌ **Roll 1 to 15 (RED HIGH-RISK ZONE):** Shuru me teachers 100% focused aur alert hote hain—yahan proxy lagana seedha mentor suspension hai!
+  - ✅ **Roll 35 to 65 (GOLDEN STEALTH ZONE):** Roll call speed 2x ho jaati hai, tab do dosto ke beech me ek sharp call nikalna 99.4% safe rehta hai!
+• 🤝 **The 2-Wingman Squad Protocol:** Hamesha do wingmen ready rakho—jaise hi teacher roll bole, ek banda floor pe bottle/pen gira ke distract kare aur dusra front side se attendance bole!
+• 🛡️ **The 75.1% Safe Boundary:** Sabse golden rule—kabhi 74.9% pe mat jeeyo! ikA ke **Safe Bunk & SGPA Suite** se apni classes count karo aur 1 lecture ka extra buffer hamesha rakhna!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏍️💨 **PART 2: THE SUPER BIKES SCREEN DIVERSION (IF CAUGHT!)**
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+*Bhai agar proxy lagate waqt ya lecture me phone chalate pakde gaye, toh phone me ye Super Bikes screen dikhana aur bolna:*
+👉 **"Sir main toh Applied Physics aur Mechanical Aerodynamics project ke liye supersonic downforce winglets study kar raha tha!"** 😂🏎️
+
+🟢 **1. KAWASAKI NINJA H2R (The True Ninja Hack!)**
+• ⚡ **Top Speed:** 400 km/h | **Power:** 310 HP Supercharged 998cc Inline-4!
+• 🌪️ **Campus Superpower:** *Ghaziabad se ABES theek 4.2 second me! Carbon fiber aerodynamic wings se seedha 3rd floor CS block pe landing!* 🚀
+
+🦅 **2. SUZUKI HAYABUSA (GSX-1300R - Dhoom Legend)**
+• ⚡ **Top Speed:** 312 km/h | **Engine:** 1,340cc 4-Cylinder Beast (190 HP)
+• 🔊 **Campus Superpower:** *Tea Men's Cafe ke samne single rev maara toh pure college ki khidkiyan khadak jaati hain! The ultimate highway king!* 👑🔥
+
+🇩🇪 **3. BMW S1000RR & M1000RR (Track Predator)**
+• ⚡ **Top Speed:** 305 km/h | **Engine:** 999cc with ShiftCam (205 HP)
+• ⏱️ **Campus Superpower:** *M-Carbon winglets & launch control! Library se RJ-102 exam hall tak sub-60-second fastest lap time!* ⚡
+
+🇮🇹 **4. DUCATI PANIGALE V4 S (Red Italian Screamer)**
+• ⚡ **Top Speed:** 315 km/h | **Engine:** 1,103cc Desmosedici Stradale V4 (215 HP @ 13,000 RPM)
+• ❤️‍🔥 **Campus Superpower:** *Dry clutch ki khad-khad sound sunte hi saari crushes turn hoke dekhti hain! Pure Italian royalty & acoustic bliss!* 👑🤤
+
+🔵 **5. YAMAHA YZF-R1M (Crossplane CP4 Screamer)**
+• ⚡ **Top Speed:** 299 km/h | **Engine:** 998cc Crossplane CP4
+• 🎧 **Campus Superpower:** *MotoGP sound on ABES inner roads! Pure goosebumps!* 🏎️
+
+💡 **ikA Pro-Tip:** *Safe Bunk tool se apna attendance buffer calculate karo aur Super Bikes ke sapne dekho!* 🏍️💨`,
+      nextSugg: 'B.Tech 1st Sem ka full Academic Calendar dikhao 📅',
+    };
+  }
+
+  // 14B. GENERAL PROXY & ATTENDANCE QUERIES (WITHOUT SUPER BIKES)
+  if (
     clean.includes('bhai proxy') ||
     clean.includes('proxy lagane') ||
     clean.includes('proxy') ||
     clean.includes('attendance hack') ||
-    clean.includes('attendance kam')
+    clean.includes('attendance kam') ||
+    clean.includes('attendance short')
   ) {
     return {
-      text: `🤫🏍️💨 **ARRE BHAI! TUMNE KAHA "NINJA HACK" — TOH SUPREME ikA NE SEEDHA SUPER BIKES KA GARAGE KHOL DIYA!** 🔥\n\n*Bhai proxy lagane me kyu faste ho jab seedha 400 km/h ki Super Bike pe baith ke college gate se full throttle nikal sakte ho?!* 😎\n*Aur agar teacher ne bench pe aake screen dekh li na, toh seedha bol dena:* **"Sir main Mechanical & Automotive Aerodynamics ki research kar raha tha!"** 🏎️💨\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏍️ **THE SUPREME CAMPUS SUPERBIKE ARSENAL:**\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n🟢 **1. KAWASAKI NINJA H2R (The True Ninja Hack!)**\n• ⚡ **Top Speed:** 400 km/h | **Power:** 310 HP Supercharged Inline-4!\n• 🌪️ **Campus Superpower:** *Ghaziabad se ABES theek 4.2 second me pahuchne ka record! Carbon fiber aerodynamic wings se seedha 3rd floor CS block pe landing!* 🚀\n\n🦅 **2. SUZUKI HAYABUSA (GSX-1300R - Dhoom Legend)**\n• ⚡ **Top Speed:** 312 km/h | **Engine:** 1,340cc 4-Cylinder Beast (190 HP)\n• 🔊 **Campus Superpower:** *Tea Men's Cafe ke bahar single rev maara toh poore hostel ki khidkiyan khadak jaati hain! The ultimate campus highway king!* 👑🔥\n\n🇩🇪 **3. BMW S1000RR & M1000RR (Track Predator)**\n• ⚡ **Top Speed:** 305 km/h | **Engine:** 999cc with ShiftCam (205 HP)\n• 🏁 **Campus Superpower:** *M-Carbon winglets aur launch control! End-sem exam shuru hone se theek 2 minute pe library se exam hall tak fastest lap time!* ⏱️⚡\n\n🇮🇹 **4. DUCATI PANIGALE V4 S (Red Italian Screamer)**\n• ⚡ **Top Speed:** 315 km/h | **Engine:** 1,103cc Desmosedici Stradale V4 (215 HP @ 13,000 RPM)\n• ❤️‍🔥 **Campus Superpower:** *Dry clutch ki khad-khad sound sunte hi saari crushes turn hoke dekhti hain! Pure Italian royalty & acoustic bliss!* 👑🤤\n\n🔵 **5. YAMAHA YZF-R1M (Crossplane CP4 Screamer)**\n• ⚡ **Top Speed:** 299 km/h | **Engine:** 998cc Crossplane CP4\n• 🎧 **Campus Superpower:** *MotoGP sound on ABES inner roads! Pure goosebumps!* 🏎️\n\n💡 **ikA Pro-Tip:** *Bhai proxy me pakde gaye toh mentor cabin... par Ninja H2R pe nikle toh police bhi bas dekhti reh jayegi! Safe bunk check karo aur Super Bikes ke sapne dekho!* 😂🏍️💨`,
-      nextSugg: '📜 Mera Nuisance Certificate banao 😂',
+      text: `🛡️🧮 **ATTENDANCE REALITY & 75% SAFE BUNK GUIDE (${buddy})** ⚡
+
+• 📊 **The Autonomous 75% Rule:** ABES Autonomous curriculum me **75% minimum attendance** mandatory hai. Agar 74.9% bhi hui, toh end-sem admit card detain ho sakta hai!
+• 🏃‍♂️ **Normal Proxy Reality:** First year (CSE-2) me Class Mentors (Prerana Ma'am & Divyanshi Ma'am) roz attendance register cross-verify karti hain. Isliye blind proxy se bacho!
+• 🧮 **Safe Bunk Calculator:** Hamare portal ke **"🛡️🧮 Safe Bunk & SGPA"** tool me apni total classes aur attended classes daalo—wo exact bata dega ki tum kitni classes bina kisi risk ke bunk kar sakte ho!
+• 🩺 **Medical Rule:** Sirf genuine authorized medical certificates hi dean office se approve hote hain, isliye 75.1% ka safe margin pehle hi bana kar chalo!`,
+      nextSugg: 'Bhai proxy lagane ka koi ninja hack bata 🤫',
     };
   }
 
-  // 14B. NUISANCE CERTIFICATE / LAUNDIYA BAAZ DEGREE TRIGGER
+  // 14C. NUISANCE CERTIFICATE / LAUNDIYA BAAZ DEGREE TRIGGER
   if (
     clean.includes('nuisance') ||
     clean.includes('certificate') ||
@@ -1601,8 +1655,8 @@ function getHumanHinglishChatReply(
     clean.includes('praman patra')
   ) {
     return {
-      text: `📜💀 **ARRE BHAI! TERA OFFICIAL NUISANCE CERTIFICATE READY HAI!** 😂🔥\n\n*Supreme ikA ne tumhari saari campus bakchodi, crush chats, proxy attempts aur canteen records ka AI scan complete kar liya hai!*\n\n👉 **Apna Certificate dekhne aur download karne ke liye:**\n• Sidebar me **"📜 Certificate of Nuisance"** button dabao!\n• Ya fir Overview screen par seedha Nuisance tile open karo!\n\n*(Isme tumhara official title, IPC Campus Dharayein aur Supreme Boss ikA ka Red Wax Seal laga hua hai!)* 👑📜`,
-      nextSugg: '📜 Mera Nuisance Certificate banao 😂',
+      text: `📜💀 **ARRE BHAI! TERA OFFICIAL NUISANCE CERTIFICATE UNLOCK HO GAYA HAI!** 😂🔥\n\n*Supreme ikA ne tumhari saari campus bakchodi, crush chats, proxy attempts, late-night canteen visits aur lecture gossip ka AI scan complete kar liya hai!*\n\n👉 **Apna Certificate dekhne aur download karne ke liye:**\n• Overview screen par jaake **Upcoming Expansions** me **"📜 My Nuisance Certificate"** tile open karo!\n• Wahan tum **12 different hilarious categories** (Laundiyabaaz, Dil-Todne Wali, 2 AM Maggi Chef, 1st Bench Sleeper, Speed Demon, etc.) me se choose karke high-res PNG download ya direct WhatsApp share kar sakte ho! 👑📜`,
+      nextSugg: 'Ye website kya hai? 🤔',
     };
   }
 
@@ -2215,6 +2269,26 @@ export function getAcademicCalendarAndSyllabusReply(rawQuery: string): { text: s
     q.includes('aktu vs autonomy') || q.includes('re-test') || q.includes('retest');
 
   if (isCalendarQuery) {
+    // 1. SPECIFIC MT-2 TIMETABLE & DATESHEET (TYPED FIRST IN TEXT, ZERO IMAGES)
+    const isMT2DatesheetQuery =
+      q.includes('timetable') ||
+      q.includes('time table') ||
+      q.includes('schedule') ||
+      q.includes('datesheet') ||
+      q.includes('date sheet') ||
+      q.includes('mt2') ||
+      q.includes('mt-2') ||
+      q.includes('exam date') ||
+      q.includes('kab hai exam') ||
+      q.includes('exam kab se');
+
+    if (isMT2DatesheetQuery) {
+      return {
+        text: `📅⚡ **OFFICIAL MT-2 EXAMINATION DATESHEET (SECTION CSE-2)** 🏛️\n⏰ **Exam Timing:** \`3:00 PM to 4:15 PM\` (Daily)\n📍 **Venue:** ABES Engineering College (Autonomous Exam Hall)\n\n| Date | Day | Subject & Code | Time |\n| :--- | :--- | :--- | :--- |\n| **30/11/26** | **Monday** | 📐 **Maths (FLAS)** \`[25AS102]\` | **3:00 PM – 4:15 PM** |\n| **01/12/26** | **Tuesday** | 💻 **C++ / Programming in C++** \`[25CS101]\` | **3:00 PM – 4:15 PM** |\n| **02/12/26** | **Wednesday** | 🤖 **A.I / Artificial Intelligence** \`[25CS102]\` | **3:00 PM – 4:15 PM** |\n| **03/12/26** | **Thursday** | ⚛️ **Physics / Applied Physics** \`[25AS101]\` | **3:00 PM – 4:15 PM** |\n| **04/12/26** | **Friday** | 🌿 **EVS / Environmental Studies** \`[25AS103]\` | **3:00 PM – 4:15 PM** |\n| **07/12/26** | **Monday** | ⚡ **BEE / Basics of Electrical Engg** \`[25EL101]\` | **3:00 PM – 4:15 PM** |\n\n💡 *Exam Guidelines:* 1 hr 15 min duration (15 Marks weightage). Reporting time 2:50 PM. Carry college ID Card & blue/black pen!\n\n---\n\n📅 **Full Semester Timeline:**\n• **Induction / Classes Began:** \`10/09/2026\`\n• **MT-1 Exam:** \`12/10/2026 to 16/10/2026\`\n• **🔥 MT-2 Exam:** \`30/11/2026 to 07/12/2026\` (3:00 PM - 4:15 PM)\n• **🔬 Practical Assessment-II:** \`14-18/12/2026\`\n• **📝 Make-up / PUE Exam:** \`21-28/12/2026\`\n• **🏁 End Term / End Sem (Tentative):** \`04 Jan - 25 Jan 2027\`\n\n${CALENDAR_PDF_TAG}`,
+        nextSugg: 'Solve full Maths MT2 paper',
+      };
+    }
+
     if (q.includes('holiday') || q.includes('chhutti') || q.includes('vacation') || q.includes('diwali') || q.includes('guru nanak') || q.includes('christmas') || q.includes('dussehra')) {
       return {
         text: `📅🎉 **ABES OFFICIAL HOLIDAY LIST — ODD SEMESTER 2026–27** *(Revised 26.10.2026)* 🏛️\n\n• **11-08-2026 (Tue):** Shravan Shivratri 🔱\n• **15-08-2026 (Sat):** Independence Day 🇮🇳\n• **26-08-2026 (Wed):** Eid-e-Milad / Milad-un-Nabi 🌙\n• **28-08-2026 (Fri):** Raksha Bandhan 🧵\n• **04-09-2026 (Fri):** Janmashtami 🪈\n• **02-10-2026 (Fri):** Gandhi Jayanti 🇮🇳\n• **19-10-2026 (Mon) & 20-10-2026 (Tue):** Maha Navmi & Dussehra 🏹\n• **06-11-2026 to 13-11-2026 (Fri–Fri):** Diwali Holidays (8 Days) 🪔\n• **24-11-2026 (Tue):** Guru Nanak Jayanti 🙏\n• **25-12-2026 (Fri):** Christmas Day 🎄 *(Falls inside 21–28 Dec Make-up/PUE window)*\n• **01-01-2027 (Fri):** New Year Day 🎉\n• **26-01-2027 (Tue):** Republic Day 🇮🇳\n\n${CALENDAR_PDF_TAG}`,
@@ -2676,6 +2750,30 @@ export default function CampusAIChat() {
 
   const [overviewBossWhisper, setOverviewBossWhisper] = useState('');
 
+  // NUISANCE CERTIFICATE UNLOCK STATE
+  const [isNuisanceUnlocked, setIsNuisanceUnlocked] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const savedUser = sessionStorage.getItem('campus_tab_user') || localStorage.getItem('campus_user');
+      if (savedUser) {
+        const u = JSON.parse(savedUser);
+        const adm = (u.admissionNo || u.email || 'guest').toString();
+        if (adm.toLowerCase().includes('1402akshit')) return true;
+        return localStorage.getItem(`ika_nuisance_unlocked_${adm}`) === 'true';
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  });
+
+  const unlockNuisanceCertificate = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const adm = currentUser?.admissionNo || currentUser?.email || 'guest';
+    localStorage.setItem(`ika_nuisance_unlocked_${adm}`, 'true');
+    setIsNuisanceUnlocked(true);
+  }, [currentUser]);
+
   // Faculty Photo Toggle States
   const [prernaPhotoTab, setPrernaPhotoTab] = useState<'profile' | 'radiant'>('profile');
   const [divyanshiPhotoTab, setDivyanshiPhotoTab] = useState<'profile' | 'desk'>('profile');
@@ -2727,6 +2825,13 @@ export default function CampusAIChat() {
 
   const isNormalAkshit = useMemo(() => {
     return !isBoss && currentUser?.admissionNo === '2026B01010274';
+  }, [currentUser, isBoss]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const adm = currentUser?.admissionNo || currentUser?.email || 'guest';
+    const unlocked = localStorage.getItem(`ika_nuisance_unlocked_${adm}`) === 'true';
+    setIsNuisanceUnlocked(isBoss || unlocked);
   }, [currentUser, isBoss]);
 
   // SECTION CSE-2 VS CSE-8 DETECTION & BOSS OVERRIDE
@@ -2842,26 +2947,26 @@ export default function CampusAIChat() {
     []
   );
 
-  // Trigger Full Horror Visual + Audio Sequence (21s Ryuk Laugh / 11s Death Bell / 20s Thunder Storm)
+  // Trigger Full Horror Visual + Audio Sequence (Restored to snappy, crisp 60fps timing)
   const launchHorrorExperience = useCallback((stingerType: 'ryuk_laugh' | 'bell' | 'thunder') => {
     playHorrorAudioStinger(stingerType);
     setRyukDiffusing(false);
     setActiveHorrorEvent(stingerType);
 
     if (stingerType === 'ryuk_laugh') {
-      setTimeout(() => setRyukDiffusing(true), 18000);
+      setTimeout(() => setRyukDiffusing(true), 9500);
       setTimeout(() => {
         setActiveHorrorEvent(null);
         setRyukDiffusing(false);
-      }, 21000);
+      }, 12500);
     } else if (stingerType === 'bell') {
       setTimeout(() => {
         setActiveHorrorEvent(null);
-      }, 11000);
+      }, 7500);
     } else if (stingerType === 'thunder') {
       setTimeout(() => {
         setActiveHorrorEvent(null);
-      }, 20000);
+      }, 8500);
     }
   }, []);
 
@@ -4853,6 +4958,9 @@ export default function CampusAIChat() {
     autoTypedSessionsRef.current.add(activeSession.id);
     setCurrentWindow('chat');
 
+    // Auto-unlock Nuisance Certificate whenever student interacts, chats, or asks about portal
+    unlockNuisanceCertificate();
+
     if (isFromSuggestion) {
       lastSuggestionClickedRef.current = queryText.trim();
     }
@@ -5109,12 +5217,12 @@ export default function CampusAIChat() {
           100% { transform: translateY(105vh) translateX(-20px) rotate(360deg); opacity: 0; }
         }
         @keyframes violentShake {
-          0% { transform: translate(0, 0) rotate(0deg); }
-          20% { transform: translate(-16px, 12px) rotate(-2.5deg); }
-          40% { transform: translate(16px, -14px) rotate(2.5deg); }
-          60% { transform: translate(-18px, -10px) rotate(-2deg); }
-          80% { transform: translate(14px, 16px) rotate(2deg); }
-          100% { transform: translate(0, 0) rotate(0deg); }
+          0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+          20% { transform: translate3d(-8px, 6px, 0) rotate(-1.5deg); }
+          40% { transform: translate3d(8px, -6px, 0) rotate(1.5deg); }
+          60% { transform: translate3d(-8px, -5px, 0) rotate(-1deg); }
+          80% { transform: translate3d(6px, 8px, 0) rotate(1deg); }
+          100% { transform: translate3d(0, 0, 0) rotate(0deg); }
         }
         @keyframes lightningStrobe {
           0%, 100% { background-color: rgba(0, 0, 0, 0.95); }
@@ -5128,51 +5236,49 @@ export default function CampusAIChat() {
         }
         @keyframes letterStrikeAssemble {
           0% {
-            transform: translate(var(--strike-x, 50vw), var(--strike-y, -50vh)) rotate(var(--strike-r, 240deg)) scale(4.5);
+            transform: translate3d(var(--strike-x, 50vw), var(--strike-y, -50vh), 0) rotate(var(--strike-r, 240deg)) scale(3.5);
             opacity: 0;
-            filter: blur(12px) brightness(3);
+            filter: blur(8px);
           }
           60% {
             opacity: 1;
-            transform: translate(-6px, 6px) rotate(-8deg) scale(1.35);
-            filter: blur(0px) brightness(2);
+            transform: translate3d(-4px, 4px, 0) rotate(-6deg) scale(1.2);
+            filter: blur(0px);
           }
           80% {
-            transform: translate(4px, -4px) rotate(4deg) scale(0.95);
+            transform: translate3d(3px, -3px, 0) rotate(3deg) scale(0.98);
           }
           100% {
-            transform: translate(0, 0) rotate(0deg) scale(1);
+            transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
             opacity: 1;
-            filter: drop-shadow(0 0 18px rgba(220, 38, 38, 1));
+            filter: drop-shadow(0 0 16px rgba(220, 38, 38, 0.9));
           }
         }
         @keyframes evaporateIntoAsh {
           0% {
-            transform: scale(1) translateY(0px);
+            transform: scale(1) translate3d(0px, 0px, 0);
             filter: blur(0px) contrast(100%);
             opacity: 1;
           }
           45% {
-            transform: scale(1.04) translateY(-18px) skewX(6deg);
-            filter: blur(4px) contrast(300%) hue-rotate(-50deg);
+            transform: scale(1.04) translate3d(0px, -18px, 0) skewX(6deg);
+            filter: blur(4px) contrast(200%);
             opacity: 0.7;
           }
           100% {
-            transform: scale(1.18) translateY(-90px) skewX(-12deg);
-            filter: blur(24px) brightness(0);
+            transform: scale(1.15) translate3d(0px, -75px, 0) skewX(-10deg);
+            filter: blur(18px) brightness(0);
             opacity: 0;
           }
         }
         @keyframes bellPendulum {
-          0%, 100% { transform: rotate(-28deg) scale(1.1); }
-          50% { transform: rotate(28deg) scale(1.25); }
+          0%, 100% { transform: rotate(-24deg) scale(1.08); }
+          50% { transform: rotate(24deg) scale(1.2); }
         }
         @keyframes glyphRicochet {
-          0% { transform: translate(0vw, 0vh) rotate(0deg) scale(1); opacity: 1; }
-          25% { transform: translate(35vw, -30vh) rotate(190deg) scale(1.8); }
-          50% { transform: translate(-40vw, 25vh) rotate(380deg) scale(0.9); }
-          75% { transform: translate(30vw, 35vh) rotate(570deg) scale(2.1); }
-          100% { transform: translate(-35vw, -35vh) rotate(720deg) scale(1.2); opacity: 0; }
+          0% { transform: translate3d(0vw, 0vh, 0) rotate(0deg) scale(1); opacity: 1; }
+          50% { transform: translate3d(-20vw, 15vh, 0) rotate(180deg) scale(1.15); }
+          100% { transform: translate3d(20vw, -18vh, 0) rotate(360deg) scale(0.9); opacity: 0; }
         }
         @keyframes hauntedWorldPulse {
           0%, 100% { filter: none; transform: translate(0, 0); }
@@ -5292,7 +5398,7 @@ export default function CampusAIChat() {
           }`}
           style={{ animation: 'ryukCrimsonLightning 1.1s infinite, violentShake 0.08s infinite' }}
         >
-          {CHAOS_FLYING_GLYPHS.map((glyph, idx) => (
+          {CHAOS_FLYING_GLYPHS.slice(0, 14).map((glyph, idx) => (
             <span
               key={`bg-glyph-${idx}`}
               className="fixed font-serif font-black text-xl sm:text-4xl text-red-700/45 select-none"
@@ -5300,6 +5406,7 @@ export default function CampusAIChat() {
                 left: `${(idx * 19) % 96}%`,
                 top: `${(idx * 29) % 94}%`,
                 animation: `glyphRicochet ${1.2 + (idx % 4) * 0.3}s linear infinite`,
+                willChange: 'transform',
               }}
             >
               {glyph}
@@ -5392,7 +5499,7 @@ export default function CampusAIChat() {
           className="fixed inset-0 z-[9998] pointer-events-none flex flex-col items-center justify-center overflow-hidden"
           style={{ animation: 'lightningStrobe 0.45s infinite, violentShake 0.08s infinite' }}
         >
-          {CHAOS_FLYING_GLYPHS.map((glyph, idx) => (
+          {CHAOS_FLYING_GLYPHS.slice(0, 14).map((glyph, idx) => (
             <span
               key={idx}
               className="fixed font-serif font-black text-2xl sm:text-5xl text-red-500 drop-shadow-[0_0_20px_rgba(255,255,255,0.9)] select-none"
@@ -5400,6 +5507,7 @@ export default function CampusAIChat() {
                 left: `${(idx * 17) % 95}%`,
                 top: `${(idx * 23) % 92}%`,
                 animation: `glyphRicochet ${1.4 + (idx % 5) * 0.35}s linear infinite`,
+                willChange: 'transform',
               }}
             >
               {glyph}
@@ -6130,27 +6238,10 @@ export default function CampusAIChat() {
                 <span className="flex items-center gap-2"><span>🎴</span> Mera ikA World Card</span>
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-600 text-white font-mono font-bold animate-pulse">PRO 3D</span>
               </button>
-              <button onClick={() => {setCurrentWindow('nuisance_cert'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentWindow === 'nuisance_cert' ? 'bg-gradient-to-r from-amber-600 to-red-600 text-white shadow-lg' : 'text-amber-200 hover:bg-amber-500/10 border border-amber-500/20'}`}>
-                <span className="flex items-center gap-2"><span>📜</span> Certificate of Nuisance</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500 text-black font-mono font-black">NEW 🔥</span>
-              </button>
               <button onClick={() => {setCurrentWindow('canteen'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'canteen' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}>
                 <span className="flex items-center gap-2"><span>🍔</span> Canteen Menus</span>
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">LIVE</span>
               </button>
-              {isBoss && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleOpenUploadModal('home');
-                    setIsSidebarOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer bg-gradient-to-r from-red-600/25 to-amber-600/25 text-white border border-red-500/40 hover:from-red-600/40 hover:to-amber-600/40"
-                >
-                  <span className="flex items-center gap-2"><span>⛩️</span> Shinigami Tile Uploader</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-600 text-white font-mono font-bold">UPLOAD</span>
-                </button>
-              )}
               <button onClick={() => {setCurrentWindow('papers'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'papers' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>📄</span> Solved Sample Papers</button>
               <button onClick={() => {setCurrentWindow('placement'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'placement' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>🎯</span> Placement &amp; Packages</button>
               <button onClick={() => {setCurrentWindow('timetable'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'timetable' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>⏰</span> Class Time Table</button>
@@ -6412,15 +6503,27 @@ export default function CampusAIChat() {
                     </div>
 
                     <div
-                      onClick={() => setCurrentWindow('nuisance_cert')}
+                      onClick={() => {
+                        if (isNuisanceUnlocked) {
+                          setCurrentWindow('nuisance_cert');
+                        } else {
+                          sendQuery('Ye website kya hai? 🤔', true);
+                        }
+                      }}
                       className="p-3 rounded-2xl bg-gradient-to-br from-amber-950/40 via-black to-black border border-amber-500/40 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-2xl">📜</span>
-                        <span className="text-[8px] font-mono px-1 rounded bg-amber-500 text-black font-black">AI SCAN</span>
+                        <span className={`text-[8px] font-mono px-1 rounded font-bold ${isNuisanceUnlocked ? 'bg-amber-500 text-black' : 'bg-white/10 text-gray-300'}`}>
+                          {isNuisanceUnlocked ? 'UNLOCKED ✨' : 'LOCKED 🔒'}
+                        </span>
                       </div>
-                      <h4 className="text-xs font-black text-white mt-1.5">Nuisance Degree</h4>
-                      <p className="text-[10px] text-gray-400 mt-0.5">Official Laundiyabaaz degree</p>
+                      <h4 className="text-xs font-black text-white mt-1.5">
+                        {isNuisanceUnlocked ? 'My Nuisance Degree' : 'Nuisance Degree'}
+                      </h4>
+                      <p className="text-[10px] text-gray-400 mt-0.5">
+                        {isNuisanceUnlocked ? 'View & share degree' : 'Unlock via chat'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -6508,15 +6611,30 @@ export default function CampusAIChat() {
                       <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">SOON</span>
                     </div>
 
-                    <div onClick={() => sendQuery('Ye website kya hai? 🤔', true)} className="p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-dashed border-purple-500/30 flex items-center justify-between cursor-pointer transition">
+                    <div
+                      onClick={() => {
+                        if (isNuisanceUnlocked) {
+                          setCurrentWindow('nuisance_cert');
+                        } else {
+                          sendQuery('Ye website kya hai? 🤔', true);
+                        }
+                      }}
+                      className="p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-dashed border-amber-500/40 flex items-center justify-between cursor-pointer transition"
+                    >
                       <div className="flex items-center gap-3 text-left">
-                        <span className="text-xl">🎙️</span>
+                        <span className="text-xl">📜</span>
                         <div>
-                          <h4 className="text-xs font-bold text-white">AI Viva Simulator &amp; More</h4>
-                          <p className="text-[10px] text-gray-400">More crazy tools dropping soon!</p>
+                          <h4 className="text-xs font-bold text-white">
+                            {isNuisanceUnlocked ? '📜 My Nuisance Certificate' : '📜 Certificate of Nuisance'}
+                          </h4>
+                          <p className="text-[10px] text-gray-400">
+                            {isNuisanceUnlocked ? 'View, customize & download your degree' : 'Tap to unlock official nuisance degree'}
+                          </p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">SOON</span>
+                      <span className={`text-[9px] font-mono px-2 py-0.5 rounded border ${isNuisanceUnlocked ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold' : 'bg-white/10 text-gray-400 border-white/20'}`}>
+                        {isNuisanceUnlocked ? 'UNLOCKED ✨' : 'SOON 🔒'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -8243,6 +8361,90 @@ export default function CampusAIChat() {
                         <tr><td className="p-3.5 font-sans font-semibold text-white">Fri</td><td className="p-3.5 text-purple-400">Prog in C &amp; Physics</td><td className="p-3.5 text-orange-400">Web Design Workshop</td><td className="p-3.5 text-gray-500 italic">Lunch</td><td className="p-3.5 text-blue-400">Maths &amp; EVS</td><td className="p-3.5 text-cyan-400">Electrical &amp; Ess. of AI</td></tr>
                       </tbody>
                     </table>
+                  </div>
+                )}
+
+                {/* OFFICIAL CSE-2 MT-2 EXAMINATION DATESHEET (CSE-2 ONLY) */}
+                {!isCSE8 && (
+                  <div className="p-5 rounded-3xl bg-gradient-to-br from-red-950/40 via-black to-amber-950/20 border border-red-500/40 shadow-xl space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">📅⚡</span>
+                          <h4 className="text-sm sm:text-base font-black text-white">
+                            ABES Section CSE-2 — Official MT-2 Exam Datesheet
+                          </h4>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-600/30 text-red-300 border border-red-500/40 font-bold">
+                            EXCLUSIVE CSE-2
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                          ⏰ <strong>Exam Timing:</strong> <span className="text-amber-300 font-mono font-bold">3:00 PM to 4:15 PM</span> (Daily) • Autonomous Exam Hall
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => sendQuery('MT2 examination datesheet dikhao', true)}
+                        className="px-3.5 py-1.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-200 text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                      >
+                        <span>💬</span> Ask In Chat
+                      </button>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/40">
+                      <table className="w-full text-left text-xs text-gray-300">
+                        <thead className="bg-white/[0.05] text-gray-400 uppercase text-[10px] font-semibold border-b border-white/10">
+                          <tr>
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Day</th>
+                            <th className="p-3">Subject &amp; Course Code</th>
+                            <th className="p-3 text-right">Exam Timing</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.06] font-mono text-[11px]">
+                          <tr className="hover:bg-white/[0.02]">
+                            <td className="p-3 font-bold text-white">30/11/26</td>
+                            <td className="p-3 text-gray-300 font-sans">Monday</td>
+                            <td className="p-3 text-cyan-300 font-bold">📐 Maths (FLAS) <span className="text-gray-400 font-normal">[25AS102]</span></td>
+                            <td className="p-3 text-right text-amber-300 font-bold">3:00 PM – 4:15 PM</td>
+                          </tr>
+                          <tr className="hover:bg-white/[0.02]">
+                            <td className="p-3 font-bold text-white">01/12/26</td>
+                            <td className="p-3 text-gray-300 font-sans">Tuesday</td>
+                            <td className="p-3 text-emerald-300 font-bold">💻 C++ / Programming in C++ <span className="text-gray-400 font-normal">[25CS101]</span></td>
+                            <td className="p-3 text-right text-amber-300 font-bold">3:00 PM – 4:15 PM</td>
+                          </tr>
+                          <tr className="hover:bg-white/[0.02]">
+                            <td className="p-3 font-bold text-white">02/12/26</td>
+                            <td className="p-3 text-gray-300 font-sans">Wednesday</td>
+                            <td className="p-3 text-purple-300 font-bold">🤖 A.I / Artificial Intelligence <span className="text-gray-400 font-normal">[25CS102]</span></td>
+                            <td className="p-3 text-right text-amber-300 font-bold">3:00 PM – 4:15 PM</td>
+                          </tr>
+                          <tr className="hover:bg-white/[0.02]">
+                            <td className="p-3 font-bold text-white">03/12/26</td>
+                            <td className="p-3 text-gray-300 font-sans">Thursday</td>
+                            <td className="p-3 text-blue-300 font-bold">⚛️ Physics / Applied Physics <span className="text-gray-400 font-normal">[25AS101]</span></td>
+                            <td className="p-3 text-right text-amber-300 font-bold">3:00 PM – 4:15 PM</td>
+                          </tr>
+                          <tr className="hover:bg-white/[0.02]">
+                            <td className="p-3 font-bold text-white">04/12/26</td>
+                            <td className="p-3 text-gray-300 font-sans">Friday</td>
+                            <td className="p-3 text-teal-300 font-bold">🌿 EVS / Environmental Studies <span className="text-gray-400 font-normal">[25AS103]</span></td>
+                            <td className="p-3 text-right text-amber-300 font-bold">3:00 PM – 4:15 PM</td>
+                          </tr>
+                          <tr className="hover:bg-white/[0.02]">
+                            <td className="p-3 font-bold text-white">07/12/26</td>
+                            <td className="p-3 text-gray-300 font-sans">Monday</td>
+                            <td className="p-3 text-yellow-300 font-bold">⚡ BEE / Basics of Electrical Engg <span className="text-gray-400 font-normal">[25EL101]</span></td>
+                            <td className="p-3 text-right text-amber-300 font-bold">3:00 PM – 4:15 PM</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between text-[11px] text-gray-400 pt-1">
+                      <span>💡 <strong>Pattern:</strong> 1 hr 15 mins (15 Marks) • Autonomous Mid Term 2</span>
+                      <span className="text-red-400">Strictly carry physical College ID card &amp; admit badge!</span>
+                    </div>
                   </div>
                 )}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { StudentUser } from '@/app/page';
 
 export interface NuisanceMessage {
@@ -24,6 +24,7 @@ interface NuisanceCertificateProps {
 
 export interface NuisanceProfile {
   archetypeId: string;
+  categoryLabel: string;
   title: string;
   hindiTitle: string;
   badge: string;
@@ -34,6 +35,213 @@ export interface NuisanceProfile {
   penalty: string;
   auraScore: string;
 }
+
+export const ALL_NUISANCE_ARCHETYPES: Record<string, NuisanceProfile> = {
+  boss: {
+    archetypeId: 'boss',
+    categoryLabel: 'Supreme Overlord 👑',
+    title: 'SUPREME SHINIGAMI OVERLORD OF CAMPUS NUISANCE',
+    hindiTitle: 'सर्वोच्च उपद्रव सम्राट एवं कालदूत',
+    badge: 'MYTHIC SSS-TIER CHAOS 👑⚡',
+    badgeColor: 'from-red-600 via-amber-500 to-purple-600',
+    avatarEmoji: '👑💀',
+    quote: 'Main jiska naam Death Note me likh du, uska attendance register se pehle dimaag evaporate ho jata hai!',
+    charges: [
+      'Dhara 1402: ABES ke server matrix aur batch ke dimaag pe 100% sovereign adhikaar.',
+      'Dhara 302: Kisi bhi student ko 1-click me heart attack timer ya gaslight 500 error lagana.',
+      'Dhara 777: Har portal window me "Swagat hai Boss ikA" ka lal rang ka shinigami decree failana.',
+    ],
+    penalty: 'Roz shaam ko Shinigami apple khana aur server matrix par shanti banaye rakhna!',
+    auraScore: '+99,999 AURA',
+  },
+  crush_girl: {
+    archetypeId: 'crush_girl',
+    categoryLabel: 'Dil-Todne Wali 🌸',
+    title: 'CERTIFIED DIL-TODNE WALI (PAPA KI PARI PRO MAX)',
+    hindiTitle: 'प्रमाणित दिल तोड़ने वाली एवं पापा की परी',
+    badge: 'HIGH VOLTAGE HEARTBREAKER 🌸💔',
+    badgeColor: 'from-pink-500 via-rose-500 to-purple-600',
+    avatarEmoji: '🌸💅',
+    quote: 'Tum bohot acche dost ho yaar... par main abhi padhai pe focus kar rahi hu! (Khud 9.7 SGPA le aayi)',
+    charges: [
+      'Dhara 302: ABES ke 15+ innocent masoom backbenchers ko "You are just a friend" bol ke dil todna.',
+      'Dhara 420: Exam se 5 minute pehle sabhi se assignment copy maang ke top karna.',
+      'Dhara 100: WhatsApp aur Instagram pe message 3 ghante "Seen" chhod ke ghost karna.',
+    ],
+    penalty: 'Agli baar Tea Men Canteen me bina dosto ko treat diye Kurkure Momos nahi khane ki strict warning!',
+    auraScore: '+9,850 AURA',
+  },
+  laundiya_baaz: {
+    archetypeId: 'laundiya_baaz',
+    categoryLabel: 'Laundiya Baaz 😏',
+    title: 'CERTIFIED SUPREME LAUNDIYA BAAZ (लौंडिया बाज़ PRO MAX)',
+    hindiTitle: 'प्रमाणित सर्वोच्च लौंडिया बाज़',
+    badge: 'NATIONAL CRUSH STALKER 😏🔥',
+    badgeColor: 'from-amber-500 via-red-500 to-rose-600',
+    avatarEmoji: '😏👑',
+    quote: 'Maths ke FLAS me 1 bhi formula nahi pata, par aage wali row ke baal kitni baar flip huye exact count hai!',
+    charges: [
+      'Dhara 420: Lecture me board dekhne ke bajaye aage wali crush ko dekh ke muskurana.',
+      'Dhara 109: Har nayi aane wali ladki ko dekh ke dosto ko "Bhai bhabhi hai teri" bolna.',
+      'Dhara 007: Notes maangne ke bahaane se direct Instagram handle maangne ki naakaam koshish.',
+    ],
+    penalty: 'Is praani ko roz subah 1 ghanta Single Sher Motivation sunna aur dukan pe baithna anivarya hai!',
+    auraScore: '+9,750 AURA',
+  },
+  proxy_mafia: {
+    archetypeId: 'proxy_mafia',
+    categoryLabel: 'Proxy Smuggler 🏃‍♂️',
+    title: 'MASTER PROXY SMUGGLER & 74.9% BUNK MAFIA',
+    hindiTitle: 'मास्टर प्रॉक्सी स्मगलर एवं बंक विशेषज्ञ',
+    badge: '74.9% ATTENDANCE SURVIVOR 🏃‍♂️💨',
+    badgeColor: 'from-emerald-500 via-teal-500 to-cyan-600',
+    avatarEmoji: '🏃‍♂️🧮',
+    quote: 'Teacher register khole usse pehle attendance formula calculate kar lena hi meri pehchan hai!',
+    charges: [
+      'Dhara 75: Attendance 74.8% hone par bhi "Bhai 75 ho hi jayegi" bol ke class bunk maarna.',
+      'Dhara 420: Roll number 15 ke baad teacher ki aawaz me achanak "Present Sir!" bolna.',
+      'Dhara 144: Medical certificate ke naam par fake typhoid ki report upload karne ka prayas.',
+    ],
+    penalty: 'Har lecture me sabse aage baith kar teacher se 100% eye-contact maintain karna hoga!',
+    auraScore: '+9,420 AURA',
+  },
+  canteen_bhukkad: {
+    archetypeId: 'canteen_bhukkad',
+    categoryLabel: 'Canteen Diplomat 🥟',
+    title: 'TEA MEN UPPER CANTEEN SAMOSA DIPLOMAT',
+    hindiTitle: 'टी मेन कैंटीन समोसा राजनयिक',
+    badge: 'SAMOSA DESTROYER GRADE-1 🥟☕',
+    badgeColor: 'from-amber-500 via-yellow-500 to-orange-600',
+    avatarEmoji: '🥟☕',
+    quote: '10 minute ke break me Upper Canteen se 2 samosa aur 1 cutting chai lana hi mera permanent career goal hai!',
+    charges: [
+      'Dhara 100: Lecture start hote hi "Bhai 2 minute me aa raha hu" bol ke 2 ghante Tea Men\'s pe baithna.',
+      'Dhara 420: K.J Cafe wale bhaiya se "Bhaiya extra mayonnaise aur green chutney dena" bol ke negotiate karna.',
+      'Dhara 200: Dost ki treat me sabse mehnga shake order karke bolna "Bhai agla mera pakka"!',
+    ],
+    penalty: 'Agli 5 visits me canteen wale bhaiya se Udhaari book ka hisaab clear karna padega!',
+    auraScore: '+9,100 AURA',
+  },
+  maggi_philosopher: {
+    archetypeId: 'maggi_philosopher',
+    categoryLabel: '2 AM Maggi Chef 🍜',
+    title: '2 AM BOYS HOSTEL MAGGI PHILOSOPHER & KETTLE ENGINEER',
+    hindiTitle: '2 AM हॉस्टल मैगी दार्शनिक एवं केतली इंजीनियर',
+    badge: 'ELECTRIC KETTLE CHEF 🍜⚡',
+    badgeColor: 'from-yellow-500 via-amber-500 to-red-500',
+    avatarEmoji: '🍜🔌',
+    quote: 'Raat ke 2 baje 1 cup Maggi me 4 roommates ki dosti aur dushmani dono test ho jaati hai!',
+    charges: [
+      'Dhara 302: Warden ke aane se 5 second pehle electric kettle desk ke neeche chhipana.',
+      'Dhara 420: Dost ke room se bina bataye Maggi masala ka sachet gayab karna.',
+      'Dhara 100: Subah 8:50 ki class ke liye 8:48 pe uthna aur toothpaste karte hue RJ-Block bhagna.',
+    ],
+    penalty: 'Pure hostel wing ke dosto ke liye agle 7 din tak midnight chai banana anivarya hai!',
+    auraScore: '+9,280 AURA',
+  },
+  speed_demon: {
+    archetypeId: 'speed_demon',
+    categoryLabel: 'Dhoom Demon 🏍️',
+    title: 'DHOOM SPEED DEMON & REVVING CHHAPRI KING',
+    hindiTitle: 'धूम स्पीड दैत्य एवं रेविंग किंग',
+    badge: 'NH-24 HIGHWAY TERROR 🏍️💨',
+    badgeColor: 'from-emerald-500 via-lime-500 to-amber-500',
+    avatarEmoji: '🏍️🔥',
+    quote: 'Kawasaki Ninja H2R aur Hayabusa ki reel dekh ke college ke gate pe Activa full throttle ghaseetna!',
+    charges: [
+      'Dhara 180: Ninja H2R ki top speed (400 km/h) padh ke teacher se bolna "Sir main aerodynamics padh raha hu".',
+      'Dhara 200: ABES ke mod par bina indicator aur bina helmet ke "Dhoom Machale" background sound me nikalna.',
+      'Dhara 100: Tea Men ke samne khadi bike ke silencer pe ungli laga ke engine heat check karna.',
+    ],
+    penalty: 'Agli baar college aane ke liye rickshaw ka use karna padega taaki campus shant rahe!',
+    auraScore: '+9,600 AURA',
+  },
+  exam_clutch_god: {
+    archetypeId: 'exam_clutch_god',
+    categoryLabel: 'Exam Clutch God 🎯',
+    title: 'ONE-SHOT VIDEO 3 AM EXAM CLUTCH GOD',
+    hindiTitle: 'वन-शॉट वीडियो 3 AM एग्जाम क्लच गॉड',
+    badge: '33% PASS BOUNDARY LEGEND 🎯📚',
+    badgeColor: 'from-blue-600 via-indigo-600 to-purple-600',
+    avatarEmoji: '🎯⚡',
+    quote: 'Poore semester me copy nahi kholi, par exam ki raat 2x speed pe One-Shot video dekh ke 65% le aana hi meri shakti hai!',
+    charges: [
+      'Dhara 101: Exam ki subah 7:30 baje WhatsApp group me "Bhai koi important question bhej do" spam karna.',
+      'Dhara 33: Calculator me formulas ki jagah "80085" likh ke padosi ko dikhana.',
+      'Dhara 420: Invigilator ke mudte hi "Bhai 2nd ka B bata de" whisper karna.',
+    ],
+    penalty: 'Agle exam se kam se kam 24 ghante pehle syllabus ka index page padhna anivarya hai!',
+    auraScore: '+9,550 AURA',
+  },
+  front_bench_sleeper: {
+    archetypeId: 'front_bench_sleeper',
+    categoryLabel: '1st Bench Sleeper 😴',
+    title: 'FIRST BENCH KUMBHKARAN & OPEN-EYE SLEEPER',
+    hindiTitle: 'फर्स्ट बेंच कुंभकर्ण एवं खुली आँख स्लीपर',
+    badge: 'ARE YOU GETTING IT? SURVIVOR 😴👀',
+    badgeColor: 'from-teal-600 via-cyan-600 to-blue-600',
+    avatarEmoji: '😴💤',
+    quote: 'Vimal Sir "Are you getting it?" bol rahe the, aur main aage baith kar mundi hilate hue sapne dekh raha tha!',
+    charges: [
+      'Dhara 404: Samne baith kar sir ki taraf dekhte hue dimaag ko aeroplane mode pe daal dena.',
+      'Dhara 100: Chashma laga kar aisi posture banana jaise deep philosophy soch rahe ho jabki deep REM sleep chal rahi thi.',
+      'Dhara 200: Class khatam hote hi achanak jhatke se uth kar sabse pehle attendance lagwana.',
+    ],
+    penalty: 'Agli class me bench par soye bina dono haath upar karke 1 numerical solve karna hoga!',
+    auraScore: '+9,150 AURA',
+  },
+  copy_paste_engineer: {
+    archetypeId: 'copy_paste_engineer',
+    categoryLabel: 'Copy-Paste Engg 💻',
+    title: 'MASTER OF GITHUB COPY-PASTE & ASSIGNMENT FORGER',
+    hindiTitle: 'गिटहब कॉपी-पेस्ट एवं असाइनमेंट जालसाज़',
+    badge: 'STACK OVERFLOW SAMURAI 💻⌨️',
+    badgeColor: 'from-violet-600 via-purple-600 to-pink-600',
+    avatarEmoji: '💻⌨️',
+    quote: 'Code chahe samajh na aaye, par Ctrl+C aur Ctrl+V ki speed dekh ke Google ke engineer bhi sharma jayein!',
+    charges: [
+      'Dhara 420: Doosre ke assignment me se uska naam mita kar apna roll number upar likhna.',
+      'Dhara 101: C++ program me variable ka naam x se temp karke bolna "Sir main apna logic banaya hai".',
+      'Dhara 500: Lab external viva me "Sir mere laptop me code chal raha tha, yahan compile error de raha hai" bolna.',
+    ],
+    penalty: 'Agli lab me bina ChatGPT aur GitHub khole 5-line ka Hello World code chalk se board par likhna!',
+    auraScore: '+9,480 AURA',
+  },
+  campus_gossip_spiller: {
+    archetypeId: 'campus_gossip_spiller',
+    categoryLabel: 'Gossip Spiller 🕵️‍♀️',
+    title: 'ABES SUPREME GOSSIP SPILLER & SPY NETWORK HEAD',
+    hindiTitle: 'एबीईएस जासूस एवं गुप्त गपशप प्रमुख',
+    badge: 'CAMPUS RAW AGENT 🕵️‍♀️☕',
+    badgeColor: 'from-rose-600 via-pink-600 to-amber-600',
+    avatarEmoji: '🕵️‍♀️☕',
+    quote: 'Mujhe ye nahi pata ki exam me kya aayega, par ye pata hai ki kaun kiske sath Tea Men pe baitha tha!',
+    charges: [
+      'Dhara 007: Canteen ke corner table pe baith ke poori class ki relationships track karna.',
+      'Dhara 100: Faculty lounge ke bahar aisi look dena jaise internals ke marks ki leak file mil gayi ho.',
+      'Dhara 420: "Bhai kisi ko batana mat" bol ke agle 10 minute me poore section me khabar faila dena.',
+    ],
+    penalty: 'Pure 1 din bina kisi ki gossips sune aur bataye library me chupchap baithna!',
+    auraScore: '+9,720 AURA',
+  },
+  general_nuisance: {
+    archetypeId: 'general_nuisance',
+    categoryLabel: 'Backbench Terror 😈',
+    title: 'ALL-ROUND CAMPUS UPADRAVI & BACKBENCH TERROR',
+    hindiTitle: 'प्रमाणित सर्वकालिक उपद्रवी एवं बैकबेंच आतंक',
+    badge: 'GRADE-A CAMPUS NUISANCE 😈🪑',
+    badgeColor: 'from-purple-600 via-pink-600 to-red-600',
+    avatarEmoji: '😈🔥',
+    quote: 'Peeche baith ke samne wale ke baal ginke timepass karna aur sir ke mudte hi table bajana hamara fundamental right hai!',
+    charges: [
+      'Dhara 420: Teacher ke sawal puchte hi padosi ko dekh ke hasna aur innocent face bana lena.',
+      'Dhara 100: Lecture chalte waqt bench par pen se tabla bajana aur bolna "Sir acoustic sound check tha".',
+      'Dhara 75: Semester bhar chill maar ke exam se 3 ghante pehle one-shot video dekh ke clutch karna.',
+    ],
+    penalty: 'Is praani ko roz aakhiri bench par baith ke chup rehne ka prayas karna anivarya hai!',
+    auraScore: '+9,350 AURA',
+  },
+};
 
 export default function NuisanceCertificate({
   currentUser,
@@ -46,6 +254,7 @@ export default function NuisanceCertificate({
   const [scanStep, setScanStep] = useState(0);
   const [isGeneratingPng, setIsGeneratingPng] = useState(false);
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
+  const [selectedArchetypeId, setSelectedArchetypeId] = useState<string | null>(null);
 
   // Play audio effects
   const playFx = useCallback((freq = 520, duration = 0.08) => {
@@ -69,6 +278,14 @@ export default function NuisanceCertificate({
     } catch {}
   }, []);
 
+  // Auto-unlock this certificate in localStorage so user can access it anytime from Upcoming tiles or chat
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const adm = currentUser?.admissionNo || currentUser?.email || 'guest';
+      localStorage.setItem(`ika_nuisance_unlocked_${adm}`, 'true');
+    }
+  }, [currentUser]);
+
   // Scanning stages
   useEffect(() => {
     const timer1 = setTimeout(() => { setScanStep(1); playFx(440, 0.06); }, 400);
@@ -87,7 +304,7 @@ export default function NuisanceCertificate({
   }, [playFx]);
 
   // Determine Nuisance Profile based on user messages, clicked suggestions, and user data
-  const profile = React.useMemo<NuisanceProfile>(() => {
+  const detectedProfile = useMemo<NuisanceProfile>(() => {
     const allText = [
       ...messages.map((m) => m.content),
       ...sessions.map((s) => s.title),
@@ -100,22 +317,7 @@ export default function NuisanceCertificate({
 
     // 1. Supreme Boss ikA
     if (isBoss) {
-      return {
-        archetypeId: 'boss',
-        title: 'SUPREME SHINIGAMI OVERLORD OF CAMPUS NUISANCE',
-        hindiTitle: 'सर्वोच्च उपद्रव सम्राट एवं कालदूत',
-        badge: 'MYTHIC SSS-TIER CHAOS 👑⚡',
-        badgeColor: 'from-red-600 via-amber-500 to-purple-600',
-        avatarEmoji: '👑💀',
-        quote: 'Main jiska naam Death Note me likh du, uska attendance register se pehle dimaag evaporate ho jata hai!',
-        charges: [
-          'Dhara 1402: ABES ke server matrix aur batch ke dimaag pe 100% sovereign adhikaar.',
-          'Dhara 302: Kisi bhi student ko 1-click me heart attack timer ya gaslight 500 error lagana.',
-          'Dhara 777: Har portal window me "Swagat hai Boss ikA" ka lal rang ka shinigami decree failana.',
-        ],
-        penalty: 'Roz shaam ko Shinigami apple khana aur server matrix par shanti banaye rakhna!',
-        auraScore: '+99,999 AURA',
-      };
+      return ALL_NUISANCE_ARCHETYPES.boss;
     }
 
     // 2. Crush / Flirt / Laundiyabaaz
@@ -131,101 +333,10 @@ export default function NuisanceCertificate({
       allText.includes('pyaar');
 
     if (hasCrushQuery) {
-      if (isFemale) {
-        return {
-          archetypeId: 'crush_girl',
-          title: 'CERTIFIED DIL-TODNE WALI (PAPA KI PARI PRO MAX)',
-          hindiTitle: 'प्रमाणित दिल तोड़ने वाली एवं पापा की परी',
-          badge: 'HIGH VOLTAGE HEARTBREAKER 🌸💔',
-          badgeColor: 'from-pink-500 via-rose-500 to-purple-600',
-          avatarEmoji: '🌸💅',
-          quote: 'Tum bohot acche dost ho yaar... par main abhi padhai pe focus kar rahi hu! (Khud 9.7 SGPA le aayi)',
-          charges: [
-            'Dhara 302: ABES ke 15+ innocent masoom backbenchers ko "You are just a friend" bol ke dil todna.',
-            'Dhara 420: Exam se 5 minute pehle sabhi se assignment copy maang ke top karna.',
-            'Dhara 100: WhatsApp aur Instagram pe message 3 ghante "Seen" chhod ke ghost karna.',
-          ],
-          penalty: 'Agli baar Tea Men Canteen me bina dosto ko treat diye Kurkure Momos nahi khane ki strict warning!',
-          auraScore: '+9,850 AURA',
-        };
-      } else {
-        return {
-          archetypeId: 'laundiya_baaz',
-          title: 'CERTIFIED SUPREME LAUNDIYA BAAZ (लौंडिया बाज़ PRO MAX)',
-          hindiTitle: 'प्रमाणित सर्वोच्च लौंडिया बाज़',
-          badge: 'NATIONAL CRUSH STALKER 😏🔥',
-          badgeColor: 'from-amber-500 via-red-500 to-rose-600',
-          avatarEmoji: '😏👑',
-          quote: 'Maths ke FLAS me 1 bhi formula nahi pata, par aage wali row ke baal kitni baar flip huye exact count hai!',
-          charges: [
-            'Dhara 420: Lecture me board dekhne ke bajaye aage wali crush ko dekh ke muskurana.',
-            'Dhara 109: Har nayi aane wali ladki ko dekh ke dosto ko "Bhai bhabhi hai teri" bolna.',
-            'Dhara 007: Notes maangne ke bahaane se direct Instagram handle maangne ki naakaam koshish.',
-          ],
-          penalty: 'Is praani ko roz subah 1 ghanta Single Sher Motivation sunna aur dukan pe baithna anivarya hai!',
-          auraScore: '+9,750 AURA',
-        };
-      }
+      return isFemale ? ALL_NUISANCE_ARCHETYPES.crush_girl : ALL_NUISANCE_ARCHETYPES.laundiya_baaz;
     }
 
-    // 3. Proxy / Attendance / Bunk
-    const hasProxyQuery =
-      allText.includes('proxy') ||
-      allText.includes('attendance') ||
-      allText.includes('bunk') ||
-      allText.includes('safe bunk') ||
-      allText.includes('75%') ||
-      allText.includes('ninja hack');
-
-    if (hasProxyQuery) {
-      return {
-        archetypeId: 'proxy_mafia',
-        title: 'MASTER PROXY SMUGGLER & 74.9% BUNK MAFIA',
-        hindiTitle: 'मास्टर प्रॉक्सी स्मगलर एवं बंक विशेषज्ञ',
-        badge: '74.9% ATTENDANCE SURVIVOR 🏃‍♂️💨',
-        badgeColor: 'from-emerald-500 via-teal-500 to-cyan-600',
-        avatarEmoji: '🏃‍♂️🧮',
-        quote: 'Teacher register khole usse pehle attendance formula calculate kar lena hi meri pehchan hai!',
-        charges: [
-          'Dhara 75: Attendance 74.8% hone par bhi "Bhai 75 ho hi jayegi" bol ke class bunk maarna.',
-          'Dhara 420: Roll number 15 ke baad teacher ki aawaz me achanak "Present Sir!" bolna.',
-          'Dhara 144: Medical certificate ke naam par fake typhoid ki report upload karne ka prayas.',
-        ],
-        penalty: 'Har lecture me sabse aage baith kar teacher se 100% eye-contact maintain karna hoga!',
-        auraScore: '+9,420 AURA',
-      };
-    }
-
-    // 4. Canteen / Samosa / Maggi
-    const hasCanteenQuery =
-      allText.includes('canteen') ||
-      allText.includes('samosa') ||
-      allText.includes('maggi') ||
-      allText.includes('chai') ||
-      allText.includes('tea men') ||
-      allText.includes('kurkure momos') ||
-      allText.includes('food');
-
-    if (hasCanteenQuery) {
-      return {
-        archetypeId: 'canteen_bhukkad',
-        title: 'TEA MEN UPPER CANTEEN BHUKKAD DIPLOMAT',
-        hindiTitle: 'टी मेन कैंटीन भुक्खड़ राजनयिक',
-        badge: 'SAMOSA DESTROYER GRADE-1 🥟☕',
-        badgeColor: 'from-amber-500 via-yellow-500 to-orange-600',
-        avatarEmoji: '🥟☕',
-        quote: '10 minute ke break me Upper Canteen se 2 samosa aur 1 cutting chai lana hi mera permanent career goal hai!',
-        charges: [
-          'Dhara 100: Lecture start hote hi "Bhai 2 minute me aa raha hu" bol ke 2 ghante Tea Men\'s pe baithna.',
-          'Dhara 420: K.J Cafe wale bhaiya se "Bhaiya extra mayonnaise aur green chutney dena" bol ke negotiate karna.',
-          'Dhara 200: Hostel me dost ki kettle chura ke 3 packet Maggi akele chat kar jaana.',
-        ],
-        penalty: 'Agli 5 visits me canteen wale bhaiya se Udhaari book ka hisaab clear karna padega!',
-        auraScore: '+9,100 AURA',
-      };
-    }
-
-    // 5. Super Bikes / Racing
+    // 3. Super Bikes / Racing
     const hasBikeQuery =
       allText.includes('bike') ||
       allText.includes('ninja') ||
@@ -236,42 +347,91 @@ export default function NuisanceCertificate({
       allText.includes('racing');
 
     if (hasBikeQuery) {
-      return {
-        archetypeId: 'speed_demon',
-        title: 'DHOOM SPEED DEMON & REVVING CHHAPRI KING',
-        hindiTitle: 'धूम स्पीड दैत्य एवं रेविंग किंग',
-        badge: 'NH-24 HIGHWAY TERROR 🏍️💨',
-        badgeColor: 'from-emerald-500 via-lime-500 to-amber-500',
-        avatarEmoji: '🏍️🔥',
-        quote: 'Kawasaki Ninja H2R aur Hayabusa ki reel dekh ke college ke gate pe Activa full throttle ghaseetna!',
-        charges: [
-          'Dhara 180: Ninja H2R ki top speed (400 km/h) padh ke teacher se bolna "Sir main aerodynamics padh raha hu".',
-          'Dhara 200: ABES ke mod par bina indicator aur bina helmet ke "Dhoom Machale" background sound me nikalna.',
-          'Dhara 100: Tea Men ke samne khadi bike ke silencer pe ungli laga ke engine heat check karna.',
-        ],
-        penalty: 'Agli baar college aane ke liye rickshaw ka use karna padega taaki campus shant rahe!',
-        auraScore: '+9,600 AURA',
-      };
+      return ALL_NUISANCE_ARCHETYPES.speed_demon;
     }
 
-    // 6. Default / All-Round Backbencher
-    return {
-      archetypeId: 'general_nuisance',
-      title: 'ALL-ROUND CAMPUS UPADRAVI & BACKBENCH TERROR',
-      hindiTitle: 'प्रमाणित सर्वकालिक उपद्रवी एवं बैकबेंच आतंक',
-      badge: 'GRADE-A CAMPUS NUISANCE 😈🪑',
-      badgeColor: 'from-purple-600 via-pink-600 to-red-600',
-      avatarEmoji: '😈🔥',
-      quote: 'Peeche baith ke samne wale ke baal ginke timepass karna aur sir ke mudte hi table bajana hamara fundamental right hai!',
-      charges: [
-        'Dhara 420: Teacher ke sawal puchte hi padosi ko dekh ke hasna aur innocent face bana lena.',
-        'Dhara 100: Lecture chalte waqt bench par pen se tabla bajana aur bolna "Sir acoustic sound check tha".',
-        'Dhara 75: Semester bhar chill maar ke exam se 3 ghante pehle one-shot video dekh ke clutch karna.',
-      ],
-      penalty: 'Is praani ko roz aakhiri bench par baith ke chup rehne ka prayas karna anivarya hai!',
-      auraScore: '+9,350 AURA',
-    };
+    // 4. Proxy / Attendance / Bunk
+    const hasProxyQuery =
+      allText.includes('proxy') ||
+      allText.includes('attendance') ||
+      allText.includes('bunk') ||
+      allText.includes('safe bunk') ||
+      allText.includes('75%') ||
+      allText.includes('ninja hack');
+
+    if (hasProxyQuery) {
+      return ALL_NUISANCE_ARCHETYPES.proxy_mafia;
+    }
+
+    // 5. Canteen / Samosa / Chai
+    const hasCanteenQuery =
+      allText.includes('canteen') ||
+      allText.includes('samosa') ||
+      allText.includes('chai') ||
+      allText.includes('tea men') ||
+      allText.includes('kurkure momos');
+
+    if (hasCanteenQuery) {
+      return ALL_NUISANCE_ARCHETYPES.canteen_bhukkad;
+    }
+
+    // 6. Maggi / Late Night Hostel
+    const hasMaggiHostelQuery =
+      allText.includes('maggi') ||
+      allText.includes('hostel') ||
+      allText.includes('kettle') ||
+      allText.includes('warden') ||
+      allText.includes('roommate');
+
+    if (hasMaggiHostelQuery) {
+      return ALL_NUISANCE_ARCHETYPES.maggi_philosopher;
+    }
+
+    // 7. Exam / Papers / One-Shot
+    const hasExamQuery =
+      allText.includes('mt2') ||
+      allText.includes('paper') ||
+      allText.includes('exam') ||
+      allText.includes('datesheet') ||
+      allText.includes('one shot') ||
+      allText.includes('pass');
+
+    if (hasExamQuery) {
+      return ALL_NUISANCE_ARCHETYPES.exam_clutch_god;
+    }
+
+    // 8. Gossip / Faculty
+    const hasGossipQuery =
+      allText.includes('gossip') ||
+      allText.includes('faculty') ||
+      allText.includes('dossier') ||
+      allText.includes('sir') ||
+      allText.includes('maam');
+
+    if (hasGossipQuery) {
+      return ALL_NUISANCE_ARCHETYPES.campus_gossip_spiller;
+    }
+
+    // 9. Copy Paste / Labs
+    const hasCodingQuery =
+      allText.includes('code') ||
+      allText.includes('c++') ||
+      allText.includes('assignment') ||
+      allText.includes('lab') ||
+      allText.includes('github');
+
+    if (hasCodingQuery) {
+      return ALL_NUISANCE_ARCHETYPES.copy_paste_engineer;
+    }
+
+    // Default: General Campus Nuisance
+    return ALL_NUISANCE_ARCHETYPES.general_nuisance;
   }, [currentUser, messages, sessions, isBoss]);
+
+  // Final active profile (allows user manual override from category pills)
+  const profile = (selectedArchetypeId && ALL_NUISANCE_ARCHETYPES[selectedArchetypeId])
+    ? ALL_NUISANCE_ARCHETYPES[selectedArchetypeId]
+    : detectedProfile;
 
   const displayName = (currentUser?.name || 'CITIZEN OF ikA WORLD').toUpperCase();
   const displayRoll = currentUser?.rollNo ? `ROLL #${currentUser.rollNo}` : 'CSE';
@@ -420,7 +580,6 @@ export default function NuisanceCertificate({
       ctx.font = '15px sans-serif';
       let chargeY = 550;
       profile.charges.forEach((ch) => {
-        // Simple wrap
         const words = ch.split(' ');
         let line = '• ';
         for (let n = 0; n < words.length; n++) {
@@ -520,11 +679,11 @@ export default function NuisanceCertificate({
               <div className="flex items-center gap-2">
                 <h2 className="text-xl sm:text-2xl font-black text-white">Certificate of Nuisance</h2>
                 <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-red-600 to-amber-500 text-white font-mono text-[10px] font-bold">
-                  AI DEGREE
+                  OFFICIAL DEGREE
                 </span>
               </div>
               <p className="text-xs text-gray-400">
-                Official campus bakchodi &amp; mischief degree based on your live chats &amp; suggestions!
+                Official campus bakchodi &amp; mischief degree — unlocked for your admission number!
               </p>
             </div>
           </div>
@@ -536,6 +695,42 @@ export default function NuisanceCertificate({
           >
             ← Overview
           </button>
+        </div>
+
+        {/* 12 DIVERSE CATEGORIES SELECTOR */}
+        <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-amber-400 font-bold">
+              🎖️ 12 Official Campus Degrees (Tap to Preview &amp; Claim):
+            </span>
+            <span className="text-[10px] text-gray-400 font-mono">
+              Current: <strong className="text-white">{profile.categoryLabel}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+            {Object.values(ALL_NUISANCE_ARCHETYPES).map((arch) => {
+              const isSelected = profile.archetypeId === arch.archetypeId;
+              return (
+                <button
+                  key={arch.archetypeId}
+                  type="button"
+                  onClick={() => {
+                    setSelectedArchetypeId(arch.archetypeId);
+                    playFx(600, 0.05);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition border flex items-center gap-1.5 ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white border-amber-400 shadow-md scale-105'
+                      : 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/10'
+                  }`}
+                >
+                  <span>{arch.avatarEmoji}</span>
+                  <span>{arch.categoryLabel}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* NOTIFICATION MESSAGE */}
@@ -701,12 +896,13 @@ export default function NuisanceCertificate({
               <button
                 type="button"
                 onClick={() => {
+                  setSelectedArchetypeId(null);
                   setIsScanning(true);
                   setScanStep(0);
                 }}
                 className="px-4 py-3.5 rounded-2xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 text-xs font-bold cursor-pointer transition flex items-center gap-1.5"
               >
-                <span>🎲</span> Rescan / Reroll
+                <span>🎲</span> Rescan / Auto-Detect
               </button>
             </div>
           </div>
