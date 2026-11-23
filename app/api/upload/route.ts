@@ -166,12 +166,17 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/upload -> uploads any image, doc, or file to a specific tile
+// POST /api/upload -> uploads any image, doc, or file (supports single or multiple files) to a specific tile
 export async function POST(req: NextRequest) {
   try {
     ensureDirectories();
     const formData = await req.formData();
-    const file = formData.get('file') as File | null;
+    
+    // Support both 'files' (multiple) and 'file' (single)
+    const rawFiles = formData.getAll('files') as File[];
+    const singleFile = formData.get('file') as File | null;
+    const allFiles: File[] = rawFiles.length > 0 ? rawFiles : (singleFile ? [singleFile] : []);
+
     const tile = (formData.get('tile') as string) || 'home';
     const title = (formData.get('title') as string) || '';
     const description = (formData.get('description') as string) || '';
@@ -180,66 +185,86 @@ export async function POST(req: NextRequest) {
     const rawTarget = (formData.get('targetSection') as string) || 'both';
     const targetSection: 'CSE-2' | 'CSE-8' | 'both' = rawTarget === 'CSE-2' || rawTarget === 'CSE-8' ? rawTarget : 'both';
 
-    if (!file) {
+    if (allFiles.length === 0) {
       return NextResponse.json({ success: false, error: 'Koi file select nahi ki gayi!' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const mime = file.type || 'application/octet-stream';
+    const currentList = getStoredUploads();
+    const newItems: TileUploadItem[] = [];
 
-    // Create Base64 Data URL — 100% serverless resilient (instant rendering in img src & downloads everywhere)
-    const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`;
+    for (let i = 0; i < allFiles.length; i++) {
+      const file = allFiles[i];
+      if (!file || typeof file.arrayBuffer !== 'function') continue;
 
-    // Generate unique ID and safe filename
-    const safeName = file.name.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-    const uniqueFileName = `${Date.now()}_${safeName}`;
-    const uploadId = `up-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const mime = file.type || 'application/octet-stream';
 
-    // Try writing to disk, but gracefully catch and ignore if filesystem is read-only (e.g. Vercel)
-    try {
-      const destinationPath = path.join(UPLOADS_DIR, uniqueFileName);
-      fs.writeFileSync(destinationPath, buffer);
-    } catch {
-      // Ignored safely on Vercel serverless /var/task
+      // Create Base64 Data URL — 100% serverless resilient (instant rendering in img src & downloads everywhere)
+      const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`;
+
+      // Generate unique ID and safe filename
+      const safeName = file.name.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+      const uniqueFileName = `${Date.now()}_${i}_${safeName}`;
+      const uploadId = `up-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`;
+
+      // Try writing to disk, safely catching if read-only on Vercel
+      try {
+        const destinationPath = path.join(UPLOADS_DIR, uniqueFileName);
+        fs.writeFileSync(destinationPath, buffer);
+      } catch {
+        // Ignored safely on Vercel serverless /var/task
+      }
+
+      const fileType = detectFileType(file.name, mime);
+
+      // Compute individual item title:
+      // If user typed a custom title and there are multiple files, append (1/N)
+      // Otherwise use the friendly file name
+      let itemTitle = title.trim();
+      if (!itemTitle) {
+        const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+        itemTitle = baseName.charAt(0).toUpperCase() + baseName.slice(1);
+      } else if (allFiles.length > 1) {
+        itemTitle = `${itemTitle} (${i + 1}/${allFiles.length})`;
+      }
+
+      const newItem: TileUploadItem = {
+        id: uploadId,
+        tile,
+        title: itemTitle,
+        description: description.trim(),
+        badge: badge.trim() || 'Notice',
+        fileName: file.name,
+        fileUrl: dataUrl,
+        dataUrl,
+        fileType,
+        mimeType: mime,
+        fileSize: file.size,
+        uploadedAt: new Date().toLocaleString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        uploadedAtMs: Date.now() + i,
+        uploadedBy: uploader,
+        targetSection,
+      };
+
+      newItems.push(newItem);
     }
 
-    const fileType = detectFileType(file.name, mime);
-
-    // Use dataUrl for instant display and fallback to /api/upload?fileId=...
-    const newItem: TileUploadItem = {
-      id: uploadId,
-      tile,
-      title: title.trim() || file.name,
-      description: description.trim(),
-      badge: badge.trim() || 'Notice',
-      fileName: file.name,
-      fileUrl: dataUrl, // Instant base64 data URL guarantees zero ENOENT or 404 on Vercel!
-      dataUrl,
-      fileType,
-      mimeType: mime,
-      fileSize: file.size,
-      uploadedAt: new Date().toLocaleString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      uploadedAtMs: Date.now(),
-      uploadedBy: uploader,
-      targetSection,
-    };
-
-    const currentList = getStoredUploads();
-    const updatedList = [newItem, ...currentList];
+    const updatedList = [...newItems, ...currentList];
     saveStoredUploads(updatedList);
 
     return NextResponse.json({
       success: true,
-      message: `File "${file.name}" successfully uploaded to tile "${tile}"!`,
-      item: newItem,
+      message: `${newItems.length} file(s) successfully uploaded to tile "${tile}"!`,
+      item: newItems[0],
+      items: newItems,
       uploads: updatedList,
     });
   } catch (err: unknown) {
