@@ -750,7 +750,49 @@ export default function NuisanceCertificate({
 
   const currentTheme = THEME_CONFIGS[selectedTheme];
 
-  const displayName = (currentUser?.name || 'CITIZEN OF ikA WORLD').toUpperCase();
+  // Editable Student Name (prefilled with user's name, saved to localStorage)
+  const initialName = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const adm = currentUser?.admissionNo || currentUser?.email || 'guest';
+      const saved = localStorage.getItem(`ika_cert_name_${adm}`);
+      if (saved) return saved;
+    }
+    return currentUser?.name || 'CITIZEN OF ikA WORLD';
+  }, [currentUser]);
+
+  const [studentName, setStudentName] = useState<string>(initialName);
+
+  useEffect(() => {
+    if (currentUser?.name) {
+      const adm = currentUser?.admissionNo || currentUser?.email || 'guest';
+      const saved = localStorage.getItem(`ika_cert_name_${adm}`);
+      if (!saved) {
+        setStudentName(currentUser.name);
+      }
+    }
+  }, [currentUser]);
+
+  const handleNameChange = (val: string) => {
+    setStudentName(val);
+    if (typeof window !== 'undefined') {
+      const adm = currentUser?.admissionNo || currentUser?.email || 'guest';
+      localStorage.setItem(`ika_cert_name_${adm}`, val);
+    }
+  };
+
+  const handleResetName = () => {
+    const orig = currentUser?.name || 'CITIZEN OF ikA WORLD';
+    setStudentName(orig);
+    if (typeof window !== 'undefined') {
+      const adm = currentUser?.admissionNo || currentUser?.email || 'guest';
+      localStorage.removeItem(`ika_cert_name_${adm}`);
+    }
+    playFx(650, 0.05);
+    setCopyMsg('Name reset to default student name.');
+    setTimeout(() => setCopyMsg(null), 2500);
+  };
+
+  const displayName = (studentName.trim() || currentUser?.name || 'CITIZEN OF ikA WORLD').toUpperCase();
   const displayRoll = currentUser?.rollNo ? `ROLL #${currentUser.rollNo}` : 'CSE';
   const displaySec = currentUser?.section || 'CSE-2';
   const displayAdm = currentUser?.admissionNo || '2026B01010***';
@@ -1039,11 +1081,11 @@ export default function NuisanceCertificate({
       ctx.font = 'bold 16px sans-serif';
       ctx.fillText('उपद्रव एवं शैतानी उपाधि पत्र 📜💀', rightCenterX, 136);
 
-      // Citation statement
-      ctx.fillStyle = '#9ca3af';
-      ctx.font = `italic 14px ${titleFontFamily}`;
+      // Citation statement with student name
+      ctx.fillStyle = highlight;
+      ctx.font = `bold 16px ${titleFontFamily}`;
       ctx.fillText(
-        'This sovereign decree officially confers the following honorary title of campus mischief:',
+        `This sovereign decree proudly confers upon ${displayName}:`,
         rightCenterX,
         170
       );
@@ -1259,6 +1301,33 @@ export default function NuisanceCertificate({
               );
             })}
           </div>
+
+          {/* Editable Name on Degree (Pre-filled with student name) */}
+          <div className="flex items-center gap-1.5 flex-wrap w-full md:w-auto">
+            <span className="text-[11px] font-mono text-amber-400 uppercase tracking-wider font-bold shrink-0">
+              ✏️ Degree Name:
+            </span>
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                value={studentName}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="Student name..."
+                title="Edit name printed on certificate"
+                className="bg-black/80 border border-amber-500/50 hover:border-amber-400 focus:border-amber-400 rounded-lg px-2.5 py-1 text-xs text-amber-300 font-bold outline-none max-w-[170px] sm:max-w-[210px] transition"
+              />
+              {studentName !== (currentUser?.name || '') && (
+                <button
+                  type="button"
+                  onClick={handleResetName}
+                  title="Reset to default name"
+                  className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-gray-300 text-[10px] font-mono font-bold cursor-pointer transition"
+                >
+                  ↺ Reset
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* NOTIFICATION MESSAGE */}
@@ -1361,19 +1430,36 @@ export default function NuisanceCertificate({
                 </div>
               </div>
 
-              {/* Student Credentials */}
-              <div className="space-y-0.5">
-                <h3
-                  className={`text-base font-black text-amber-300 uppercase tracking-wide ${
-                    selectedFont === 'royal'
-                      ? 'font-serif'
-                      : selectedFont === 'mono'
-                      ? 'font-mono'
-                      : ''
-                  }`}
-                >
-                  {displayName}
-                </h3>
+              {/* Student Credentials (Directly Editable) */}
+              <div className="space-y-1 w-full px-1">
+                <div className="space-y-0.5">
+                  <div className="flex items-center justify-between text-[8px] font-mono text-gray-400 px-1">
+                    <span className="text-amber-400 font-bold">✏️ TAP NAME TO EDIT:</span>
+                    {studentName !== (currentUser?.name || '') && (
+                      <button
+                        type="button"
+                        onClick={handleResetName}
+                        className="text-amber-400 hover:text-white underline cursor-pointer"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={studentName}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    placeholder="Student name..."
+                    title="Click to edit name on certificate"
+                    className={`w-full text-center bg-black/40 border border-amber-500/40 hover:border-amber-400 focus:border-amber-400 rounded-xl px-2 py-1 text-sm font-black text-amber-300 uppercase tracking-wide outline-none transition ${
+                      selectedFont === 'royal'
+                        ? 'font-serif'
+                        : selectedFont === 'mono'
+                        ? 'font-mono'
+                        : ''
+                    }`}
+                  />
+                </div>
                 <p className="text-[11px] font-mono text-gray-300 font-bold">
                   {displayRoll}
                 </p>
@@ -1417,6 +1503,27 @@ export default function NuisanceCertificate({
                 <p className="text-xs font-bold text-red-400">
                   उपद्रव एवं शैतानी उपाधि पत्र 📜💀
                 </p>
+              </div>
+
+              {/* Conferred upon Student Statement */}
+              <div className="flex items-center justify-between flex-wrap gap-2 py-1.5 px-3 rounded-xl bg-white/[0.04] border border-white/10">
+                <span className="text-[10px] font-mono text-gray-400 italic">
+                  Conferred upon:
+                </span>
+                <span
+                  className={`text-sm sm:text-base font-black text-amber-300 tracking-wide uppercase ${
+                    selectedFont === 'royal'
+                      ? 'font-serif'
+                      : selectedFont === 'mono'
+                      ? 'font-mono'
+                      : ''
+                  }`}
+                >
+                  🎓 {displayName}
+                </span>
+                <span className="text-[10px] font-mono text-gray-400">
+                  ({displayRoll} • Sec {displaySec})
+                </span>
               </div>
 
               {/* Conferred Honorary Title Box */}
