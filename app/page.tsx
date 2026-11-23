@@ -2947,26 +2947,26 @@ export default function CampusAIChat() {
     []
   );
 
-  // Trigger Full Horror Visual + Audio Sequence (Restored to snappy, crisp 60fps timing)
+  // Trigger Full Horror Visual + Audio Sequence (21s Ryuk Laugh / 11s Death Bell / 20s Thunder Storm)
   const launchHorrorExperience = useCallback((stingerType: 'ryuk_laugh' | 'bell' | 'thunder') => {
     playHorrorAudioStinger(stingerType);
     setRyukDiffusing(false);
     setActiveHorrorEvent(stingerType);
 
     if (stingerType === 'ryuk_laugh') {
-      setTimeout(() => setRyukDiffusing(true), 9500);
+      setTimeout(() => setRyukDiffusing(true), 18000);
       setTimeout(() => {
         setActiveHorrorEvent(null);
         setRyukDiffusing(false);
-      }, 12500);
+      }, 21000);
     } else if (stingerType === 'bell') {
       setTimeout(() => {
         setActiveHorrorEvent(null);
-      }, 7500);
+      }, 11000);
     } else if (stingerType === 'thunder') {
       setTimeout(() => {
         setActiveHorrorEvent(null);
-      }, 8500);
+      }, 20000);
     }
   }, []);
 
@@ -5217,12 +5217,12 @@ export default function CampusAIChat() {
           100% { transform: translateY(105vh) translateX(-20px) rotate(360deg); opacity: 0; }
         }
         @keyframes violentShake {
-          0% { transform: translate3d(0, 0, 0) rotate(0deg); }
-          20% { transform: translate3d(-8px, 6px, 0) rotate(-1.5deg); }
-          40% { transform: translate3d(8px, -6px, 0) rotate(1.5deg); }
-          60% { transform: translate3d(-8px, -5px, 0) rotate(-1deg); }
-          80% { transform: translate3d(6px, 8px, 0) rotate(1deg); }
-          100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+          0% { transform: translate(0, 0) rotate(0deg); }
+          20% { transform: translate(-16px, 12px) rotate(-2.5deg); }
+          40% { transform: translate(16px, -14px) rotate(2.5deg); }
+          60% { transform: translate(-18px, -10px) rotate(-2deg); }
+          80% { transform: translate(14px, 16px) rotate(2deg); }
+          100% { transform: translate(0, 0) rotate(0deg); }
         }
         @keyframes lightningStrobe {
           0%, 100% { background-color: rgba(0, 0, 0, 0.95); }
@@ -5236,49 +5236,51 @@ export default function CampusAIChat() {
         }
         @keyframes letterStrikeAssemble {
           0% {
-            transform: translate3d(var(--strike-x, 50vw), var(--strike-y, -50vh), 0) rotate(var(--strike-r, 240deg)) scale(3.5);
+            transform: translate(var(--strike-x, 50vw), var(--strike-y, -50vh)) rotate(var(--strike-r, 240deg)) scale(4.5);
             opacity: 0;
-            filter: blur(8px);
+            filter: blur(12px) brightness(3);
           }
           60% {
             opacity: 1;
-            transform: translate3d(-4px, 4px, 0) rotate(-6deg) scale(1.2);
-            filter: blur(0px);
+            transform: translate(-6px, 6px) rotate(-8deg) scale(1.35);
+            filter: blur(0px) brightness(2);
           }
           80% {
-            transform: translate3d(3px, -3px, 0) rotate(3deg) scale(0.98);
+            transform: translate(4px, -4px) rotate(4deg) scale(0.95);
           }
           100% {
-            transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            transform: translate(0, 0) rotate(0deg) scale(1);
             opacity: 1;
-            filter: drop-shadow(0 0 16px rgba(220, 38, 38, 0.9));
+            filter: drop-shadow(0 0 18px rgba(220, 38, 38, 1));
           }
         }
         @keyframes evaporateIntoAsh {
           0% {
-            transform: scale(1) translate3d(0px, 0px, 0);
+            transform: scale(1) translateY(0px);
             filter: blur(0px) contrast(100%);
             opacity: 1;
           }
           45% {
-            transform: scale(1.04) translate3d(0px, -18px, 0) skewX(6deg);
-            filter: blur(4px) contrast(200%);
+            transform: scale(1.04) translateY(-18px) skewX(6deg);
+            filter: blur(4px) contrast(300%) hue-rotate(-50deg);
             opacity: 0.7;
           }
           100% {
-            transform: scale(1.15) translate3d(0px, -75px, 0) skewX(-10deg);
-            filter: blur(18px) brightness(0);
+            transform: scale(1.18) translateY(-90px) skewX(-12deg);
+            filter: blur(24px) brightness(0);
             opacity: 0;
           }
         }
         @keyframes bellPendulum {
-          0%, 100% { transform: rotate(-24deg) scale(1.08); }
-          50% { transform: rotate(24deg) scale(1.2); }
+          0%, 100% { transform: rotate(-28deg) scale(1.1); }
+          50% { transform: rotate(28deg) scale(1.25); }
         }
         @keyframes glyphRicochet {
-          0% { transform: translate3d(0vw, 0vh, 0) rotate(0deg) scale(1); opacity: 1; }
-          50% { transform: translate3d(-20vw, 15vh, 0) rotate(180deg) scale(1.15); }
-          100% { transform: translate3d(20vw, -18vh, 0) rotate(360deg) scale(0.9); opacity: 0; }
+          0% { transform: translate(0vw, 0vh) rotate(0deg) scale(1); opacity: 1; }
+          25% { transform: translate(35vw, -30vh) rotate(190deg) scale(1.8); }
+          50% { transform: translate(-40vw, 25vh) rotate(380deg) scale(0.9); }
+          75% { transform: translate(30vw, 35vh) rotate(570deg) scale(2.1); }
+          100% { transform: translate(-35vw, -35vh) rotate(720deg) scale(1.2); opacity: 0; }
         }
         @keyframes hauntedWorldPulse {
           0%, 100% { filter: none; transform: translate(0, 0); }
@@ -5398,7 +5400,7 @@ export default function CampusAIChat() {
           }`}
           style={{ animation: 'ryukCrimsonLightning 1.1s infinite, violentShake 0.08s infinite' }}
         >
-          {CHAOS_FLYING_GLYPHS.slice(0, 14).map((glyph, idx) => (
+          {CHAOS_FLYING_GLYPHS.map((glyph, idx) => (
             <span
               key={`bg-glyph-${idx}`}
               className="fixed font-serif font-black text-xl sm:text-4xl text-red-700/45 select-none"
@@ -5406,7 +5408,6 @@ export default function CampusAIChat() {
                 left: `${(idx * 19) % 96}%`,
                 top: `${(idx * 29) % 94}%`,
                 animation: `glyphRicochet ${1.2 + (idx % 4) * 0.3}s linear infinite`,
-                willChange: 'transform',
               }}
             >
               {glyph}
@@ -5499,7 +5500,7 @@ export default function CampusAIChat() {
           className="fixed inset-0 z-[9998] pointer-events-none flex flex-col items-center justify-center overflow-hidden"
           style={{ animation: 'lightningStrobe 0.45s infinite, violentShake 0.08s infinite' }}
         >
-          {CHAOS_FLYING_GLYPHS.slice(0, 14).map((glyph, idx) => (
+          {CHAOS_FLYING_GLYPHS.map((glyph, idx) => (
             <span
               key={idx}
               className="fixed font-serif font-black text-2xl sm:text-5xl text-red-500 drop-shadow-[0_0_20px_rgba(255,255,255,0.9)] select-none"
@@ -5507,7 +5508,6 @@ export default function CampusAIChat() {
                 left: `${(idx * 17) % 95}%`,
                 top: `${(idx * 23) % 92}%`,
                 animation: `glyphRicochet ${1.4 + (idx % 5) * 0.35}s linear infinite`,
-                willChange: 'transform',
               }}
             >
               {glyph}

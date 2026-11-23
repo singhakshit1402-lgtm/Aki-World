@@ -454,7 +454,7 @@ export function playHorrorAudioStingerSafe(type: string | null): void {
     activeStingerAudio = audio;
 
     let playCount = 0;
-    const maxPlays = type === 'bell' ? 2 : type === 'ryuk_laugh' ? 2 : 1;
+    const maxPlays = type === 'bell' ? 3 : type === 'ryuk_laugh' ? 3 : 1;
 
     audio.onended = () => {
       playCount++;
@@ -464,12 +464,9 @@ export function playHorrorAudioStingerSafe(type: string | null): void {
       }
     };
 
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {});
-    }
+    audio.play().catch(() => {});
 
-    const cutoffMs = type === 'bell' ? 8000 : type === 'ryuk_laugh' ? 14000 : 12000;
+    const cutoffMs = type === 'bell' ? 11000 : type === 'ryuk_laugh' ? 21000 : 20000;
     activeCutoffTimer = window.setTimeout(() => {
       if (activeStingerAudio === audio) {
         audio.onended = null;
@@ -481,5 +478,27 @@ export function playHorrorAudioStingerSafe(type: string | null): void {
     }, cutoffMs);
   } catch {
     // Ignore autoplay errors
+  }
+
+  try {
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type === 'bell' ? 'sine' : 'sawtooth';
+    osc.frequency.setValueAtTime(type === 'bell' ? 146.8 : 65, now);
+    osc.frequency.exponentialRampToValueAtTime(28, now + 2.5);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 2.6);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 2.7);
+  } catch {
+    // Ignore synth errors
   }
 }
