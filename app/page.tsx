@@ -8,6 +8,7 @@ import PersonalCardStudio from '@/components/PersonalCardStudio';
 import NuisanceCertificate, {
   FEMALE_ARCHETYPES,
   MALE_ARCHETYPES,
+  ALL_NUISANCE_ARCHETYPES,
   type NuisanceProfile,
 } from '@/components/NuisanceCertificate';
 import {
@@ -2584,16 +2585,240 @@ function playHorrorAudioStinger(type: string) {
   playHorrorAudioStingerSafe(type);
 }
 
+
+// ============================================================================
+// IN-CHAT ROLLING PARCHMENT NUISANCE CERTIFICATE COMPONENT
+// ============================================================================
+function InChatRollingCertificate({
+  initialArchetypeId,
+  currentUser,
+  onOpenStudio,
+}: {
+  initialArchetypeId?: string;
+  currentUser?: StudentUser | null;
+  onOpenStudio?: () => void;
+}) {
+  const isFem =
+    currentUser?.gender === 'F' ||
+    currentUser?.name?.toLowerCase().includes('agrima') ||
+    false;
+  const pool = isFem ? FEMALE_ARCHETYPES : MALE_ARCHETYPES;
+
+  const [activeArchetypeId, setActiveArchetypeId] = useState<string>(() => {
+    if (initialArchetypeId && ALL_NUISANCE_ARCHETYPES[initialArchetypeId]) {
+      return initialArchetypeId;
+    }
+    return isFem ? 'crush_girl' : 'laundiya_baaz';
+  });
+
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [shuffleEmoji, setShuffleEmoji] = useState('🎰');
+
+  const profile: NuisanceProfile =
+    ALL_NUISANCE_ARCHETYPES[activeArchetypeId] ||
+    (isFem ? FEMALE_ARCHETYPES.crush_girl : MALE_ARCHETYPES.laundiya_baaz);
+
+  const studentName = currentUser?.name || 'CITIZEN OF ikA WORLD';
+
+  const handleShuffle = () => {
+    setIsShuffling(true);
+    const emojis = ['🎰', '🎲', '⚡', '👑', '📜', '😏', '🌸', '🏃‍♂️', '🥟', '🍜'];
+    let count = 0;
+    const interval = setInterval(() => {
+      setShuffleEmoji(emojis[count % emojis.length]);
+      count++;
+      if (count > 8) {
+        clearInterval(interval);
+        const keys = Object.keys(pool);
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        setActiveArchetypeId(randomKey);
+        setIsShuffling(false);
+      }
+    }, 70);
+
+    try {
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(650, ctx.currentTime);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      }
+    } catch {}
+  };
+
+  return (
+    <div className="my-4 w-full max-w-lg mx-auto">
+      <style jsx>{`
+        @keyframes scrollUnrollInChat {
+          0% {
+            max-height: 0px;
+            opacity: 0;
+            transform: perspective(700px) rotateX(-45deg) scaleY(0.15);
+            transform-origin: top center;
+          }
+          60% {
+            max-height: 550px;
+            opacity: 0.92;
+            transform: perspective(700px) rotateX(12deg) scaleY(1.03);
+          }
+          85% {
+            transform: perspective(700px) rotateX(-4deg) scaleY(0.98);
+          }
+          100% {
+            max-height: 1400px;
+            opacity: 1;
+            transform: perspective(700px) rotateX(0deg) scaleY(1);
+          }
+        }
+      `}</style>
+
+      {/* Top Banner */}
+      <div className="flex items-center justify-between px-3 py-1 mb-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[11px] font-mono font-bold text-amber-300">
+        <span className="flex items-center gap-1.5">
+          <span className="animate-spin text-sm">📜</span>
+          <span>OFFICIAL DEGREE UNLOCKED</span>
+        </span>
+        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+          READY ✨
+        </span>
+      </div>
+
+      {/* 3D Parchment Scroll with Rolling Animation */}
+      <div
+        className="w-full relative shadow-[0_0_50px_rgba(217,119,6,0.4)] rounded-2xl overflow-hidden border-2 border-amber-500/75"
+        style={{
+          animation: 'scrollUnrollInChat 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          background: 'linear-gradient(135deg, #240f06 0%, #120601 50%, #080301 100%)',
+        }}
+      >
+        {/* Top Scroll Roller Bar */}
+        <div className="w-full h-4 bg-gradient-to-r from-amber-900 via-amber-300 to-amber-900 border-b border-amber-500/60 shadow-inner flex items-center justify-between px-3">
+          <div className="w-2 h-2 rounded-full bg-amber-950"></div>
+          <div className="w-2 h-2 rounded-full bg-amber-950"></div>
+        </div>
+
+        {/* Certificate Body */}
+        <div className="p-4 sm:p-6 text-center relative space-y-3">
+          {/* Watermark Logo */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none select-none text-8xl">
+            📜
+          </div>
+
+          <div className="flex items-center justify-between border-b border-amber-500/30 pb-1.5">
+            <span className="text-[9px] sm:text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest">
+              ABES ENGINEERING COLLEGE • CSE
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-mono font-bold">
+              OFFICIAL DEGREE
+            </span>
+          </div>
+
+          <div>
+            <span className="text-3xl sm:text-4xl inline-block transition-transform hover:scale-125 duration-200">
+              {isShuffling ? shuffleEmoji : profile.avatarEmoji}
+            </span>
+            <div className="mt-1 inline-block px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-red-500/20 to-amber-500/20 border border-amber-500/50 text-[10px] font-bold font-mono text-amber-300">
+              {profile.badge}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[9px] font-mono text-gray-400 uppercase tracking-wider">
+              Official Degree of Campus Nuisance Conferred Upon:
+            </p>
+            <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 mt-0.5">
+              {studentName}
+            </h3>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-black/60 border border-amber-500/30 text-left">
+            <h4 className="text-xs sm:text-sm font-black text-amber-300">
+              {profile.title}
+            </h4>
+            <p className="text-[10px] text-amber-400/80 font-serif italic mt-0.5">
+              {profile.hindiTitle}
+            </p>
+            <p className="text-[11px] text-gray-300 italic mt-1.5 border-l-2 border-amber-500 pl-2">
+              &quot;{profile.quote}&quot;
+            </p>
+          </div>
+
+          {/* Charges Snippet */}
+          <div className="text-left space-y-1">
+            <p className="text-[9px] font-mono text-amber-400/80 uppercase font-bold tracking-wider">
+              Conferred Charges:
+            </p>
+            {profile.charges.slice(0, 2).map((c, idx) => (
+              <p key={idx} className="text-[10px] text-gray-300 font-mono flex items-start gap-1">
+                <span className="text-amber-400 flex-shrink-0">•</span>
+                <span>{c}</span>
+              </p>
+            ))}
+          </div>
+
+          {/* Aura Score & Tile Status */}
+          <div className="flex items-center justify-between pt-1 border-t border-amber-500/30 text-[10px] font-mono">
+            <span className="text-gray-400">
+              TILE STATUS: <strong className="text-emerald-400 font-bold">UNLOCKED 🔓</strong>
+            </span>
+            <span className="text-amber-300 font-bold">AURA: {profile.auraScore}</span>
+          </div>
+        </div>
+
+        {/* Bottom Scroll Roller Bar */}
+        <div className="w-full h-4 bg-gradient-to-r from-amber-900 via-amber-300 to-amber-900 border-t border-amber-500/60 shadow-inner flex items-center justify-between px-3">
+          <div className="w-2 h-2 rounded-full bg-amber-950"></div>
+          <div className="w-2 h-2 rounded-full bg-amber-950"></div>
+        </div>
+      </div>
+
+      {/* Buttons directly on the in-chat certificate */}
+      <div className="mt-2.5 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            if (onOpenStudio) onOpenStudio();
+          }}
+          className="flex-1 py-2 px-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-black font-black text-xs uppercase tracking-wider shadow-lg transition cursor-pointer flex items-center justify-center gap-1.5"
+        >
+          <span>📜 Open Full Studio (Fonts, Photo &amp; Download) ↗</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleShuffle}
+          disabled={isShuffling}
+          className="py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-amber-500/40 text-amber-300 hover:text-white font-bold text-xs uppercase transition cursor-pointer flex items-center gap-1"
+        >
+          <span>🎲</span>
+          <span>{isShuffling ? 'Rolling...' : 'Shuffler'}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function FormattedMessage({
   text,
   onSelectSuggestion,
   onOpenCertificate,
   isAgrima,
+  currentUser,
 }: {
   text: string;
   onSelectSuggestion?: (query: string, isFromSuggestion?: boolean) => void;
   onOpenCertificate?: () => void;
   isAgrima?: boolean;
+  currentUser?: StudentUser | null;
 }) {
   const lines = text.split('\n');
   const formatInline = (line: string) => {
@@ -2659,22 +2884,15 @@ function FormattedMessage({
             </div>
           );
         }
-        const certMatch = line.match(/^\[OPEN_CERTIFICATE\|(.*)\]$/);
+        const certMatch = line.match(/^\[OPEN_CERTIFICATE\|(.*?)(?:\|(.*?))?\]$/);
         if (certMatch) {
           return (
-            <div key={i} className="my-3">
-              <button
-                type="button"
-                onClick={() => {
-                  if (onOpenCertificate) onOpenCertificate();
-                }}
-                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-white font-black text-xs shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer flex items-center gap-2.5 border border-amber-300/40"
-              >
-                <span className="text-base">📜</span>
-                <span>{certMatch[1] || 'Open My Nuisance Certificate'}</span>
-                <span className="text-amber-200 font-normal">→</span>
-              </button>
-            </div>
+            <InChatRollingCertificate
+              key={i}
+              initialArchetypeId={certMatch[2]}
+              currentUser={currentUser}
+              onOpenStudio={onOpenCertificate}
+            />
           );
         }
         const paperMatch = line.match(/^\[DOWNLOAD_PAPER\|(.*)\|(.*)\]$/);
@@ -3011,7 +3229,7 @@ export default function CampusAIChat() {
       }
 
       setFlyingCertificateProfile(chosenProfile);
-      setIsFlyingCertVisible(true);
+      setIsFlyingCertVisible(false);
       setIsNuisanceUnlocked(true);
 
       // Play celebratory fanfare sound
@@ -3036,8 +3254,12 @@ export default function CampusAIChat() {
 
       const unlockMsg: Message = {
         role: 'assistant',
-        content: `🎰 *AI NUISANCE RADAR COMPLETED! [DEGREE CONFERRED]* 📜💀\n\nAbhi tumne ikA ke saath 3s chat complete kar liya hai! Tumhari chat/suggestion history aur gender (${isFem ? 'Female 🌸' : 'Male 👑'}) ke aadhar par Supreme Boss ikA ne tumhara **Official Degree of Nuisance** confer kar diya hai!\n\n🎖️ *Conferred Degree Category:* **${chosenProfile.categoryLabel}**\n\n👇 *Neeche button tap karke apna degree dekho, shuffler se reroll karo, font/theme badlo aur apni photo upload karke download karo:*\n\n[OPEN_CERTIFICATE|📜 Open & Download My Nuisance Degree]`,
+        content: `🎰 *AI NUISANCE RADAR COMPLETED! [DEGREE CONFERRED]* 📜💀\n\nAbhi tumne ikA ke saath 3s chat complete kar liya hai! Tumhari chat/suggestion history aur gender (${isFem ? 'Female 🌸' : 'Male 👑'}) ke aadhar par Supreme Boss ikA ne tumhara **Official Degree of Nuisance** confer kar diya hai!\n\n🎖️ *Conferred Degree Category:* **${chosenProfile.categoryLabel}**\n\n👇 *Tumhara Official Nuisance Certificate chat me roll hoke unlock ho chuka hai:*\n\n[OPEN_CERTIFICATE|📜 My Nuisance Degree|${chosenProfile.archetypeId}]`,
       };
+
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
 
       setSessions((prev) =>
         prev.map((s) => {
@@ -8499,6 +8721,7 @@ export default function CampusAIChat() {
                             setCurrentWindow('nuisance_cert');
                           }}
                           isAgrima={isAgrima}
+                          currentUser={currentUser}
                         />
                       )}
                     </div>
@@ -8516,6 +8739,7 @@ export default function CampusAIChat() {
                           setCurrentWindow('nuisance_cert');
                         }}
                         isAgrima={isAgrima}
+                        currentUser={currentUser}
                       />
                     </div>
                   </div>
