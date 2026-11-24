@@ -5,7 +5,16 @@ import RegisterModal, { CSE8_ROSTER } from '@/components/RegisterModal';
 import PaperDownloadCard from '@/components/PaperDownloadCard';
 import TileAttachments from '@/components/TileAttachments';
 import PersonalCardStudio from '@/components/PersonalCardStudio';
-import NuisanceCertificate from '@/components/NuisanceCertificate';
+import NuisanceCertificate, {
+  FEMALE_ARCHETYPES,
+  MALE_ARCHETYPES,
+  type NuisanceProfile,
+} from '@/components/NuisanceCertificate';
+import {
+  getAllUploadsFromDb,
+  saveUploadsToDb,
+  deleteUploadFromDb,
+} from '@/lib/indexedDbUploads';
 import ShinigamiUploadModal from '@/components/ShinigamiUploadModal';
 import type { TileUploadItem } from '@/app/api/upload/route';
 import {
@@ -2871,29 +2880,14 @@ export default function CampusAIChat() {
 
   const [overviewBossWhisper, setOverviewBossWhisper] = useState('');
 
-  // NUISANCE CERTIFICATE UNLOCK STATE
-  const [isNuisanceUnlocked, setIsNuisanceUnlocked] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      const savedUser = sessionStorage.getItem('campus_tab_user') || localStorage.getItem('campus_user');
-      if (savedUser) {
-        const u = JSON.parse(savedUser);
-        const adm = (u.admissionNo || u.email || 'guest').toString();
-        if (adm.toLowerCase().includes('1402akshit')) return true;
-        return localStorage.getItem(`ika_nuisance_unlocked_${adm}`) === 'true';
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  });
+  // NUISANCE CERTIFICATE UNLOCK STATE (Starts locked on EVERY visit)
+  const [isNuisanceUnlocked, setIsNuisanceUnlocked] = useState<boolean>(false);
+  const [flyingCertificateProfile, setFlyingCertificateProfile] = useState<NuisanceProfile | null>(null);
+  const [isFlyingCertVisible, setIsFlyingCertVisible] = useState<boolean>(false);
 
   const unlockNuisanceCertificate = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    const adm = currentUser?.admissionNo || currentUser?.email || 'guest';
-    localStorage.setItem(`ika_nuisance_unlocked_${adm}`, 'true');
     setIsNuisanceUnlocked(true);
-  }, [currentUser]);
+  }, []);
 
   // Faculty Photo Toggle States
   const [prernaPhotoTab, setPrernaPhotoTab] = useState<'profile' | 'radiant'>('profile');
@@ -2948,29 +2942,101 @@ export default function CampusAIChat() {
     return !isBoss && currentUser?.admissionNo === '2026B01010274';
   }, [currentUser, isBoss]);
 
+  // 3.0s IN-CHAT AUTOMATIC NUISANCE RADAR, FLYING ROLLING CERTIFICATE & UNLOCK
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const adm = currentUser?.admissionNo || currentUser?.email || 'guest';
-    const unlocked = localStorage.getItem(`ika_nuisance_unlocked_${adm}`) === 'true';
-    setIsNuisanceUnlocked(isBoss || unlocked);
-  }, [currentUser, isBoss]);
-
-  // 2.5s IN-CHAT AUTOMATIC NUISANCE RADAR & UNLOCK
-  useEffect(() => {
-    if (isNuisanceUnlocked || isBoss) return;
-    if (currentWindow !== 'home' && currentWindow !== 'chat') return;
+    if (isNuisanceUnlocked) return;
+    if (currentWindow !== 'chat') return;
 
     const timer = setTimeout(() => {
-      unlockNuisanceCertificate();
-
       const isFem = currentUser?.gender === 'F' || currentUser?.name?.toLowerCase().includes('agrima');
-      const degreeSample = isFem
-        ? '🌸 Dil-Todne Wali / 📸 Aesthetic Queen'
-        : '😏 Supreme Laundiya Baaz / 🏃‍♂️ Proxy Smuggler';
+      const pool = isFem ? FEMALE_ARCHETYPES : MALE_ARCHETYPES;
+      const lastSugg = (lastSuggestionClickedRef.current || '').toLowerCase();
+      const recentChatText = (activeSession?.messages || [])
+        .slice(-4)
+        .map((m) => m.content.toLowerCase())
+        .join(' ');
+      const combined = `${lastSugg} ${recentChatText}`;
+
+      let chosenProfile: NuisanceProfile = isFem ? pool.crush_girl : pool.laundiya_baaz;
+
+      if (
+        combined.includes('crush') ||
+        combined.includes('shayari') ||
+        combined.includes('propose') ||
+        combined.includes('dil') ||
+        combined.includes('pyaar')
+      ) {
+        chosenProfile = isFem ? pool.crush_girl : pool.laundiya_baaz;
+      } else if (
+        combined.includes('proxy') ||
+        combined.includes('attendance') ||
+        combined.includes('bunk') ||
+        combined.includes('ninja') ||
+        combined.includes('safe bunk')
+      ) {
+        chosenProfile = isFem ? pool.sprint_princess : pool.proxy_mafia;
+      } else if (
+        combined.includes('c++') ||
+        combined.includes('code') ||
+        combined.includes('assignment') ||
+        combined.includes('programming')
+      ) {
+        chosenProfile = isFem ? pool.silent_topper : pool.copy_paste_engineer;
+      } else if (
+        combined.includes('canteen') ||
+        combined.includes('maggi') ||
+        combined.includes('samosa') ||
+        combined.includes('chai') ||
+        combined.includes('coffee')
+      ) {
+        chosenProfile = isFem ? pool.coffee_snob : (pool.maggi_philosopher || pool.canteen_bhukkad);
+      } else if (
+        combined.includes('exam') ||
+        combined.includes('mt2') ||
+        combined.includes('paper') ||
+        combined.includes('one shot')
+      ) {
+        chosenProfile = isFem ? pool.one_shot_empress : pool.exam_clutch_god;
+      } else if (
+        combined.includes('bike') ||
+        combined.includes('speed') ||
+        combined.includes('ninja h2r') ||
+        combined.includes('hayabusa')
+      ) {
+        chosenProfile = isFem ? pool.soft_rebel : pool.speed_demon;
+      } else {
+        const poolKeys = Object.keys(pool);
+        const randomKey = poolKeys[Math.floor(Math.random() * poolKeys.length)];
+        chosenProfile = pool[randomKey] || chosenProfile;
+      }
+
+      setFlyingCertificateProfile(chosenProfile);
+      setIsFlyingCertVisible(true);
+      setIsNuisanceUnlocked(true);
+
+      // Play celebratory fanfare sound
+      try {
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          [523, 659, 784, 1046].forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
+            gain.gain.setValueAtTime(0.08, ctx.currentTime + idx * 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.35);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + idx * 0.12);
+            osc.stop(ctx.currentTime + idx * 0.12 + 0.35);
+          });
+        }
+      } catch {}
 
       const unlockMsg: Message = {
         role: 'assistant',
-        content: `🎰 *AI NUISANCE RADAR COMPLETED! [DEGREE CONFERRED]* 📜💀\n\nAbhi tumne ikA ke saath 2.5s chat complete kar liya hai! Tumhari chat history aur gender (${isFem ? 'Female 🌸' : 'Male 👑'}) ke aadhar par Supreme Boss ikA ne tumhara **Official Degree of Nuisance** unlock kar diya hai!\n\n🎖️ *Conferred Degree Category:* **${degreeSample}**\n\n👇 *Neeche button tap karke apna degree dekho, shuffler se reroll karo, font/theme badlo aur apni photo upload karke download karo:*\n\n[OPEN_CERTIFICATE|📜 Open & Download My Nuisance Degree]`,
+        content: `🎰 *AI NUISANCE RADAR COMPLETED! [DEGREE CONFERRED]* 📜💀\n\nAbhi tumne ikA ke saath 3s chat complete kar liya hai! Tumhari chat/suggestion history aur gender (${isFem ? 'Female 🌸' : 'Male 👑'}) ke aadhar par Supreme Boss ikA ne tumhara **Official Degree of Nuisance** confer kar diya hai!\n\n🎖️ *Conferred Degree Category:* **${chosenProfile.categoryLabel}**\n\n👇 *Neeche button tap karke apna degree dekho, shuffler se reroll karo, font/theme badlo aur apni photo upload karke download karo:*\n\n[OPEN_CERTIFICATE|📜 Open & Download My Nuisance Degree]`,
       };
 
       setSessions((prev) =>
@@ -2984,10 +3050,10 @@ export default function CampusAIChat() {
           return s;
         })
       );
-    }, 2500);
+    }, 3000);
 
     return () => clearTimeout(timer);
-  }, [currentWindow, isNuisanceUnlocked, isBoss, unlockNuisanceCertificate, currentUser, activeSessionId]);
+  }, [currentWindow, isNuisanceUnlocked, currentUser, activeSessionId]);
 
   // SECTION CSE-2 VS CSE-8 DETECTION & BOSS OVERRIDE
   const [bossSectionOverride, setBossSectionOverride] = useState<'CSE-2' | 'CSE-8'>('CSE-2');
@@ -2999,29 +3065,41 @@ export default function CampusAIChat() {
   useEffect(() => {
     const loadTileUploads = async () => {
       try {
-        let localCached: TileUploadItem[] = [];
-        const cached = localStorage.getItem('shinigami_tile_uploads');
-        if (cached) {
-          try {
-            localCached = JSON.parse(cached);
-            if (Array.isArray(localCached) && localCached.length > 0) {
-              setTileUploads(localCached);
-            }
-          } catch {}
+        let dbCached: TileUploadItem[] = [];
+        try {
+          dbCached = await getAllUploadsFromDb();
+          if (Array.isArray(dbCached) && dbCached.length > 0) {
+            setTileUploads(dbCached);
+          }
+        } catch {}
+
+        if (dbCached.length === 0) {
+          const cached = localStorage.getItem('shinigami_tile_uploads');
+          if (cached) {
+            try {
+              const localCached = JSON.parse(cached);
+              if (Array.isArray(localCached) && localCached.length > 0) {
+                setTileUploads(localCached);
+                dbCached = localCached;
+              }
+            } catch {}
+          }
         }
 
         const res = await fetch('/api/upload');
         const data = await res.json();
         if (res.ok && Array.isArray(data.uploads)) {
-          // Robust merge by ID: keep both server-side seed documents and any locally uploaded files
           const mergedMap = new Map<string, TileUploadItem>();
           data.uploads.forEach((item: TileUploadItem) => mergedMap.set(item.id, item));
-          localCached.forEach((item: TileUploadItem) => mergedMap.set(item.id, item));
+          dbCached.forEach((item: TileUploadItem) => mergedMap.set(item.id, item));
           const combined = Array.from(mergedMap.values()).sort(
             (a, b) => (b.uploadedAtMs || 0) - (a.uploadedAtMs || 0)
           );
           setTileUploads(combined);
-          localStorage.setItem('shinigami_tile_uploads', JSON.stringify(combined));
+          await saveUploadsToDb(combined);
+          try {
+            localStorage.setItem('shinigami_tile_uploads', JSON.stringify(combined));
+          } catch {}
         }
       } catch {}
     };
@@ -3032,28 +3110,29 @@ export default function CampusAIChat() {
     try {
       setTileUploads((prev) => {
         const remaining = prev.filter((u) => u.id !== id);
-        localStorage.setItem('shinigami_tile_uploads', JSON.stringify(remaining));
+        try {
+          localStorage.setItem('shinigami_tile_uploads', JSON.stringify(remaining));
+        } catch {}
         return remaining;
       });
+      await deleteUploadFromDb(id);
       await fetch(`/api/upload?id=${id}`, { method: 'DELETE' });
     } catch {}
   };
 
-  const handleUploadSuccess = (newItem: TileUploadItem, allUploads: TileUploadItem[]) => {
-    setTileUploads((prev) => {
-      const mergedMap = new Map<string, TileUploadItem>();
-      // 1. Add all returned from server
-      allUploads.forEach((u) => mergedMap.set(u.id, u));
-      // 2. Add existing previous
-      prev.forEach((u) => mergedMap.set(u.id, u));
-      // 3. Ensure newly created item is present
-      if (newItem) mergedMap.set(newItem.id, newItem);
-      const combined = Array.from(mergedMap.values()).sort(
-        (a, b) => (b.uploadedAtMs || 0) - (a.uploadedAtMs || 0)
-      );
+  const handleUploadSuccess = async (newItem: TileUploadItem, allUploads: TileUploadItem[]) => {
+    const mergedMap = new Map<string, TileUploadItem>();
+    allUploads.forEach((u) => mergedMap.set(u.id, u));
+    tileUploads.forEach((u) => mergedMap.set(u.id, u));
+    if (newItem) mergedMap.set(newItem.id, newItem);
+    const combined = Array.from(mergedMap.values()).sort(
+      (a, b) => (b.uploadedAtMs || 0) - (a.uploadedAtMs || 0)
+    );
+    setTileUploads(combined);
+    await saveUploadsToDb(combined);
+    try {
       localStorage.setItem('shinigami_tile_uploads', JSON.stringify(combined));
-      return combined;
-    });
+    } catch {}
   };
 
   const handleOpenUploadModal = (tileId: string) => {
@@ -6706,8 +6785,8 @@ export default function CampusAIChat() {
                     <div
                       onClick={() => {
                         if (!isNuisanceUnlocked) {
-                          alert('🔒 Nuisance Degree abhi locked hai! ikA ke sath chat me 2.5s guzaaro ya koi suggestion tap karo, tab degree unlock hogi!');
-                          setCurrentWindow('home');
+                          setCurrentWindow('chat');
+                          sendQuery('Ye website kya hai? 🤔', false);
                         } else {
                           setCurrentWindow('nuisance_cert');
                         }
@@ -6736,7 +6815,7 @@ export default function CampusAIChat() {
                       <p className="text-[10px] text-gray-400 mt-0.5">
                         {isNuisanceUnlocked
                           ? 'View, customize & download degree'
-                          : 'Chat 2.5s with ikA to unlock! 🔒'}
+                          : 'Tap to ask in chat & unlock degree! 🔒'}
                       </p>
                     </div>
                   </div>
@@ -6829,8 +6908,8 @@ export default function CampusAIChat() {
                     <div
                       onClick={() => {
                         if (!isNuisanceUnlocked) {
-                          alert('🔒 Nuisance Degree abhi locked hai! ikA ke sath chat me 2.5s guzaaro ya koi suggestion tap karo, tab degree unlock hogi!');
-                          setCurrentWindow('home');
+                          setCurrentWindow('chat');
+                          sendQuery('Ye website kya hai? 🤔', false);
                         } else {
                           setCurrentWindow('nuisance_cert');
                         }
@@ -6863,7 +6942,7 @@ export default function CampusAIChat() {
                           <p className="text-[10px] text-gray-300">
                             {isNuisanceUnlocked
                               ? 'View, customize & download your degree!'
-                              : 'Chat 2.5s with ikA to unlock your degree! 🔒'}
+                              : 'Click to ask in chat & unlock your degree! 🔒'}
                           </p>
                         </div>
                       </div>
@@ -8940,6 +9019,143 @@ export default function CampusAIChat() {
           </form>
         </footer>
       </div>
+
+      {/* 3D FLYING & ROLLING NUISANCE CERTIFICATE OVERLAY */}
+      {isFlyingCertVisible && flyingCertificateProfile && (
+        <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 md:p-6 overflow-hidden animate-in fade-in duration-300">
+          <style jsx>{`
+            @keyframes rollFlyIn {
+              0% {
+                transform: perspective(1000px) rotateX(70deg) rotateY(-30deg) rotateZ(20deg) scale(0.2) translateY(-260px);
+                opacity: 0;
+              }
+              60% {
+                transform: perspective(1000px) rotateX(-15deg) rotateY(10deg) rotateZ(-5deg) scale(1.05) translateY(15px);
+                opacity: 1;
+              }
+              80% {
+                transform: perspective(1000px) rotateX(8deg) rotateY(-4deg) rotateZ(2deg) scale(0.98);
+              }
+              100% {
+                transform: perspective(1000px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1) translateY(0);
+                opacity: 1;
+              }
+            }
+          `}</style>
+          <div className="relative w-full max-w-lg flex flex-col items-center">
+            {/* Top Celebration Banner */}
+            <div className="mb-3 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-600 text-black font-black text-xs md:text-sm tracking-wider uppercase shadow-[0_0_30px_rgba(245,158,11,0.8)] animate-bounce flex items-center gap-2">
+              <span>📜✨</span>
+              <span>Degree Conferred &amp; Tile Unlocked!</span>
+              <span>🎉</span>
+            </div>
+
+            {/* 3D Rolling Scroll Container */}
+            <div
+              className="w-full relative shadow-[0_0_80px_rgba(217,119,6,0.6)] rounded-2xl overflow-hidden border-2 border-amber-500/80"
+              style={{
+                animation: 'rollFlyIn 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                background: 'linear-gradient(135deg, #240f06 0%, #120601 50%, #080301 100%)',
+              }}
+            >
+              {/* Top Scroll Roller Bar */}
+              <div className="w-full h-4 bg-gradient-to-r from-amber-800 via-amber-300 to-amber-800 border-b border-amber-500/60 shadow-inner flex items-center justify-between px-3">
+                <div className="w-2 h-2 rounded-full bg-amber-950"></div>
+                <div className="w-2 h-2 rounded-full bg-amber-950"></div>
+              </div>
+
+              {/* Certificate Body */}
+              <div className="p-5 md:p-6 text-center relative space-y-3">
+                {/* Watermark Logo / Seal */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none select-none text-9xl">
+                  📜
+                </div>
+
+                <div className="flex items-center justify-between border-b border-amber-500/30 pb-2">
+                  <span className="text-[10px] md:text-xs font-mono font-bold text-amber-400 uppercase tracking-widest">
+                    ABES ENGINEERING COLLEGE • CSE
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-mono font-bold">
+                    OFFICIAL DEGREE
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-4xl md:text-5xl">{flyingCertificateProfile.avatarEmoji}</span>
+                  <div className="mt-1.5 inline-block px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-red-500/20 to-amber-500/20 border border-amber-500/50 text-[11px] font-bold font-mono text-amber-300">
+                    {flyingCertificateProfile.badge}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[9px] font-mono text-gray-400 uppercase tracking-wider">
+                    Official Degree of Campus Nuisance Conferred Upon:
+                  </p>
+                  <h3 className="text-lg md:text-xl font-black text-white uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 mt-0.5">
+                    {currentUser?.name || 'CITIZEN OF ikA WORLD'}
+                  </h3>
+                </div>
+
+                <div className="p-3 rounded-xl bg-black/60 border border-amber-500/30 text-left">
+                  <h4 className="text-xs md:text-sm font-black text-amber-300">
+                    {flyingCertificateProfile.title}
+                  </h4>
+                  <p className="text-[10px] text-amber-400/80 font-serif italic mt-0.5">
+                    {flyingCertificateProfile.hindiTitle}
+                  </p>
+                  <p className="text-[11px] text-gray-300 italic mt-1.5 border-l-2 border-amber-500 pl-2">
+                    &quot;{flyingCertificateProfile.quote}&quot;
+                  </p>
+                </div>
+
+                {/* Charges Snippet */}
+                <div className="text-left space-y-0.5">
+                  <p className="text-[9px] font-mono text-amber-400/80 uppercase font-bold tracking-wider">
+                    Conferred Charges &amp; Offenses:
+                  </p>
+                  {flyingCertificateProfile.charges.slice(0, 2).map((c, idx) => (
+                    <p key={idx} className="text-[10px] text-gray-300 font-mono flex items-start gap-1">
+                      <span className="text-amber-400 flex-shrink-0">•</span>
+                      <span>{c}</span>
+                    </p>
+                  ))}
+                </div>
+
+                {/* Aura Score */}
+                <div className="flex items-center justify-between pt-1 border-t border-amber-500/30 text-[10px] font-mono">
+                  <span className="text-gray-400">TILE STATUS: <strong className="text-emerald-400 font-bold">UNLOCKED 🔓</strong></span>
+                  <span className="text-amber-300 font-bold">AURA: {flyingCertificateProfile.auraScore}</span>
+                </div>
+              </div>
+
+              {/* Bottom Scroll Roller Bar */}
+              <div className="w-full h-4 bg-gradient-to-r from-amber-800 via-amber-300 to-amber-800 border-t border-amber-500/60 shadow-inner flex items-center justify-between px-3">
+                <div className="w-2 h-2 rounded-full bg-amber-950"></div>
+                <div className="w-2 h-2 rounded-full bg-amber-950"></div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-3.5 flex flex-col sm:flex-row gap-2 w-full">
+              <button
+                onClick={() => {
+                  setIsFlyingCertVisible(false);
+                  setCurrentWindow('nuisance_cert');
+                }}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-black font-black text-xs md:text-sm tracking-wider uppercase shadow-[0_0_20px_rgba(245,158,11,0.5)] transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>📜 Open Full Studio (Customize &amp; Download) ↗</span>
+              </button>
+              <button
+                onClick={() => setIsFlyingCertVisible(false)}
+                className="py-2.5 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-gray-300 hover:text-white font-bold text-xs tracking-wider uppercase transition cursor-pointer"
+              >
+                ✕ Continue Chatting
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
