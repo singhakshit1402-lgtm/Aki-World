@@ -355,7 +355,7 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 overflow-hidden select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 overflow-hidden select-none">
       
       {/* 👑 SUPREME ARCHITECT BOSS ikA AWAKENING */}
       {animationType === 'boss' && matchedUser && (
@@ -425,7 +425,7 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
 
       {/* EMAIL-ONLY LOGIN BOX WITH RED & BLACK ikA EMBLEM */}
       {animationType === 'none' && (
-        <div className="relative w-full max-w-md p-8 rounded-3xl bg-[#0d0f14]/95 border border-red-500/30 shadow-[0_0_60px_rgba(220,38,38,0.15)] space-y-6 animate-in fade-in zoom-in-95 duration-200">
+        <div className="relative w-full max-w-md p-8 rounded-3xl bg-[#090c14]/75 backdrop-blur-xl border border-red-500/35 shadow-[0_0_70px_rgba(220,38,38,0.22)] space-y-6 animate-in fade-in zoom-in-95 duration-200">
           <div className="text-center space-y-2">
             {/* RED & BLACK ikA BOX */}
             <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-black via-zinc-950 to-red-900 border-2 border-red-600 flex items-center justify-center text-2xl font-black text-red-500 shadow-[0_0_25px_rgba(220,38,38,0.5)]">

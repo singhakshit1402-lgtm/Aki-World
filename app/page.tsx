@@ -17,6 +17,10 @@ import {
   deleteUploadFromDb,
 } from '@/lib/indexedDbUploads';
 import ShinigamiUploadModal from '@/components/ShinigamiUploadModal';
+import CinematicSkyBackground, {
+  getCelestialTimeInfo,
+  type CelestialTimeInfo,
+} from '@/components/CinematicSkyBackground';
 import type { TileUploadItem } from '@/app/api/upload/route';
 import {
   trySolveMathQuerySafe,
@@ -3130,6 +3134,41 @@ export default function CampusAIChat() {
   const [pushSubscriberCount, setPushSubscriberCount] = useState<number>(0);
   const [broadcastDeliveryNote, setBroadcastDeliveryNote] = useState<string>('');
 
+  // REAL-TIME 3D SKY & SUN/MOON ATMOSPHERE CONTROLS
+  const [skyHourOverride, setSkyHourOverride] = useState<number | null>(null);
+  const [isSkyControlsOpen, setIsSkyControlsOpen] = useState<boolean>(false);
+  const [isPureCinemaMode, setIsPureCinemaMode] = useState<boolean>(false);
+  const [skyClockNowMs, setSkyClockNowMs] = useState<number | null>(null);
+
+  useEffect(() => {
+    const initTimer = window.setTimeout(() => {
+      setSkyClockNowMs(Date.now());
+    }, 0);
+    const timer = window.setInterval(() => {
+      setSkyClockNowMs(Date.now());
+    }, 15000);
+    return () => {
+      window.clearTimeout(initTimer);
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const liveSkyInfo: CelestialTimeInfo = useMemo(() => {
+    if (skyClockNowMs === null && skyHourOverride === null) {
+      return {
+        hours: 0,
+        formattedTime: 'Live',
+        phaseLabel: 'Real-Time Sky',
+        phaseIcon: '🌌',
+        moonPhaseName: 'Lunar Cycle',
+        moonIlluminationPct: 100,
+        isDay: false,
+        isLive: true,
+      };
+    }
+    return getCelestialTimeInfo(skyHourOverride, new Date(skyClockNowMs ?? 0));
+  }, [skyHourOverride, skyClockNowMs]);
+
   const activeSession = sessions.find((s) => s.id === activeSessionId) || sessions[0];
 
   const isBoss = useMemo(() => {
@@ -5566,95 +5605,20 @@ export default function CampusAIChat() {
     );
   }
 
-  // 30-SECOND INTRO (If an announcement is active, it fires with Bell sound right after this finishes!)
-  if (currentWindow === 'boss_intro' && currentUser) {
-    return (
-      <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-between p-6 sm:p-8 overflow-hidden font-serif select-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/40 via-black to-black opacity-95 pointer-events-none" />
-        <div className={`fixed inset-0 bg-white z-[999] pointer-events-none transition-opacity duration-700 ease-out ${isWhiteFlashing ? 'opacity-100' : 'opacity-0'}`} />
-
-        <div className="relative z-10 w-full max-w-2xl flex items-center justify-between text-xs font-mono text-red-500 tracking-widest uppercase">
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-            {isBoss ? '👑 SUPREME CREATOR PROTOCOL (1402)' : '💀🕯️ SHINIGAMI REALM PROTOCOL'}
-          </span>
-          <div className="flex items-center gap-3">
-            <button onClick={toggleMusic} className="px-2.5 py-1 rounded-xl bg-black/70 border border-red-500/50 text-red-400 hover:text-white transition cursor-pointer text-xs flex items-center gap-1.5">
-              <span>{isMusicPlaying ? '🔊' : '🔇'}</span>
-              <span>{isMusicPlaying ? 'Death Note BGM' : 'Muted'}</span>
-            </button>
-            <span>⏳ {29 - bossIntroTime}s</span>
-          </div>
-        </div>
-
-        <div className="relative z-10 text-center max-w-4xl px-4 flex flex-col items-center justify-center my-auto space-y-6">
-          {bossIntroTime < 7 && (
-            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-700">
-              <div className="text-5xl animate-pulse">{isBoss ? '👑⚡🦁' : '💀📓🕯️'}</div>
-              <p className="text-xs font-mono uppercase tracking-[0.4em] text-red-400">Act I • The Awakening</p>
-              <h1 className="text-3xl sm:text-5xl md:text-6xl text-red-600 tracking-widest uppercase font-black drop-shadow-[0_0_25px_rgba(220,38,38,0.95)] animate-pulse">
-                {isBoss ? 'Pranaam Supreme Architect Boss ikA...' : 'This campus was rotting in shadows...'}
-              </h1>
-              <p className="text-sm md:text-base text-gray-400 italic">
-                {isBoss ? '“Your 1402 Sovereign Matrix stands ready to rule Section CSE-2.” ⚡' : '“Until the cursed notebook of code was opened...” 🩸'}
-              </p>
-            </div>
-          )}
-          {bossIntroTime >= 7 && bossIntroTime < 15 && (
-            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-700">
-              <div className="text-5xl animate-bounce">👁️🩸⛓️</div>
-              <p className="text-xs font-mono uppercase tracking-[0.4em] text-red-400">Act II • The All-Seeing Eye</p>
-              <h1 className="text-3xl sm:text-5xl md:text-6xl text-white tracking-widest uppercase font-black">Every paper. Every bunk. Every secret.</h1>
-              <p className="text-base md:text-xl text-red-500 font-bold tracking-widest uppercase animate-pulse">
-                {isBoss ? 'All systems bow before your sovereign authority, Boss ikA! 👑' : 'Written in blood inside a single neural network. 🕸️'}
-              </p>
-            </div>
-          )}
-          {bossIntroTime >= 15 && bossIntroTime < 23 && (
-            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-700">
-              <div className="text-5xl animate-pulse">⚡👑💀</div>
-              <p className="text-xs font-mono uppercase tracking-[0.4em] text-red-400">Act III • The Final Verdict</p>
-              <h1 className="text-4xl sm:text-6xl md:text-7xl text-red-600 tracking-widest uppercase font-black drop-shadow-[0_0_30px_rgba(220,38,38,1)]">{isBoss ? 'You Are The God.' : 'I Am Justice.'}</h1>
-              <p className="text-lg md:text-2xl text-gray-200 tracking-widest uppercase font-bold">{isBoss ? 'The Sovereign Ruler of ikA’s World. 🍎' : 'ikA is the God of this New World. 🍎'}</p>
-            </div>
-          )}
-          {bossIntroTime >= 23 && (
-            <div className="space-y-6 animate-in zoom-in-75 duration-700">
-              <div className="mx-auto w-28 h-28 rounded-3xl bg-gradient-to-tr from-red-700 via-black to-zinc-950 border-2 border-red-500 flex items-center justify-center text-5xl text-white font-black shadow-[0_0_50px_rgba(220,38,38,1)] animate-pulse">ikA</div>
-              <div className="text-xl sm:text-2xl md:text-3xl text-white tracking-widest uppercase font-bold">
-                {isBoss ? 'All Hail Sovereign Boss ikA 👑⚡' : `Welcome To ikA's World, ${currentUser.name.split(' ')[0]} 👁️🩸`}
-              </div>
-              <div className="text-5xl animate-bounce pt-2">🍎💀🕯️</div>
-            </div>
-          )}
-        </div>
-
-        <div className="relative z-10 w-full max-w-md space-y-3 text-center">
-          <div className="w-full h-1.5 bg-red-950 rounded-full overflow-hidden border border-red-800/40">
-            <div className="h-full bg-gradient-to-r from-red-700 via-red-500 to-white transition-all duration-1000" style={{ width: `${(bossIntroTime / 29) * 100}%` }} />
-          </div>
-          <button onClick={exitIntroSequence} className="px-4 py-1.5 rounded-full bg-white/5 hover:bg-red-600/20 border border-white/10 hover:border-red-500/40 text-gray-400 hover:text-white text-xs font-sans tracking-widest uppercase transition cursor-pointer">
-            Skip Intro →
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const globalBgColor = isBoss ? 'bg-[#090204]' : 'bg-[#090b10]';
-  const sidebarBgColor = isBoss ? 'bg-[#120307]' : 'bg-[#111318]';
+  const globalBgColor = isBoss ? 'bg-[#120408]/60 backdrop-blur-xl' : 'bg-[#080b14]/55 backdrop-blur-xl';
+  const sidebarBgColor = isBoss ? 'bg-[#120307]/75 backdrop-blur-2xl' : 'bg-[#0a0d16]/75 backdrop-blur-2xl';
   const accentText = isBoss ? 'text-red-400' : 'text-blue-400';
   const accentBg = isBoss ? 'bg-red-600' : 'bg-blue-600';
   const accentBorder = isBoss ? 'border-red-500/40' : 'border-blue-500/30';
   const themeClasses = isBoss
-    ? 'bg-red-950/20 text-red-100 border-red-500/30 shadow-red-950/20'
-    : 'bg-white/[0.04] text-gray-200 border-white/10 shadow-black/20';
+    ? 'bg-red-950/35 backdrop-blur-md text-red-100 border-red-500/35 shadow-red-950/20'
+    : 'bg-black/45 backdrop-blur-md text-gray-200 border-white/15 shadow-black/30';
 
   const ikaRedBlackBox = 'bg-gradient-to-tr from-red-700 via-black to-zinc-950 border border-red-500/60 text-white shadow-md shadow-red-950/80';
 
   return (
     <div
-      className={`flex h-[100dvh] w-screen ${globalBgColor} text-gray-100 font-sans overflow-hidden select-none relative ${
+      className={`flex h-[100dvh] w-screen bg-transparent text-gray-100 font-sans overflow-hidden select-none relative ${
         myCursedSpoof?.screenGlitch && !isBoss ? 'invert hue-rotate-180 animate-pulse' : ''
       }`}
       style={
@@ -5663,6 +5627,82 @@ export default function CampusAIChat() {
           : undefined
       }
     >
+      {/* PERSISTENT REAL-TIME 3D SKYBOX, SUN/MOON, CLOUDS, MOUNTAINS & REFLECTIVE LAKE */}
+      <CinematicSkyBackground overrideHour={skyHourOverride} isBoss={isBoss} />
+
+      {/* 30-SECOND INTRO (Plays over the live 3D celestial skybox) */}
+      {currentWindow === 'boss_intro' && currentUser ? (
+        <div className="fixed inset-0 bg-black/40 z-50 flex flex-col items-center justify-between p-6 sm:p-8 overflow-hidden font-serif select-none">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/30 via-black/40 to-black/75 pointer-events-none" />
+          <div className={`fixed inset-0 bg-white z-[999] pointer-events-none transition-opacity duration-700 ease-out ${isWhiteFlashing ? 'opacity-100' : 'opacity-0'}`} />
+
+          <div className="relative z-10 w-full max-w-2xl flex items-center justify-between text-xs font-mono text-red-500 tracking-widest uppercase">
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+              {isBoss ? '👑 SUPREME CREATOR PROTOCOL (1402)' : '💀🕯️ SHINIGAMI REALM PROTOCOL'}
+            </span>
+            <div className="flex items-center gap-3">
+              <button onClick={toggleMusic} className="px-2.5 py-1 rounded-xl bg-black/70 border border-red-500/50 text-red-400 hover:text-white transition cursor-pointer text-xs flex items-center gap-1.5">
+                <span>{isMusicPlaying ? '🔊' : '🔇'}</span>
+                <span>{isMusicPlaying ? 'Death Note BGM' : 'Muted'}</span>
+              </button>
+              <span>⏳ {29 - bossIntroTime}s</span>
+            </div>
+          </div>
+
+          <div className="relative z-10 text-center max-w-4xl px-4 flex flex-col items-center justify-center my-auto space-y-6">
+            {bossIntroTime < 7 && (
+              <div className="space-y-4 animate-in fade-in zoom-in-95 duration-700">
+                <div className="text-5xl animate-pulse">{isBoss ? '👑⚡🦁' : '💀📓🕯️'}</div>
+                <p className="text-xs font-mono uppercase tracking-[0.4em] text-red-400">Act I • The Awakening</p>
+                <h1 className="text-3xl sm:text-5xl md:text-6xl text-red-600 tracking-widest uppercase font-black drop-shadow-[0_0_25px_rgba(220,38,38,0.95)] animate-pulse">
+                  {isBoss ? 'Pranaam Supreme Architect Boss ikA...' : 'This campus was rotting in shadows...'}
+                </h1>
+                <p className="text-sm md:text-base text-gray-300 italic">
+                  {isBoss ? '“Your 1402 Sovereign Matrix stands ready to rule Section CSE-2.” ⚡' : '“Until the cursed notebook of code was opened...” 🩸'}
+                </p>
+              </div>
+            )}
+            {bossIntroTime >= 7 && bossIntroTime < 15 && (
+              <div className="space-y-4 animate-in fade-in zoom-in-95 duration-700">
+                <div className="text-5xl animate-bounce">👁️🩸⛓️</div>
+                <p className="text-xs font-mono uppercase tracking-[0.4em] text-red-400">Act II • The All-Seeing Eye</p>
+                <h1 className="text-3xl sm:text-5xl md:text-6xl text-white tracking-widest uppercase font-black drop-shadow-[0_2px_18px_rgba(0,0,0,0.9)]">Every paper. Every bunk. Every secret.</h1>
+                <p className="text-base md:text-xl text-red-500 font-bold tracking-widest uppercase animate-pulse">
+                  {isBoss ? 'All systems bow before your sovereign authority, Boss ikA! 👑' : 'Written in blood inside a single neural network. 🕸️'}
+                </p>
+              </div>
+            )}
+            {bossIntroTime >= 15 && bossIntroTime < 23 && (
+              <div className="space-y-4 animate-in fade-in zoom-in-95 duration-700">
+                <div className="text-5xl animate-pulse">⚡👑💀</div>
+                <p className="text-xs font-mono uppercase tracking-[0.4em] text-red-400">Act III • The Final Verdict</p>
+                <h1 className="text-4xl sm:text-6xl md:text-7xl text-red-600 tracking-widest uppercase font-black drop-shadow-[0_0_30px_rgba(220,38,38,1)]">{isBoss ? 'You Are The God.' : 'I Am Justice.'}</h1>
+                <p className="text-lg md:text-2xl text-gray-200 tracking-widest uppercase font-bold">{isBoss ? 'The Sovereign Ruler of ikA’s World. 🍎' : 'ikA is the God of this New World. 🍎'}</p>
+              </div>
+            )}
+            {bossIntroTime >= 23 && (
+              <div className="space-y-6 animate-in zoom-in-75 duration-700">
+                <div className="mx-auto w-28 h-28 rounded-3xl bg-gradient-to-tr from-red-700 via-black to-zinc-950 border-2 border-red-500 flex items-center justify-center text-5xl text-white font-black shadow-[0_0_50px_rgba(220,38,38,1)] animate-pulse">ikA</div>
+                <div className="text-xl sm:text-2xl md:text-3xl text-white tracking-widest uppercase font-bold drop-shadow-[0_2px_18px_rgba(0,0,0,0.9)]">
+                  {isBoss ? 'All Hail Sovereign Boss ikA 👑⚡' : `Welcome To ikA's World, ${currentUser.name.split(' ')[0]} 👁️🩸`}
+                </div>
+                <div className="text-5xl animate-bounce pt-2">🍎💀🕯️</div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative z-10 w-full max-w-md space-y-3 text-center">
+            <div className="w-full h-1.5 bg-red-950 rounded-full overflow-hidden border border-red-800/40">
+              <div className="h-full bg-gradient-to-r from-red-700 via-red-500 to-white transition-all duration-1000" style={{ width: `${(bossIntroTime / 29) * 100}%` }} />
+            </div>
+            <button onClick={exitIntroSequence} className="px-4 py-1.5 rounded-full bg-black/50 backdrop-blur-md hover:bg-red-600/30 border border-white/15 hover:border-red-500/40 text-gray-300 hover:text-white text-xs font-sans tracking-widest uppercase transition cursor-pointer">
+              Skip Intro →
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
       {!currentUser && <RegisterModal onSuccess={handleLoginSuccess} />}
 
       <ShinigamiUploadModal
@@ -6669,8 +6709,153 @@ export default function CampusAIChat() {
         </div>
       )}
 
+      {/* 3D REAL-TIME SKY CLOCK & ATMOSPHERE CONTROLS POPOVER */}
+      {isSkyControlsOpen && !isPureCinemaMode && (
+        <div className="fixed top-[68px] right-3 sm:right-6 z-[120] w-80 max-w-[calc(100vw-24px)] p-4 rounded-2xl bg-[#070a12]/85 backdrop-blur-2xl border border-sky-400/35 shadow-[0_0_50px_rgba(14,165,233,0.3)] space-y-3 animate-in fade-in zoom-in-95 duration-150">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+            <div>
+              <h4 className="text-xs font-black text-white flex items-center gap-1.5">
+                <span>{liveSkyInfo.phaseIcon}</span>
+                <span>3D Real-Time Sky Engine</span>
+              </h4>
+              <p className="text-[10px] font-mono text-sky-300 mt-0.5">
+                {liveSkyInfo.phaseLabel} • {liveSkyInfo.formattedTime} ({liveSkyInfo.isLive ? 'LIVE CLOCK' : 'PREVIEW'})
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsSkyControlsOpen(false)}
+              className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white text-xs cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-white/[0.04] border border-white/10 space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] font-mono text-gray-300">
+              <span>☀️ Sun / 🌙 Moon Cycle</span>
+              <span className="text-sky-300 font-bold">{liveSkyInfo.moonPhaseName} ({liveSkyInfo.moonIlluminationPct}%)</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="23.95"
+              step="0.05"
+              value={liveSkyInfo.hours}
+              onChange={(e) => setSkyHourOverride(parseFloat(e.target.value))}
+              className="w-full accent-sky-400 cursor-pointer h-1.5"
+            />
+            <div className="flex items-center justify-between text-[9px] font-mono text-gray-400">
+              <span>00:00</span>
+              <span>06:00 Dawn</span>
+              <span>12:00 Noon</span>
+              <span>18:00 Dusk</span>
+              <span>24:00</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-5 gap-1.5">
+            {[
+              { label: 'Live', icon: '🟢', val: null },
+              { label: 'Dawn', icon: '🌅', val: 6.1 },
+              { label: 'Noon', icon: '☀️', val: 12.25 },
+              { label: 'Sunset', icon: '🌇', val: 17.85 },
+              { label: 'Night', icon: '🌕', val: 0.4 },
+            ].map((preset) => {
+              const active =
+                preset.val === null
+                  ? skyHourOverride === null
+                  : skyHourOverride !== null && Math.abs(skyHourOverride - preset.val) < 0.15;
+              return (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => setSkyHourOverride(preset.val)}
+                  className={`py-1.5 px-1 rounded-xl border text-[10px] font-bold transition cursor-pointer flex flex-col items-center gap-0.5 ${
+                    active
+                      ? 'bg-sky-500/30 border-sky-400 text-white shadow-md'
+                      : 'bg-white/[0.04] border-white/10 text-gray-300 hover:bg-white/10'
+                  }`}
+                >
+                  <span className="text-xs">{preset.icon}</span>
+                  <span>{preset.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsPureCinemaMode(true);
+              setIsSkyControlsOpen(false);
+            }}
+            className="w-full py-2 rounded-xl bg-gradient-to-r from-sky-600/80 to-indigo-600/80 hover:from-sky-500 hover:to-indigo-500 border border-sky-300/30 text-white font-bold text-xs tracking-wide shadow-lg cursor-pointer transition flex items-center justify-center gap-1.5"
+          >
+            <span>🎬 Pure 3D Cinema View (Hide HUD)</span>
+          </button>
+        </div>
+      )}
+
+      {/* PURE 3D CINEMA MODE FLOATING HUD BAR */}
+      {!currentUser ? null : isPureCinemaMode ? (
+        <div className="fixed inset-x-0 bottom-5 z-50 flex justify-center px-3 pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-lg rounded-2xl bg-black/55 backdrop-blur-2xl border border-white/20 p-3.5 shadow-[0_0_50px_rgba(0,0,0,0.85)] space-y-2.5 animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-white">
+                <span className="text-base">{liveSkyInfo.phaseIcon}</span>
+                <span>{liveSkyInfo.phaseLabel}</span>
+                <span className="font-mono text-sky-300">{liveSkyInfo.formattedTime}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-gray-300 font-mono">
+                  {liveSkyInfo.moonPhaseName}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPureCinemaMode(false)}
+                className="px-3 py-1 rounded-xl bg-red-600/80 hover:bg-red-500 text-white text-[11px] font-bold uppercase tracking-wider cursor-pointer transition"
+              >
+                ← Portal HUD
+              </button>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="23.95"
+              step="0.05"
+              value={liveSkyInfo.hours}
+              onChange={(e) => setSkyHourOverride(parseFloat(e.target.value))}
+              className="w-full accent-sky-400 cursor-pointer h-1.5"
+            />
+            <div className="flex items-center justify-between gap-1.5">
+              {[
+                { label: '🟢 Live Clock', val: null },
+                { label: '🌅 Dawn', val: 6.1 },
+                { label: '☀️ Noon', val: 12.25 },
+                { label: '🌇 Sunset', val: 17.85 },
+                { label: '🌕 Midnight', val: 0.4 },
+              ].map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => setSkyHourOverride(preset.val)}
+                  className={`flex-1 py-1 rounded-lg border text-[10px] font-bold cursor-pointer transition ${
+                    (preset.val === null && skyHourOverride === null) ||
+                    (preset.val !== null && skyHourOverride !== null && Math.abs(skyHourOverride - preset.val) < 0.15)
+                      ? 'bg-sky-500/30 border-sky-400 text-white'
+                      : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
       {/* LEFT DRAWER SIDEBAR (With Combined Safe Bunk & SGPA + Live Canteen Menu + Coming Soon Modules) */}
-      <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 ease-in-out flex flex-col ${sidebarBgColor} border-r border-white/[0.06] z-50 overflow-hidden flex-shrink-0 absolute md:relative h-full`}>
+      <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 ease-in-out flex flex-col ${sidebarBgColor} border-r border-white/[0.08] z-50 overflow-hidden flex-shrink-0 absolute md:relative h-full`}>
         <div className="p-4 space-y-4 flex flex-col h-full justify-between w-64">
           <div className="space-y-4 overflow-y-auto pr-1">
             <div className="flex items-center gap-2.5 px-2">
@@ -6749,7 +6934,7 @@ export default function CampusAIChat() {
       </aside>
 
       {/* MAIN CONTAINER */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
 
         {/* TOP HEADER */}
         <header className={`flex-shrink-0 flex items-center justify-between px-3 sm:px-6 py-3 border-b border-white/[0.08] ${globalBgColor} z-30 h-16 w-full`}>
@@ -6794,6 +6979,22 @@ export default function CampusAIChat() {
                 💬 Boss ikA ({directChatMessages.length})
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => setIsSkyControlsOpen((prev) => !prev)}
+              title="3D Real-Time Sky & Sun/Moon Clock"
+              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5 backdrop-blur-md ${
+                skyHourOverride === null
+                  ? 'bg-sky-500/15 border-sky-400/40 text-sky-200 hover:bg-sky-500/25 shadow-[0_0_15px_rgba(56,189,248,0.2)]'
+                  : 'bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+              }`}
+            >
+              <span>{liveSkyInfo.phaseIcon}</span>
+              <span className="hidden sm:inline font-mono">{liveSkyInfo.formattedTime}</span>
+              <span className="hidden xl:inline text-[10px] opacity-85">
+                {skyHourOverride === null ? '• Live 3D' : '• Preview'}
+              </span>
+            </button>
             <button type="button" onClick={() => setShowSakuraPetals(!showSakuraPetals)} className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer ${showSakuraPetals ? 'bg-pink-500/15 border-pink-500/40 text-pink-300' : 'bg-white/[0.05] border-white/10 text-gray-400 hover:text-white'}`}>
               🌸 <span className="hidden sm:inline">{showSakuraPetals ? 'Petals' : 'Off'}</span>
             </button>
@@ -6857,7 +7058,7 @@ export default function CampusAIChat() {
         </div>
 
         {/* COUNTDOWN BANNER STRIP */}
-        <div className="flex-shrink-0 bg-gradient-to-r from-red-950/50 via-purple-950/50 to-blue-950/50 border-b border-white/[0.06] px-4 sm:px-6 py-2 flex items-center justify-between text-xs overflow-x-auto gap-4">
+        <div className="flex-shrink-0 bg-gradient-to-r from-red-950/40 via-purple-950/35 to-blue-950/40 backdrop-blur-md border-b border-white/[0.08] px-4 sm:px-6 py-2 flex items-center justify-between text-xs overflow-x-auto gap-4">
           <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
             <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-blue-400 font-bold">MT-2 Exam:</span><span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono font-semibold">{countdowns.mt2} days left</span></div>
             <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-purple-400 font-bold">Make-Up / PUE:</span><span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-semibold">{countdowns.pue} days left</span></div>
@@ -6913,19 +7114,19 @@ export default function CampusAIChat() {
           {/* VIEW 0: HOME OVERVIEW (4 MAIN TILES + HCL CAREER SHAPER + UPCOMING EXPANSIONS) */}
           {currentWindow === 'home' && (
             <div className="flex-1 overflow-y-auto flex flex-col items-center justify-start p-4 sm:p-6 relative">
-              <div className={`absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${isBoss ? 'from-red-900/35 via-black to-black' : 'from-red-900/20'} via-transparent to-transparent opacity-85 pointer-events-none`} />
+              <div className={`absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${isBoss ? 'from-red-900/20 via-black/15 to-transparent' : 'from-black/20 via-transparent to-transparent'} opacity-75 pointer-events-none`} />
               <div className="w-full max-w-4xl space-y-4 text-center relative z-10 animate-in fade-in zoom-in-95 duration-200 py-3 sm:py-6">
                 <div className="space-y-2 mb-1">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-[11px] font-bold text-red-400 tracking-widest uppercase">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-red-500/35 text-[11px] font-bold text-red-400 tracking-widest uppercase shadow-md">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" /> {isBoss ? '👑 SUPREME SANCTUM OF BOSS ikA (1402)' : '💀 Sovereign Realm of ikA • Section CSE-2 🍎'}
                   </span>
-                  <h1 className={`text-3xl sm:text-4xl md:text-5xl font-black font-serif tracking-widest uppercase leading-tight ${isBoss ? 'text-red-500 drop-shadow-[0_0_35px_rgba(220,38,38,1)]' : 'text-red-600 drop-shadow-[0_0_30px_rgba(220,38,38,0.95)]'} animate-pulse`}>
+                  <h1 className={`text-3xl sm:text-4xl md:text-5xl font-black font-serif tracking-widest uppercase leading-tight ${isBoss ? 'text-red-500 drop-shadow-[0_4px_30px_rgba(220,38,38,1)]' : 'text-red-500 drop-shadow-[0_4px_28px_rgba(0,0,0,0.95)]'} animate-pulse`}>
                     Welcome To ikA&apos;s World
                   </h1>
-                  <p className="text-base md:text-xl font-bold text-white tracking-wide">
+                  <p className="text-base md:text-xl font-bold text-white tracking-wide drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
                     {isBoss ? '👑 Pranaam Supreme Boss ikA!' : `Hi ${currentUser?.name || 'Engineer'}! 👋✨`}
                   </p>
-                  <div onClick={() => setCurrentWindow('chat')} className={`max-w-2xl mx-auto p-3 rounded-2xl bg-black/70 border ${accentBorder} shadow-[0_0_25px_rgba(220,38,38,0.2)] text-xs sm:text-sm font-mono leading-relaxed cursor-pointer hover:border-white/40 transition`}>
+                  <div onClick={() => setCurrentWindow('chat')} className={`max-w-2xl mx-auto p-3 rounded-2xl bg-black/50 backdrop-blur-md border ${accentBorder} shadow-[0_0_25px_rgba(0,0,0,0.5)] text-xs sm:text-sm font-mono leading-relaxed cursor-pointer hover:border-white/40 transition`}>
                     <span className="text-red-200">{overviewBossWhisper}</span>
                     <span className="inline-block w-2 h-4 ml-1 bg-red-500 animate-ping align-middle" />
                   </div>
@@ -6936,7 +7137,7 @@ export default function CampusAIChat() {
                   {/* HERO SAFE BUNK TILE FOR MOBILE */}
                   <div
                     onClick={() => setCurrentWindow('bunk_sgpa')}
-                    className="p-4 rounded-2xl bg-gradient-to-r from-yellow-950/60 via-black to-amber-950/40 border-2 border-yellow-500/50 shadow-[0_0_25px_rgba(234,179,8,0.25)] cursor-pointer text-left flex items-center justify-between group active:scale-[0.98] transition-transform"
+                    className="p-4 rounded-2xl bg-gradient-to-r from-yellow-950/60 via-black/70 to-amber-950/50 backdrop-blur-md border-2 border-yellow-500/50 shadow-[0_0_25px_rgba(234,179,8,0.25)] cursor-pointer text-left flex items-center justify-between group active:scale-[0.98] transition-transform"
                   >
                     <div className="flex items-center gap-3.5">
                       <div className="w-12 h-12 rounded-2xl bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">
@@ -6957,7 +7158,7 @@ export default function CampusAIChat() {
                   <div className="grid grid-cols-2 gap-2.5">
                     <div
                       onClick={() => setCurrentWindow('card_studio')}
-                      className="p-3 rounded-2xl bg-gradient-to-br from-red-950/40 via-black to-black border border-red-500/40 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform"
+                      className="p-3 rounded-2xl bg-gradient-to-br from-red-950/50 via-black/65 to-black/70 backdrop-blur-md border border-red-500/40 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-2xl">🎴</span>
@@ -6976,10 +7177,10 @@ export default function CampusAIChat() {
                           setCurrentWindow('nuisance_cert');
                         }
                       }}
-                      className={`p-3 rounded-2xl bg-gradient-to-br text-left active:scale-[0.98] transition-transform cursor-pointer ${
+                      className={`p-3 rounded-2xl bg-gradient-to-br backdrop-blur-md text-left active:scale-[0.98] transition-transform cursor-pointer ${
                         isNuisanceUnlocked
-                          ? 'from-amber-950/40 via-black to-black border border-amber-500/40 hover:border-amber-400 shadow-lg'
-                          : 'from-zinc-950 via-black to-zinc-950 border border-zinc-700/60 opacity-80'
+                          ? 'from-amber-950/50 via-black/65 to-black/70 border border-amber-500/40 hover:border-amber-400 shadow-lg'
+                          : 'from-zinc-950/75 via-black/70 to-zinc-950/75 border border-zinc-700/60 opacity-90'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -7008,12 +7209,12 @@ export default function CampusAIChat() {
 
                 {/* 1. THE 4 MAIN OVERVIEW TILES */}
                 <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-3.5 max-w-4xl mx-auto pt-1">
-                  <div onClick={() => setCurrentWindow('faculty')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-pink-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
-                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-lg">👩‍🏫</div><span className="text-[10px] font-semibold text-pink-400">Dossiers</span></div>
+                  <div onClick={() => setCurrentWindow('faculty')} className="p-4.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-white/15 hover:border-pink-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-pink-500/15 border border-pink-500/25 flex items-center justify-center text-lg">👩‍🏫</div><span className="text-[10px] font-semibold text-pink-400">Dossiers</span></div>
                     <div><h3 className="text-sm font-bold text-white">Faculty Dossiers</h3><p className="text-[11px] text-gray-400 mt-0.5">Vibes, background &amp; survival tips</p></div>
                   </div>
-                  <div onClick={() => setCurrentWindow('timetable')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-amber-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
-                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-lg">⏰</div><span className="text-[10px] font-semibold text-amber-400">Live Status</span></div>
+                  <div onClick={() => setCurrentWindow('timetable')} className="p-4.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-white/15 hover:border-amber-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-lg">⏰</div><span className="text-[10px] font-semibold text-amber-400">Live Status</span></div>
                     <div>
                       <h3 className="text-sm font-bold text-white">Time Table</h3>
                       <div className="h-[18px] overflow-hidden relative mt-0.5">
@@ -7023,9 +7224,9 @@ export default function CampusAIChat() {
                       </div>
                     </div>
                   </div>
-                  <div onClick={() => setCurrentWindow('bunk_sgpa')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-yellow-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32 group">
+                  <div onClick={() => setCurrentWindow('bunk_sgpa')} className="p-4.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-white/15 hover:border-yellow-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32 group">
                     <div className="flex items-center justify-between">
-                      <div className="w-9 h-9 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">🛡️</div>
+                      <div className="w-9 h-9 rounded-xl bg-yellow-500/15 border border-yellow-500/25 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">🛡️</div>
                       <span className="text-[10px] font-semibold text-yellow-400">75% Buffer</span>
                     </div>
                     <div>
@@ -7033,8 +7234,8 @@ export default function CampusAIChat() {
                       <p className="text-[11px] text-gray-400 mt-0.5">Autonomous 75% rule &amp; SGPA calculator</p>
                     </div>
                   </div>
-                  <div onClick={() => setCurrentWindow('papers')} className="p-4.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-blue-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
-                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-lg">📄</div><span className="text-[10px] font-semibold text-emerald-400">All 10 Solved!</span></div>
+                  <div onClick={() => setCurrentWindow('papers')} className="p-4.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-white/15 hover:border-blue-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-lg">📄</div><span className="text-[10px] font-semibold text-emerald-400">All 10 Solved!</span></div>
                     <div><h3 className="text-sm font-bold text-white">Sample Papers &amp; Keys</h3><p className="text-[11px] text-gray-400 mt-0.5">MT-1, MT-2 &amp; Full Solved Keys</p></div>
                   </div>
                 </div>
@@ -7064,7 +7265,7 @@ export default function CampusAIChat() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div
                       onClick={() => setCurrentWindow('card_studio')}
-                      className="p-3.5 rounded-2xl bg-gradient-to-r from-red-950/40 via-black to-amber-950/30 hover:from-red-950/60 hover:to-amber-950/50 border border-red-500/40 hover:border-red-400 flex items-center justify-between cursor-pointer transition shadow-lg group"
+                      className="p-3.5 rounded-2xl bg-gradient-to-r from-red-950/50 via-black/60 to-amber-950/40 hover:from-red-950/65 hover:to-amber-950/55 backdrop-blur-md border border-red-500/40 hover:border-red-400 flex items-center justify-between cursor-pointer transition shadow-lg group"
                     >
                       <div className="flex items-center gap-3 text-left">
                         <span className="text-2xl group-hover:scale-110 transition-transform">🎴</span>
@@ -7079,7 +7280,7 @@ export default function CampusAIChat() {
                       <span className="text-[10px] font-bold text-amber-300 group-hover:translate-x-1 transition-transform">Claim ↗</span>
                     </div>
 
-                    <div onClick={() => setCurrentWindow('assignments')} className="p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-dashed border-amber-500/30 flex items-center justify-between cursor-pointer transition">
+                    <div onClick={() => setCurrentWindow('assignments')} className="p-3.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-dashed border-amber-500/35 flex items-center justify-between cursor-pointer transition">
                       <div className="flex items-center gap-3 text-left">
                         <span className="text-xl">📝</span>
                         <div>
@@ -7099,10 +7300,10 @@ export default function CampusAIChat() {
                           setCurrentWindow('nuisance_cert');
                         }
                       }}
-                      className={`p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-lg group ${
+                      className={`p-3.5 rounded-2xl backdrop-blur-md flex items-center justify-between cursor-pointer transition shadow-lg group ${
                         isNuisanceUnlocked
-                          ? 'bg-gradient-to-r from-amber-950/40 via-black to-red-950/30 hover:from-amber-950/60 hover:to-red-950/50 border border-amber-500/40 hover:border-amber-400'
-                          : 'bg-zinc-950 border border-zinc-700/60 opacity-80'
+                          ? 'bg-gradient-to-r from-amber-950/50 via-black/60 to-red-950/40 hover:from-amber-950/65 hover:to-red-950/55 border border-amber-500/40 hover:border-amber-400'
+                          : 'bg-zinc-950/65 border border-zinc-700/60 opacity-90'
                       }`}
                     >
                       <div className="flex items-center gap-3 text-left">
@@ -9192,6 +9393,8 @@ export default function CampusAIChat() {
           </form>
         </footer>
       </div>
+        </>
+      )}
 
       {/* 3D FLYING & ROLLING NUISANCE CERTIFICATE OVERLAY */}
       {isFlyingCertVisible && flyingCertificateProfile && (
@@ -9328,6 +9531,8 @@ export default function CampusAIChat() {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
