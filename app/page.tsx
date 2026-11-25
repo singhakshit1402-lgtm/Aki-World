@@ -6801,7 +6801,7 @@ export default function CampusAIChat() {
       )}
 
       {/* PURE 3D CINEMA MODE FLOATING HUD BAR (LAPTOP & PC ONLY) */}
-      {!currentUser || !isDesktopSky ? null : isPureCinemaMode ? (
+      {!currentUser ? null : isDesktopSky && isPureCinemaMode ? (
         <div className="fixed inset-x-0 bottom-5 z-50 flex justify-center px-3 pointer-events-none">
           <div className="glossy-panel pointer-events-auto w-full max-w-lg rounded-2xl border border-white/25 p-3.5 shadow-[0_0_50px_rgba(0,0,0,0.85)] space-y-2.5 animate-in fade-in slide-in-from-bottom-4 duration-200">
             <div className="flex items-center justify-between gap-2">
