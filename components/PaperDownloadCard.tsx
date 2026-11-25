@@ -60,22 +60,22 @@ const PaperDownloadCard = React.memo(function PaperDownloadCard({
   if (files.length === 0) return null;
 
   return (
-    <div className="my-4 rounded-2xl bg-white/[0.06] backdrop-blur-md border border-white/10 hover:border-red-500/40 transition shadow-lg overflow-hidden max-w-2xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 border-b border-white/[0.04]">
+    <div className="glossy-tile my-4 rounded-2xl border border-white/20 hover:border-red-400/55 transition shadow-xl overflow-hidden max-w-2xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 border-b border-white/[0.08]">
         <div className="flex items-center gap-3">
           <div
             aria-hidden="true"
             className={`w-10 h-10 rounded-xl ${
               isPdf
-                ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
-                : 'bg-red-500/10 border-red-500/20 text-red-400'
+                ? 'bg-amber-500/20 border-amber-400/40 text-amber-200'
+                : 'bg-red-500/15 border-red-400/35 text-red-300'
             } border flex items-center justify-center font-bold text-xs flex-shrink-0`}
           >
             {isPdf ? 'PDF' : files.length > 1 ? `${files.length}P` : 'IMG'}
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-white">{title}</h4>
-            <p className="text-xs text-gray-400">
+            <h4 className="text-sm font-bold text-white">{title}</h4>
+            <p className="text-xs text-gray-300">
               {isPdf
                 ? 'Official ABES Autonomous PDF Document'
                 : `Official Autonomous Paper • ${files.length} ${files.length > 1 ? 'Pages' : 'Page'}`}

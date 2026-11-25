@@ -425,17 +425,17 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
 
       {/* EMAIL-ONLY LOGIN BOX WITH RED & BLACK ikA EMBLEM */}
       {animationType === 'none' && (
-        <div className="relative w-full max-w-md p-8 rounded-3xl bg-[#090c14]/75 backdrop-blur-xl border border-red-500/35 shadow-[0_0_70px_rgba(220,38,38,0.22)] space-y-6 animate-in fade-in zoom-in-95 duration-200">
+        <div className="glossy-panel relative w-full max-w-[min(100%,28rem)] p-5 sm:p-8 rounded-3xl border border-red-500/45 shadow-[0_0_70px_rgba(220,38,38,0.28)] space-y-5 sm:space-y-6 animate-in fade-in zoom-in-95 duration-200">
           <div className="text-center space-y-2">
             {/* RED & BLACK ikA BOX */}
             <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-black via-zinc-950 to-red-900 border-2 border-red-600 flex items-center justify-center text-2xl font-black text-red-500 shadow-[0_0_25px_rgba(220,38,38,0.5)]">
               ikA
             </div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-[10px] font-bold text-red-400 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/35 text-[10px] font-bold text-red-300 uppercase tracking-widest">
               Section CSE-2 &amp; CSE-8 Smart Auto-Login
             </div>
             <h2 className="text-2xl font-extrabold text-white tracking-tight">Enter College Email</h2>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-gray-300 leading-relaxed">
               Naam likhne ki zaroorat nahi! Bas apni ABES email ID daalo, <strong className="text-red-400">ikA&apos;s Neural Roster</strong> tumhara Section (CSE-2 / CSE-8), Naam aur Lab Group khud pehchan lega! ✨
             </p>
           </div>

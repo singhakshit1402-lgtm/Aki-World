@@ -19,8 +19,10 @@ import {
 import ShinigamiUploadModal from '@/components/ShinigamiUploadModal';
 import CinematicSkyBackground, {
   getCelestialTimeInfo,
+  useIsDesktopSkyScreen,
   type CelestialTimeInfo,
 } from '@/components/CinematicSkyBackground';
+import StudentMoodPlaylists from '@/components/StudentMoodPlaylists';
 import type { TileUploadItem } from '@/app/api/upload/route';
 import {
   trySolveMathQuerySafe,
@@ -173,7 +175,7 @@ type HorrorStingerType = 'ryuk_laugh' | 'bell' | 'thunder' | null;
 type WindowView =
   | 'home'
   | 'papers'
-  | 'docguide'
+  | 'playlists'
   | 'marketplace'
   | 'timetable'
   | 'bunk_sgpa'
@@ -2907,15 +2909,15 @@ const LIVE_EFFECTS_STORAGE_KEY = 'campus_shinigami_effects_v3';
 
 function MoreComingSoonBanner({ sectionName }: { sectionName: string }) {
   return (
-    <div className="mt-8 p-5 rounded-3xl bg-gradient-to-r from-red-950/30 via-black/80 to-purple-950/30 border border-dashed border-red-500/40 text-center space-y-2 shadow-lg">
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] font-mono font-bold text-amber-300 uppercase tracking-widest">
+    <div className="glossy-accent-sheen mt-8 p-5 rounded-3xl bg-gradient-to-r from-red-950/55 via-[#090c16]/90 to-purple-950/55 border border-dashed border-red-400/45 text-center space-y-2 shadow-xl">
+      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-[10px] font-mono font-bold text-amber-200 uppercase tracking-widest">
         <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
         🚧 ikA&apos;s Lab Pipeline
       </div>
       <h4 className="text-base sm:text-lg font-black text-white tracking-wide uppercase">
         ✨ More Coming Soon in {sectionName}... ⚡
       </h4>
-      <p className="text-xs text-gray-400 max-w-xl mx-auto">
+      <p className="text-xs text-gray-200 max-w-xl mx-auto">
         Supreme Architect <strong className="text-red-400">Boss ikA</strong> is cooking more exclusive features, live data, and secret upgrades for this section. Stay tuned! 🍎💀
       </p>
     </div>
@@ -3134,7 +3136,8 @@ export default function CampusAIChat() {
   const [pushSubscriberCount, setPushSubscriberCount] = useState<number>(0);
   const [broadcastDeliveryNote, setBroadcastDeliveryNote] = useState<string>('');
 
-  // REAL-TIME 3D SKY & SUN/MOON ATMOSPHERE CONTROLS
+  // REAL-TIME 3D SKY & SUN/MOON ATMOSPHERE CONTROLS (LAPTOP/PC DESKTOP ONLY)
+  const isDesktopSky = useIsDesktopSkyScreen();
   const [skyHourOverride, setSkyHourOverride] = useState<number | null>(null);
   const [isSkyControlsOpen, setIsSkyControlsOpen] = useState<boolean>(false);
   const [isPureCinemaMode, setIsPureCinemaMode] = useState<boolean>(false);
@@ -5605,14 +5608,14 @@ export default function CampusAIChat() {
     );
   }
 
-  const globalBgColor = isBoss ? 'bg-[#120408]/60 backdrop-blur-xl' : 'bg-[#080b14]/55 backdrop-blur-xl';
-  const sidebarBgColor = isBoss ? 'bg-[#120307]/75 backdrop-blur-2xl' : 'bg-[#0a0d16]/75 backdrop-blur-2xl';
+  const globalBgColor = isBoss ? 'glossy-bar bg-[#14040a]/85' : 'glossy-bar';
+  const sidebarBgColor = isBoss ? 'glossy-panel bg-[#120308]/90' : 'glossy-panel';
   const accentText = isBoss ? 'text-red-400' : 'text-blue-400';
   const accentBg = isBoss ? 'bg-red-600' : 'bg-blue-600';
   const accentBorder = isBoss ? 'border-red-500/40' : 'border-blue-500/30';
   const themeClasses = isBoss
-    ? 'bg-red-950/35 backdrop-blur-md text-red-100 border-red-500/35 shadow-red-950/20'
-    : 'bg-black/45 backdrop-blur-md text-gray-200 border-white/15 shadow-black/30';
+    ? 'glossy-accent-sheen bg-gradient-to-br from-red-950/80 via-[#12050a]/88 to-black/88 text-red-50 border-red-400/45 shadow-red-950/35'
+    : 'glossy-tile text-gray-100 border-white/20 shadow-black/50';
 
   const ikaRedBlackBox = 'bg-gradient-to-tr from-red-700 via-black to-zinc-950 border border-red-500/60 text-white shadow-md shadow-red-950/80';
 
@@ -5826,8 +5829,8 @@ export default function CampusAIChat() {
         }
       `}</style>
 
-      {/* FLOATING SAKURA PETALS / CRIMSON EMBERS */}
-      {showSakuraPetals && currentUser && (
+      {/* FLOATING SAKURA PETALS / CRIMSON EMBERS (LAPTOP & PC DESKTOP ONLY) */}
+      {isDesktopSky && showSakuraPetals && currentUser && (
         <div className="fixed inset-0 pointer-events-none z-20 overflow-hidden">
           {FLOATING_PARTICLES.map((pt, idx) => (
             <div key={idx} className={`absolute -top-8 ${pt.size} select-none`} style={{ left: pt.left, animation: `sakuraFall ${pt.duration} linear infinite`, animationDelay: pt.delay }}>
@@ -6709,9 +6712,9 @@ export default function CampusAIChat() {
         </div>
       )}
 
-      {/* 3D REAL-TIME SKY CLOCK & ATMOSPHERE CONTROLS POPOVER */}
-      {isSkyControlsOpen && !isPureCinemaMode && (
-        <div className="fixed top-[68px] right-3 sm:right-6 z-[120] w-80 max-w-[calc(100vw-24px)] p-4 rounded-2xl bg-[#070a12]/85 backdrop-blur-2xl border border-sky-400/35 shadow-[0_0_50px_rgba(14,165,233,0.3)] space-y-3 animate-in fade-in zoom-in-95 duration-150">
+      {/* 3D REAL-TIME SKY CLOCK & ATMOSPHERE CONTROLS POPOVER (LAPTOP & PC ONLY) */}
+      {isDesktopSky && isSkyControlsOpen && !isPureCinemaMode && (
+        <div className="glossy-panel fixed top-[68px] right-3 sm:right-6 z-[120] w-80 max-w-[calc(100vw-24px)] p-4 rounded-2xl border border-sky-400/45 shadow-[0_0_50px_rgba(14,165,233,0.35)] space-y-3 animate-in fade-in zoom-in-95 duration-150">
           <div className="flex items-center justify-between border-b border-white/10 pb-2">
             <div>
               <h4 className="text-xs font-black text-white flex items-center gap-1.5">
@@ -6797,10 +6800,10 @@ export default function CampusAIChat() {
         </div>
       )}
 
-      {/* PURE 3D CINEMA MODE FLOATING HUD BAR */}
-      {!currentUser ? null : isPureCinemaMode ? (
+      {/* PURE 3D CINEMA MODE FLOATING HUD BAR (LAPTOP & PC ONLY) */}
+      {!currentUser || !isDesktopSky ? null : isPureCinemaMode ? (
         <div className="fixed inset-x-0 bottom-5 z-50 flex justify-center px-3 pointer-events-none">
-          <div className="pointer-events-auto w-full max-w-lg rounded-2xl bg-black/55 backdrop-blur-2xl border border-white/20 p-3.5 shadow-[0_0_50px_rgba(0,0,0,0.85)] space-y-2.5 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="glossy-panel pointer-events-auto w-full max-w-lg rounded-2xl border border-white/25 p-3.5 shadow-[0_0_50px_rgba(0,0,0,0.85)] space-y-2.5 animate-in fade-in slide-in-from-bottom-4 duration-200">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-bold text-white">
                 <span className="text-base">{liveSkyInfo.phaseIcon}</span>
@@ -6870,40 +6873,43 @@ export default function CampusAIChat() {
             <button onClick={handleCreateNewChat} className={`w-full flex items-center justify-center gap-2 ${isBoss ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300' : 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300'} hover:text-white text-xs font-semibold px-4 py-2.5 rounded-xl border ${accentBorder} transition shadow-sm cursor-pointer`}>
               <span>＋</span> New Chat
             </button>
-            <div className="space-y-1 pt-1 border-t border-white/[0.06]">
-              <p className="px-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Portals &amp; Tools</p>
-              <button onClick={() => {setCurrentWindow('home'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'home' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>⊞</span> Overview Tiles</button>
+            <div className="space-y-1 pt-1 border-t border-white/[0.10]">
+              <p className="px-2 text-[10px] font-bold uppercase tracking-wider text-gray-300 mb-1">Portals &amp; Tools</p>
+              <button onClick={() => {setCurrentWindow('home'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'home' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}><span>⊞</span> Overview Tiles</button>
               {isBoss && (
-                <button onClick={() => {setCurrentWindow('shinigami'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentWindow === 'shinigami' ? 'bg-red-600 text-white shadow-lg' : 'bg-red-500/15 text-red-300 hover:bg-red-500/25 border border-red-500/30'}`}>
+                <button onClick={() => {setCurrentWindow('shinigami'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentWindow === 'shinigami' ? 'bg-red-600 text-white shadow-lg' : 'bg-red-500/20 text-red-200 hover:bg-red-500/30 border border-red-500/35'}`}>
                   <span className="flex items-center gap-2"><span>👁️</span> Shinigami Eyes</span>
                   <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-black/50 text-red-300">1402</span>
                 </button>
               )}
-              <button onClick={() => {setCurrentWindow('faculty'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'faculty' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>👩‍🏫</span> Faculty Dossiers</button>
-              <button onClick={() => {setCurrentWindow('bunk_sgpa'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'bunk_sgpa' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}>
+              <button onClick={() => {setCurrentWindow('faculty'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'faculty' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}><span>👩‍🏫</span> Faculty Dossiers</button>
+              <button onClick={() => {setCurrentWindow('bunk_sgpa'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'bunk_sgpa' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}>
                 <span className="flex items-center gap-2"><span>🛡️🧮</span> Safe Bunk &amp; SGPA</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">2-IN-1</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-200 border border-cyan-500/35 font-mono">2-IN-1</span>
               </button>
-              <button onClick={() => {setCurrentWindow('card_studio'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentWindow === 'card_studio' ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg' : 'text-red-200 hover:bg-red-500/10 border border-red-500/20'}`}>
+              <button onClick={() => {setCurrentWindow('card_studio'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${currentWindow === 'card_studio' ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg' : 'text-red-100 hover:bg-red-500/15 border border-red-500/25'}`}>
                 <span className="flex items-center gap-2"><span>🎴</span> Mera ikA World Card</span>
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-600 text-white font-mono font-bold animate-pulse">PRO 3D</span>
               </button>
-              <button onClick={() => {setCurrentWindow('canteen'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'canteen' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}>
+              <button onClick={() => {setCurrentWindow('canteen'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'canteen' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}>
                 <span className="flex items-center gap-2"><span>🍔</span> Canteen Menus</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">LIVE</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-200 border border-emerald-500/35 font-mono">LIVE</span>
               </button>
-              <button onClick={() => {setCurrentWindow('papers'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'papers' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>📄</span> Solved Sample Papers</button>
-              <button onClick={() => {setCurrentWindow('placement'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'placement' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>🎯</span> Placement &amp; Packages</button>
-              <button onClick={() => {setCurrentWindow('timetable'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'timetable' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>⏰</span> Class Time Table</button>
-              <button onClick={() => {setCurrentWindow('docguide'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'docguide' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>📋</span> UP Scholarship Guide</button>
-              <button onClick={() => {setCurrentWindow('marketplace'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'marketplace' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}><span>🛒</span> P2P Marketplace</button>
-              <button onClick={() => {setCurrentWindow('cabin'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'cabin' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}>
+              <button onClick={() => {setCurrentWindow('papers'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'papers' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}><span>📄</span> Solved Sample Papers</button>
+              <button onClick={() => {setCurrentWindow('placement'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'placement' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}><span>🎯</span> Placement &amp; Packages</button>
+              <button onClick={() => {setCurrentWindow('timetable'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'timetable' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}><span>⏰</span> Class Time Table</button>
+              <button onClick={() => {setCurrentWindow('playlists'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-between cursor-pointer ${currentWindow === 'playlists' ? 'bg-gradient-to-r from-rose-600/80 to-purple-600/80 text-white border border-rose-300/40 shadow-lg' : 'text-rose-100 hover:bg-rose-500/15 border border-rose-400/20'}`}>
+                <span className="flex items-center gap-2"><span>🎵</span> Student Mood Playlists</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/25 text-rose-200 border border-rose-400/40 font-mono">8 MOODS</span>
+              </button>
+              <button onClick={() => {setCurrentWindow('marketplace'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 cursor-pointer ${currentWindow === 'marketplace' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}><span>🛒</span> P2P Marketplace</button>
+              <button onClick={() => {setCurrentWindow('cabin'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'cabin' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}>
                 <span className="flex items-center gap-2"><span>🧭</span> Cabin Navigator</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">SOON</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-200 border border-amber-500/35 font-mono">SOON</span>
               </button>
-              <button onClick={() => {setCurrentWindow('assignments'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'assignments' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5'}`}>
+              <button onClick={() => {setCurrentWindow('assignments'); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between cursor-pointer ${currentWindow === 'assignments' ? 'bg-white/15 text-white border border-white/20 shadow-md' : 'text-gray-200 hover:bg-white/10 hover:text-white'}`}>
                 <span className="flex items-center gap-2"><span>📝</span> Assignment Tracker</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">SOON</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-200 border border-amber-500/35 font-mono">SOON</span>
               </button>
             </div>
 
@@ -6952,7 +6958,7 @@ export default function CampusAIChat() {
               <div className={`w-8 h-8 rounded-xl ${ikaRedBlackBox} flex items-center justify-center font-black text-xs`}>ikA</div>
               <div>
                 <h2 className="font-bold text-xs sm:text-sm tracking-wide text-white group-hover:text-red-400 transition-colors">Campus Portal</h2>
-                <span className="text-[10px] text-gray-400 block tracking-wider uppercase">{currentWindow === 'home' ? 'Overview' : currentWindow.toUpperCase()}</span>
+                <span className="text-[10px] text-gray-300 block tracking-wider uppercase">{currentWindow === 'home' ? 'Overview' : currentWindow === 'playlists' ? 'Mood Playlists' : currentWindow.toUpperCase()}</span>
               </div>
             </button>
           </div>
@@ -6979,25 +6985,29 @@ export default function CampusAIChat() {
                 💬 Boss ikA ({directChatMessages.length})
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => setIsSkyControlsOpen((prev) => !prev)}
-              title="3D Real-Time Sky & Sun/Moon Clock"
-              className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer flex items-center gap-1.5 backdrop-blur-md ${
-                skyHourOverride === null
-                  ? 'bg-sky-500/15 border-sky-400/40 text-sky-200 hover:bg-sky-500/25 shadow-[0_0_15px_rgba(56,189,248,0.2)]'
-                  : 'bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
-              }`}
-            >
-              <span>{liveSkyInfo.phaseIcon}</span>
-              <span className="hidden sm:inline font-mono">{liveSkyInfo.formattedTime}</span>
-              <span className="hidden xl:inline text-[10px] opacity-85">
-                {skyHourOverride === null ? '• Live 3D' : '• Preview'}
-              </span>
-            </button>
-            <button type="button" onClick={() => setShowSakuraPetals(!showSakuraPetals)} className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer ${showSakuraPetals ? 'bg-pink-500/15 border-pink-500/40 text-pink-300' : 'bg-white/[0.05] border-white/10 text-gray-400 hover:text-white'}`}>
-              🌸 <span className="hidden sm:inline">{showSakuraPetals ? 'Petals' : 'Off'}</span>
-            </button>
+            {isDesktopSky && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsSkyControlsOpen((prev) => !prev)}
+                  title="3D Real-Time Sky & Sun/Moon Clock (Laptop/PC)"
+                  className={`hidden lg:flex px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer items-center gap-1.5 backdrop-blur-md shadow-inner ${
+                    skyHourOverride === null
+                      ? 'bg-sky-500/20 border-sky-300/45 text-sky-100 hover:bg-sky-500/30 shadow-[0_0_15px_rgba(56,189,248,0.25)]'
+                      : 'bg-amber-500/25 border-amber-300/55 text-amber-100 hover:bg-amber-500/35 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
+                  }`}
+                >
+                  <span>{liveSkyInfo.phaseIcon}</span>
+                  <span className="font-mono">{liveSkyInfo.formattedTime}</span>
+                  <span className="hidden xl:inline text-[10px] opacity-90">
+                    {skyHourOverride === null ? '• Live 3D' : '• Preview'}
+                  </span>
+                </button>
+                <button type="button" onClick={() => setShowSakuraPetals(!showSakuraPetals)} className={`hidden lg:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer ${showSakuraPetals ? 'bg-pink-500/20 border-pink-400/45 text-pink-200' : 'bg-white/[0.08] border-white/15 text-gray-200 hover:text-white'}`}>
+                  🌸 <span>{showSakuraPetals ? 'Petals' : 'Off'}</span>
+                </button>
+              </>
+            )}
             <button onClick={toggleMusic} className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold transition cursor-pointer ${isMusicPlaying ? 'bg-red-600/20 border-red-500/50 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.35)]' : 'bg-white/[0.05] border-white/10 text-gray-400 hover:text-white'}`}>
               <span>{isMusicPlaying ? '🔊' : '🔇'}</span>
               <span className="hidden sm:inline font-mono">BGM</span>
@@ -7058,18 +7068,19 @@ export default function CampusAIChat() {
         </div>
 
         {/* COUNTDOWN BANNER STRIP */}
-        <div className="flex-shrink-0 bg-gradient-to-r from-red-950/40 via-purple-950/35 to-blue-950/40 backdrop-blur-md border-b border-white/[0.08] px-4 sm:px-6 py-2 flex items-center justify-between text-xs overflow-x-auto gap-4">
+        <div className="glossy-bar flex-shrink-0 border-b border-white/[0.14] px-4 sm:px-6 py-2 flex items-center justify-between text-xs overflow-x-auto gap-4">
           <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
-            <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-blue-400 font-bold">MT-2 Exam:</span><span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono font-semibold">{countdowns.mt2} days left</span></div>
-            <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-purple-400 font-bold">Make-Up / PUE:</span><span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono font-semibold">{countdowns.pue} days left</span></div>
-            <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-emerald-400 font-bold">End Semester:</span><span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-semibold">{countdowns.endSem} days left</span></div>
+            <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-blue-300 font-bold">MT-2 Exam:</span><span className="px-2 py-0.5 rounded bg-blue-500/25 border border-blue-400/35 text-blue-100 font-mono font-semibold">{countdowns.mt2} days left</span></div>
+            <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-purple-300 font-bold">Make-Up / PUE:</span><span className="px-2 py-0.5 rounded bg-purple-500/25 border border-purple-400/35 text-purple-100 font-mono font-semibold">{countdowns.pue} days left</span></div>
+            <div className="flex items-center gap-2 whitespace-nowrap"><span className="text-emerald-300 font-bold">End Semester:</span><span className="px-2 py-0.5 rounded bg-emerald-500/25 border border-emerald-400/35 text-emerald-100 font-mono font-semibold">{countdowns.endSem} days left</span></div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            {isBoss ? (<button type="button" onClick={() => handleOpenUploadModal('home')} className="text-[11px] text-red-400 hover:underline font-bold whitespace-nowrap cursor-pointer">⛩️ Upload File</button>) : null}
-            <button type="button" onClick={() => setCurrentWindow('canteen')} className="text-[11px] text-emerald-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🍔 Canteen Menus</button>
-            <button onClick={() => setCurrentWindow('bunk_sgpa')} className="text-[11px] text-cyan-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🛡️🧮 Bunk &amp; SGPA</button>
-            <button onClick={() => sendQuery('Ek mast campus joke sunao 😂', true)} className="text-[11px] text-amber-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">😂 250+ Jokes</button>
-            <button onClick={() => { triggerMovieWhiteFlash(); setBossIntroTime(0); setCurrentWindow('boss_intro'); if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {}); } }} className="text-[11px] text-red-400 hover:underline font-semibold whitespace-nowrap cursor-pointer">🍎 Replay Intro</button>
+            {isBoss ? (<button type="button" onClick={() => handleOpenUploadModal('home')} className="text-[11px] text-red-300 hover:underline font-bold whitespace-nowrap cursor-pointer">⛩️ Upload File</button>) : null}
+            <button type="button" onClick={() => setCurrentWindow('playlists')} className="text-[11px] text-rose-300 hover:underline font-bold whitespace-nowrap cursor-pointer">🎵 Mood Playlists</button>
+            <button type="button" onClick={() => setCurrentWindow('canteen')} className="text-[11px] text-emerald-300 hover:underline font-semibold whitespace-nowrap cursor-pointer">🍔 Canteen Menus</button>
+            <button onClick={() => setCurrentWindow('bunk_sgpa')} className="text-[11px] text-cyan-300 hover:underline font-semibold whitespace-nowrap cursor-pointer">🛡️🧮 Bunk &amp; SGPA</button>
+            <button onClick={() => sendQuery('Ek mast campus joke sunao 😂', true)} className="text-[11px] text-amber-300 hover:underline font-semibold whitespace-nowrap cursor-pointer">😂 250+ Jokes</button>
+            <button onClick={() => { triggerMovieWhiteFlash(); setBossIntroTime(0); setCurrentWindow('boss_intro'); if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {}); } }} className="text-[11px] text-red-300 hover:underline font-semibold whitespace-nowrap cursor-pointer">🍎 Replay Intro</button>
           </div>
         </div>
 
@@ -7117,7 +7128,7 @@ export default function CampusAIChat() {
               <div className={`absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${isBoss ? 'from-red-900/20 via-black/15 to-transparent' : 'from-black/20 via-transparent to-transparent'} opacity-75 pointer-events-none`} />
               <div className="w-full max-w-4xl space-y-4 text-center relative z-10 animate-in fade-in zoom-in-95 duration-200 py-3 sm:py-6">
                 <div className="space-y-2 mb-1">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-red-500/35 text-[11px] font-bold text-red-400 tracking-widest uppercase shadow-md">
+                  <span className="glossy-tile inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-red-500/40 text-[11px] font-bold text-red-300 tracking-widest uppercase shadow-md">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" /> {isBoss ? '👑 SUPREME SANCTUM OF BOSS ikA (1402)' : '💀 Sovereign Realm of ikA • Section CSE-2 🍎'}
                   </span>
                   <h1 className={`text-3xl sm:text-4xl md:text-5xl font-black font-serif tracking-widest uppercase leading-tight ${isBoss ? 'text-red-500 drop-shadow-[0_4px_30px_rgba(220,38,38,1)]' : 'text-red-500 drop-shadow-[0_4px_28px_rgba(0,0,0,0.95)]'} animate-pulse`}>
@@ -7126,8 +7137,8 @@ export default function CampusAIChat() {
                   <p className="text-base md:text-xl font-bold text-white tracking-wide drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
                     {isBoss ? '👑 Pranaam Supreme Boss ikA!' : `Hi ${currentUser?.name || 'Engineer'}! 👋✨`}
                   </p>
-                  <div onClick={() => setCurrentWindow('chat')} className={`max-w-2xl mx-auto p-3 rounded-2xl bg-black/50 backdrop-blur-md border ${accentBorder} shadow-[0_0_25px_rgba(0,0,0,0.5)] text-xs sm:text-sm font-mono leading-relaxed cursor-pointer hover:border-white/40 transition`}>
-                    <span className="text-red-200">{overviewBossWhisper}</span>
+                  <div onClick={() => setCurrentWindow('chat')} className={`glossy-panel max-w-2xl mx-auto p-3 rounded-2xl border ${accentBorder} shadow-[0_0_25px_rgba(0,0,0,0.6)] text-xs sm:text-sm font-mono leading-relaxed cursor-pointer hover:border-white/40 transition`}>
+                    <span className="text-red-100">{overviewBossWhisper}</span>
                     <span className="inline-block w-2 h-4 ml-1 bg-red-500 animate-ping align-middle" />
                   </div>
                 </div>
@@ -7137,10 +7148,10 @@ export default function CampusAIChat() {
                   {/* HERO SAFE BUNK TILE FOR MOBILE */}
                   <div
                     onClick={() => setCurrentWindow('bunk_sgpa')}
-                    className="p-4 rounded-2xl bg-gradient-to-r from-yellow-950/60 via-black/70 to-amber-950/50 backdrop-blur-md border-2 border-yellow-500/50 shadow-[0_0_25px_rgba(234,179,8,0.25)] cursor-pointer text-left flex items-center justify-between group active:scale-[0.98] transition-transform"
+                    className="glossy-accent-sheen p-4 rounded-2xl bg-gradient-to-r from-yellow-950/75 via-[#100e08]/88 to-amber-950/75 border-2 border-yellow-400/55 shadow-[0_0_25px_rgba(234,179,8,0.28)] cursor-pointer text-left flex items-center justify-between group active:scale-[0.98] transition-transform"
                   >
                     <div className="flex items-center gap-3.5">
-                      <div className="w-12 h-12 rounded-2xl bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">
+                      <div className="w-12 h-12 rounded-2xl bg-yellow-500/20 border border-yellow-400/50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner">
                         🛡️
                       </div>
                       <div>
@@ -7148,24 +7159,24 @@ export default function CampusAIChat() {
                           <h3 className="text-sm font-black text-white group-hover:text-yellow-300 transition-colors">Safe Bunk &amp; SGPA</h3>
                           <span className="text-[9px] font-mono font-black px-1.5 py-0.5 rounded bg-yellow-500 text-black">75% BUFFER</span>
                         </div>
-                        <p className="text-[11px] text-gray-300 mt-0.5 leading-snug">Autonomous 75% rule &amp; SGPA calculator — calculate exact safe bunks!</p>
+                        <p className="text-[11px] text-gray-200 mt-0.5 leading-snug">Autonomous 75% rule &amp; SGPA calculator — calculate exact safe bunks!</p>
                       </div>
                     </div>
-                    <span className="text-yellow-400 font-bold text-xs ml-2">Open ↗</span>
+                    <span className="text-yellow-300 font-bold text-xs ml-2">Open ↗</span>
                   </div>
 
                   {/* MOBILE 2-GRID: Mera ikA Card & Nuisance Certificate */}
                   <div className="grid grid-cols-2 gap-2.5">
                     <div
                       onClick={() => setCurrentWindow('card_studio')}
-                      className="p-3 rounded-2xl bg-gradient-to-br from-red-950/50 via-black/65 to-black/70 backdrop-blur-md border border-red-500/40 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform"
+                      className="glossy-accent-sheen p-3 rounded-2xl bg-gradient-to-br from-red-950/70 via-[#10080c]/88 to-black/88 border border-red-400/45 shadow-lg cursor-pointer text-left active:scale-[0.98] transition-transform"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-2xl">🎴</span>
                         <span className="text-[8px] font-mono px-1 rounded bg-red-600 text-white font-bold">3D CARD</span>
                       </div>
                       <h4 className="text-xs font-black text-white mt-1.5">Mera ikA Card</h4>
-                      <p className="text-[10px] text-gray-400 mt-0.5">Claim Hinglish soul card</p>
+                      <p className="text-[10px] text-gray-200 mt-0.5">Claim Hinglish soul card</p>
                     </div>
 
                     <div
@@ -7177,10 +7188,10 @@ export default function CampusAIChat() {
                           setCurrentWindow('nuisance_cert');
                         }
                       }}
-                      className={`p-3 rounded-2xl bg-gradient-to-br backdrop-blur-md text-left active:scale-[0.98] transition-transform cursor-pointer ${
+                      className={`glossy-accent-sheen p-3 rounded-2xl bg-gradient-to-br text-left active:scale-[0.98] transition-transform cursor-pointer ${
                         isNuisanceUnlocked
-                          ? 'from-amber-950/50 via-black/65 to-black/70 border border-amber-500/40 hover:border-amber-400 shadow-lg'
-                          : 'from-zinc-950/75 via-black/70 to-zinc-950/75 border border-zinc-700/60 opacity-90'
+                          ? 'from-amber-950/70 via-[#120e07]/88 to-black/88 border border-amber-400/50 hover:border-amber-300 shadow-lg'
+                          : 'from-zinc-900/85 via-[#090c14]/90 to-zinc-950/90 border border-white/20'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -7189,7 +7200,7 @@ export default function CampusAIChat() {
                           className={`text-[8px] font-mono px-1.5 py-0.5 rounded font-bold ${
                             isNuisanceUnlocked
                               ? 'bg-amber-500 text-black'
-                              : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                              : 'bg-zinc-800 text-zinc-200 border border-zinc-600'
                           }`}
                         >
                           {isNuisanceUnlocked ? 'READY ✨' : 'LOCKED 🔒'}
@@ -7198,45 +7209,63 @@ export default function CampusAIChat() {
                       <h4 className="text-xs font-black text-white mt-1.5">
                         {isNuisanceUnlocked ? 'My Nuisance Degree' : 'Nuisance Degree (Locked)'}
                       </h4>
-                      <p className="text-[10px] text-gray-400 mt-0.5">
+                      <p className="text-[10px] text-gray-200 mt-0.5">
                         {isNuisanceUnlocked
                           ? 'View, customize & download degree'
                           : 'Tap to ask in chat & unlock degree! 🔒'}
                       </p>
                     </div>
                   </div>
+
+                  {/* MOBILE MOOD PLAYLIST QUICK TILE */}
+                  <div
+                    onClick={() => setCurrentWindow('playlists')}
+                    className="glossy-accent-sheen p-3.5 rounded-2xl bg-gradient-to-r from-rose-950/75 via-[#13091a]/88 to-indigo-950/75 border border-rose-400/45 shadow-lg cursor-pointer text-left flex items-center justify-between active:scale-[0.98] transition-transform"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🎵</span>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="text-xs font-black text-white">Student Mood Playlists</h4>
+                          <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-rose-500 text-white font-bold">8 MOODS</span>
+                        </div>
+                        <p className="text-[10px] text-gray-200 mt-0.5">Ishq Di Bajiyaan, Motivation, Focus • Open in Spotify / YT</p>
+                      </div>
+                    </div>
+                    <span className="text-rose-300 font-bold text-xs">Play ↗</span>
+                  </div>
                 </div>
 
                 {/* 1. THE 4 MAIN OVERVIEW TILES */}
                 <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-3.5 max-w-4xl mx-auto pt-1">
-                  <div onClick={() => setCurrentWindow('faculty')} className="p-4.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-white/15 hover:border-pink-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
-                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-pink-500/15 border border-pink-500/25 flex items-center justify-center text-lg">👩‍🏫</div><span className="text-[10px] font-semibold text-pink-400">Dossiers</span></div>
-                    <div><h3 className="text-sm font-bold text-white">Faculty Dossiers</h3><p className="text-[11px] text-gray-400 mt-0.5">Vibes, background &amp; survival tips</p></div>
+                  <div onClick={() => setCurrentWindow('faculty')} className="glossy-tile p-4.5 rounded-2xl border border-white/20 hover:border-pink-400/60 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-pink-500/20 border border-pink-400/35 flex items-center justify-center text-lg">👩‍🏫</div><span className="text-[10px] font-semibold text-pink-300">Dossiers</span></div>
+                    <div><h3 className="text-sm font-bold text-white">Faculty Dossiers</h3><p className="text-[11px] text-gray-200 mt-0.5">Vibes, background &amp; survival tips</p></div>
                   </div>
-                  <div onClick={() => setCurrentWindow('timetable')} className="p-4.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-white/15 hover:border-amber-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
-                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-lg">⏰</div><span className="text-[10px] font-semibold text-amber-400">Live Status</span></div>
+                  <div onClick={() => setCurrentWindow('timetable')} className="glossy-tile p-4.5 rounded-2xl border border-white/20 hover:border-amber-400/60 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/35 flex items-center justify-center text-lg">⏰</div><span className="text-[10px] font-semibold text-amber-300">Live Status</span></div>
                     <div>
                       <h3 className="text-sm font-bold text-white">Time Table</h3>
                       <div className="h-[18px] overflow-hidden relative mt-0.5">
                         <div className="transition-transform duration-500 ease-in-out flex flex-col" style={{ transform: `translateY(-${tickerIndex * 18}px)` }}>
-                          {tickerItems.map((item, idx) => (<p key={idx} className="text-[11px] text-gray-400 h-[18px] flex items-center whitespace-nowrap">{item}</p>))}
+                          {tickerItems.map((item, idx) => (<p key={idx} className="text-[11px] text-gray-200 h-[18px] flex items-center whitespace-nowrap">{item}</p>))}
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div onClick={() => setCurrentWindow('bunk_sgpa')} className="p-4.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-white/15 hover:border-yellow-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32 group">
+                  <div onClick={() => setCurrentWindow('bunk_sgpa')} className="glossy-tile p-4.5 rounded-2xl border border-white/20 hover:border-yellow-400/60 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32 group">
                     <div className="flex items-center justify-between">
-                      <div className="w-9 h-9 rounded-xl bg-yellow-500/15 border border-yellow-500/25 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">🛡️</div>
-                      <span className="text-[10px] font-semibold text-yellow-400">75% Buffer</span>
+                      <div className="w-9 h-9 rounded-xl bg-yellow-500/20 border border-yellow-400/35 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">🛡️</div>
+                      <span className="text-[10px] font-semibold text-yellow-300">75% Buffer</span>
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-white group-hover:text-yellow-300 transition-colors">Safe Bunk &amp; SGPA</h3>
-                      <p className="text-[11px] text-gray-400 mt-0.5">Autonomous 75% rule &amp; SGPA calculator</p>
+                      <p className="text-[11px] text-gray-200 mt-0.5">Autonomous 75% rule &amp; SGPA calculator</p>
                     </div>
                   </div>
-                  <div onClick={() => setCurrentWindow('papers')} className="p-4.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-white/15 hover:border-blue-500/40 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
-                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-lg">📄</div><span className="text-[10px] font-semibold text-emerald-400">All 10 Solved!</span></div>
-                    <div><h3 className="text-sm font-bold text-white">Sample Papers &amp; Keys</h3><p className="text-[11px] text-gray-400 mt-0.5">MT-1, MT-2 &amp; Full Solved Keys</p></div>
+                  <div onClick={() => setCurrentWindow('papers')} className="glossy-tile p-4.5 rounded-2xl border border-white/20 hover:border-blue-400/60 shadow-xl transition-all cursor-pointer text-left flex flex-col justify-between h-32">
+                    <div className="flex items-center justify-between"><div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/35 flex items-center justify-center text-lg">📄</div><span className="text-[10px] font-semibold text-emerald-300">All 10 Solved!</span></div>
+                    <div><h3 className="text-sm font-bold text-white">Sample Papers &amp; Keys</h3><p className="text-[11px] text-gray-200 mt-0.5">MT-1, MT-2 &amp; Full Solved Keys</p></div>
                   </div>
                 </div>
 
@@ -7253,42 +7282,59 @@ export default function CampusAIChat() {
                   />
                 </div>
 
-                {/* 2. UPCOMING / COMING SOON TILES DIRECTLY UNDER THE 4 TILES (HIDDEN ON MOBILE) */}
+                {/* 2. UPCOMING / COMING SOON & STUDIO TILES DIRECTLY UNDER THE 4 TILES (HIDDEN ON MOBILE) */}
                 <div className="hidden md:block max-w-4xl mx-auto pt-2 space-y-2">
                   <div className="flex items-center justify-between px-1">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 flex items-center gap-1.5">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-300 flex items-center gap-1.5 drop-shadow">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                      🚧 Upcoming Expansions in ikA&apos;s Lab (Coming Soon)
+                      🚧 Upcoming Expansions &amp; Vibes in ikA&apos;s Lab
                     </span>
-                    <span className="text-[10px] text-gray-500 font-mono">v2.0 Pipeline</span>
+                    <span className="text-[10px] text-gray-200 font-mono">v2.0 Pipeline</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div
-                      onClick={() => setCurrentWindow('card_studio')}
-                      className="p-3.5 rounded-2xl bg-gradient-to-r from-red-950/50 via-black/60 to-amber-950/40 hover:from-red-950/65 hover:to-amber-950/55 backdrop-blur-md border border-red-500/40 hover:border-red-400 flex items-center justify-between cursor-pointer transition shadow-lg group"
+                      onClick={() => setCurrentWindow('playlists')}
+                      className="glossy-accent-sheen p-3.5 rounded-2xl bg-gradient-to-r from-rose-950/75 via-[#130a1c]/88 to-indigo-950/75 border border-rose-400/45 hover:border-rose-300 flex items-center justify-between cursor-pointer transition shadow-lg group"
                     >
-                      <div className="flex items-center gap-3 text-left">
-                        <span className="text-2xl group-hover:scale-110 transition-transform">🎴</span>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h4 className="text-xs font-bold text-white">Mera ikA World Card</h4>
-                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-600 text-white font-bold animate-pulse">NEW ✨</span>
+                      <div className="flex items-center gap-2.5 text-left min-w-0">
+                        <span className="text-2xl group-hover:scale-110 transition-transform">🎵</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="text-xs font-bold text-white truncate">Mood Playlists</h4>
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-rose-500 text-white font-bold">8 MOODS</span>
                           </div>
-                          <p className="text-[10px] text-gray-300">Upload photo &amp; claim your unique Hinglish soul card!</p>
+                          <p className="text-[10px] text-gray-200 truncate">Bollywood, Singles &amp; English ↗</p>
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold text-amber-300 group-hover:translate-x-1 transition-transform">Claim ↗</span>
                     </div>
 
-                    <div onClick={() => setCurrentWindow('assignments')} className="p-3.5 rounded-2xl bg-black/45 hover:bg-black/60 backdrop-blur-md border border-dashed border-amber-500/35 flex items-center justify-between cursor-pointer transition">
-                      <div className="flex items-center gap-3 text-left">
-                        <span className="text-xl">📝</span>
-                        <div>
-                          <h4 className="text-xs font-bold text-white">Assignment Tracker</h4>
-                          <p className="text-[10px] text-gray-400">CSE-2 lab file &amp; quiz deadlines</p>
+                    <div
+                      onClick={() => setCurrentWindow('card_studio')}
+                      className="glossy-accent-sheen p-3.5 rounded-2xl bg-gradient-to-r from-red-950/75 via-[#14090c]/88 to-amber-950/65 hover:from-red-950/85 hover:to-amber-950/75 border border-red-400/45 hover:border-red-300 flex items-center justify-between cursor-pointer transition shadow-lg group"
+                    >
+                      <div className="flex items-center gap-2.5 text-left min-w-0">
+                        <span className="text-2xl group-hover:scale-110 transition-transform">🎴</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="text-xs font-bold text-white truncate">Mera ikA Card</h4>
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-red-600 text-white font-bold animate-pulse">NEW ✨</span>
+                          </div>
+                          <p className="text-[10px] text-gray-200 truncate">Upload photo &amp; soul card!</p>
                         </div>
                       </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">SOON</span>
+                    </div>
+
+                    <div onClick={() => setCurrentWindow('assignments')} className="glossy-tile p-3.5 rounded-2xl border border-dashed border-amber-400/45 flex items-center justify-between cursor-pointer transition">
+                      <div className="flex items-center gap-2.5 text-left min-w-0">
+                        <span className="text-xl">📝</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="text-xs font-bold text-white truncate">Assignments</h4>
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-200 border border-amber-400/40">SOON</span>
+                          </div>
+                          <p className="text-[10px] text-gray-200 truncate">Lab file &amp; quiz deadlines</p>
+                        </div>
+                      </div>
                     </div>
 
                     <div
@@ -7300,41 +7346,38 @@ export default function CampusAIChat() {
                           setCurrentWindow('nuisance_cert');
                         }
                       }}
-                      className={`p-3.5 rounded-2xl backdrop-blur-md flex items-center justify-between cursor-pointer transition shadow-lg group ${
+                      className={`glossy-accent-sheen p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition shadow-lg group ${
                         isNuisanceUnlocked
-                          ? 'bg-gradient-to-r from-amber-950/50 via-black/60 to-red-950/40 hover:from-amber-950/65 hover:to-red-950/55 border border-amber-500/40 hover:border-amber-400'
-                          : 'bg-zinc-950/65 border border-zinc-700/60 opacity-90'
+                          ? 'bg-gradient-to-r from-amber-950/75 via-[#140e07]/88 to-red-950/65 border border-amber-400/50 hover:border-amber-300'
+                          : 'bg-[#0a0d16]/85 border border-white/25'
                       }`}
                     >
-                      <div className="flex items-center gap-3 text-left">
+                      <div className="flex items-center gap-2.5 text-left min-w-0">
                         <span className="text-2xl group-hover:scale-110 transition-transform">
                           {isNuisanceUnlocked ? '📜' : '🔒'}
                         </span>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h4 className="text-xs font-bold text-white">
-                              {isNuisanceUnlocked ? '📜 My Nuisance Certificate' : '🔒 Nuisance Degree (Locked)'}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="text-xs font-bold text-white truncate">
+                              {isNuisanceUnlocked ? 'Nuisance Degree' : 'Degree (Locked)'}
                             </h4>
                             <span
                               className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold ${
                                 isNuisanceUnlocked
                                   ? 'bg-amber-500 text-black'
-                                  : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                                  : 'bg-zinc-800 text-zinc-100 border border-zinc-600'
                               }`}
                             >
-                              {isNuisanceUnlocked ? 'READY ✨' : 'LOCKED 🔒'}
+                              {isNuisanceUnlocked ? 'READY' : 'LOCKED'}
                             </span>
                           </div>
-                          <p className="text-[10px] text-gray-300">
+                          <p className="text-[10px] text-gray-200 truncate">
                             {isNuisanceUnlocked
-                              ? 'View, customize & download your degree!'
-                              : 'Click to ask in chat & unlock your degree! 🔒'}
+                              ? 'Customize & download degree!'
+                              : 'Ask in chat to unlock! 🔒'}
                           </p>
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold text-amber-300 group-hover:translate-x-1 transition-transform">
-                        {isNuisanceUnlocked ? 'Claim ↗' : 'Locked 🔒'}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -7999,7 +8042,7 @@ export default function CampusAIChat() {
                   onDelete={handleDeleteUpload}
                   onOpenUploadModal={handleOpenUploadModal}
                 />
-                <div className="p-5 rounded-3xl bg-gradient-to-r from-orange-950/40 via-black to-amber-950/30 border border-orange-500/30 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="glossy-accent-sheen p-5 rounded-3xl bg-gradient-to-r from-orange-950/65 via-[#090d17]/90 to-amber-950/55 border border-orange-400/40 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-300 text-[10px] font-bold uppercase">
                       🍔 Official Rate Lists • Campus &amp; Boys Hostel
@@ -8082,7 +8125,7 @@ export default function CampusAIChat() {
                   {filteredCanteenItems.map((it, idx) => (
                     <div
                       key={idx}
-                      className="p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 transition flex items-center justify-between gap-3"
+                      className="glossy-tile p-4 rounded-2xl border border-white/20 transition flex items-center justify-between gap-3"
                     >
                       <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -8095,7 +8138,7 @@ export default function CampusAIChat() {
                           >
                             {it.canteen === 'teamen' ? "🏫 Tea Men's (Upper)" : '🏠 K.J Cafe (Hostel)'}
                           </span>
-                          <span className="text-[10px] text-gray-400 font-medium">{it.category}</span>
+                          <span className="text-[10px] text-gray-200 font-medium">{it.category}</span>
                           {it.badge && (
                             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30">
                               {it.badge}
@@ -8133,35 +8176,35 @@ export default function CampusAIChat() {
                   <button onClick={() => sendQuery('Kya 50 LPA ka package lagta hai?', true)} className={`text-xs ${accentText} hover:underline cursor-pointer`}>Ask in AI Chat ↗</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div onClick={() => sendQuery('Kya 50 LPA ka package lagta hai?', true)} className="p-5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-yellow-500/40 transition shadow-lg space-y-3 cursor-pointer">
+                  <div onClick={() => sendQuery('Kya 50 LPA ka package lagta hai?', true)} className="glossy-tile p-5 rounded-2xl border border-white/20 hover:border-yellow-400/55 transition shadow-xl space-y-3 cursor-pointer">
                     <h4 className="font-bold text-sm text-white">💰 Salary Package Breakdown</h4>
-                    <ul className="text-xs space-y-2 text-gray-300">
+                    <ul className="text-xs space-y-2 text-gray-200">
                       <li>• <strong>3.5 – 5.0 LPA (60-65%):</strong> Bulk recruiters (TCS Ninja, Infosys, Cognizant, Wipro).</li>
                       <li>• <strong>6.0 – 9.0 LPA (15-20%):</strong> TCS Digital, Nucleus Software, Nagarro, Hexaware.</li>
                       <li>• <strong>10.0 – 18.0 LPA (5-8%):</strong> Cisco, BNY Mellon, MAQ Software, Super Dream offers.</li>
                       <li>• <strong>20.0 – 60.0 LPA (Under 2%):</strong> Atlassian (59.9 LPA), Microsoft, Google.</li>
                     </ul>
                   </div>
-                  <div onClick={() => sendQuery('CGPA kitni matter karti hai?', true)} className="p-5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-blue-500/40 transition shadow-lg space-y-3 cursor-pointer">
+                  <div onClick={() => sendQuery('CGPA kitni matter karti hai?', true)} className="glossy-tile p-5 rounded-2xl border border-white/20 hover:border-blue-400/55 transition shadow-xl space-y-3 cursor-pointer">
                     <h4 className="font-bold text-sm text-white">🎯 CGPA Truth &amp; Thresholds</h4>
-                    <ul className="text-xs space-y-2 text-gray-300">
+                    <ul className="text-xs space-y-2 text-gray-200">
                       <li>• <strong>Below 6.0:</strong> Disqualified from 90% company placement tests.</li>
                       <li>• <strong>6.0 – 7.5:</strong> Basic eligibility for service companies with 0 backlogs.</li>
                       <li>• <strong>7.5 – 8.0 (Sweet Spot):</strong> Safe for 90%+ company eligibility filters.</li>
                       <li>• <strong>8.5+:</strong> Required for resume shortlisting in high-applicant drives.</li>
                     </ul>
                   </div>
-                  <div onClick={() => sendQuery('Real placement record kitna hai?', true)} className="p-5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-purple-500/40 transition shadow-lg space-y-3 cursor-pointer">
+                  <div onClick={() => sendQuery('Real placement record kitna hai?', true)} className="glossy-tile p-5 rounded-2xl border border-white/20 hover:border-purple-400/55 transition shadow-xl space-y-3 cursor-pointer">
                     <h4 className="font-bold text-sm text-white">📊 Real Placement Numbers</h4>
-                    <ul className="text-xs space-y-2 text-gray-300">
+                    <ul className="text-xs space-y-2 text-gray-200">
                       <li>• <strong>NIRF Median Package:</strong> ₹4.50 – ₹5.75 LPA for B.Tech.</li>
                       <li>• <strong>Unique Placed Students:</strong> ~850–900 out of ~1,100 graduates (~80%).</li>
                       <li>• <strong>Multiple Offers:</strong> 1,600+ total offers reflect top performers bagging 2–3 offers each.</li>
                     </ul>
                   </div>
-                  <div onClick={() => sendQuery('15+ LPA crack karne ka roadmap kya hai?', true)} className="p-5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-emerald-500/40 transition shadow-lg space-y-3 cursor-pointer">
+                  <div onClick={() => sendQuery('15+ LPA crack karne ka roadmap kya hai?', true)} className="glossy-tile p-5 rounded-2xl border border-white/20 hover:border-emerald-400/55 transition shadow-xl space-y-3 cursor-pointer">
                     <h4 className="font-bold text-sm text-white">🚀 How to Beat the Average (10-25+ LPA)</h4>
-                    <ul className="text-xs space-y-2 text-gray-300">
+                    <ul className="text-xs space-y-2 text-gray-200">
                       <li>• <strong>DSA:</strong> 300+ LeetCode problems (Strings, Trees, Graphs, DP).</li>
                       <li>• <strong>CS Fundamentals:</strong> Deep knowledge of OS, DBMS (SQL), and Networks.</li>
                       <li>• <strong>Proof of Work:</strong> Deployed full-stack systems and Smart India Hackathon (SIH).</li>
@@ -8233,7 +8276,7 @@ export default function CampusAIChat() {
                 {isCSE8 ? (
                   <>
                     {/* 1. MR. MAYANK KUSHWAHA */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-950/30 via-white/[0.04] to-white/[0.02] border border-amber-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-amber-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
                         <span className="text-5xl mb-2">⚙️</span>
                         <span className="text-xs font-bold text-amber-300">Class Mentor-1</span>
@@ -8269,7 +8312,7 @@ export default function CampusAIChat() {
                     </div>
 
                     {/* 2. DR. BHANUMATI PANDA */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/30 via-white/[0.04] to-white/[0.02] border border-blue-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-blue-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
                         <span className="text-5xl mb-2">📐</span>
                         <span className="text-xs font-bold text-blue-300">Class Mentor-2</span>
@@ -8305,7 +8348,7 @@ export default function CampusAIChat() {
                     </div>
 
                     {/* 3. MR. SHAHBAZ ALAM */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-950/30 via-white/[0.04] to-white/[0.02] border border-emerald-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-emerald-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
                         <span className="text-5xl mb-2">💻</span>
                         <span className="text-xs font-bold text-emerald-300">C++ Faculty</span>
@@ -8341,7 +8384,7 @@ export default function CampusAIChat() {
                     </div>
 
                     {/* 4. MR. ADITYA VATS */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-950/30 via-white/[0.04] to-white/[0.02] border border-purple-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-purple-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
                         <span className="text-5xl mb-2">🎙️</span>
                         <span className="text-xs font-bold text-purple-300">Soft Skills Lead</span>
@@ -8377,7 +8420,7 @@ export default function CampusAIChat() {
                     </div>
 
                     {/* 5. DR. SHRUTI SINGH */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-br from-pink-950/30 via-white/[0.04] to-white/[0.02] border border-pink-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-pink-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-pink-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
                         <span className="text-5xl mb-2">🗣️</span>
                         <span className="text-xs font-bold text-pink-300">PC Lab In-Charge</span>
@@ -8413,7 +8456,7 @@ export default function CampusAIChat() {
                     </div>
 
                     {/* 6. DR. SHWETA SHARMA */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-br from-cyan-950/30 via-white/[0.04] to-white/[0.02] border border-cyan-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-cyan-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-cyan-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
                         <span className="text-5xl mb-2">💡</span>
                         <span className="text-xs font-bold text-cyan-300">APC Coordinator</span>
@@ -8449,7 +8492,7 @@ export default function CampusAIChat() {
                     </div>
 
                     {/* 7. MR. ROHIT PRATAP SINGH */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-950/30 via-white/[0.04] to-white/[0.02] border border-indigo-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-indigo-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
                         <span className="text-5xl mb-2">🌐</span>
                         <span className="text-xs font-bold text-indigo-300">Web Design Workshop</span>
@@ -8485,7 +8528,7 @@ export default function CampusAIChat() {
                     </div>
 
                     {/* 8. MR. MAYANK MITTAL */}
-                    <div className="p-6 rounded-3xl bg-gradient-to-br from-teal-950/30 via-white/[0.04] to-white/[0.02] border border-teal-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-teal-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-teal-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-full md:w-52 h-56 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 flex flex-col items-center justify-center p-4 text-center">
                         <span className="text-5xl mb-2">⚡</span>
                         <span className="text-xs font-bold text-teal-300">C++ Lab Group 2</span>
@@ -8523,7 +8566,7 @@ export default function CampusAIChat() {
                 ) : (
                   <>
                     {/* 1. DR. PRERANA MOHAPATRA */}
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-950/30 via-white/[0.04] to-white/[0.02] border border-emerald-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-emerald-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                   <div className="w-full md:w-52 flex-shrink-0 flex flex-col gap-2.5">
                     <div className="w-full h-60 rounded-2xl bg-black/50 border border-white/10 overflow-hidden">
                       <img src={prernaPhotoTab === 'profile' ? '/prerna1.jpeg' : '/prerna2.jpeg'} alt="Dr. Prerana Mohapatra" className="w-full h-full object-cover" />
@@ -8564,7 +8607,7 @@ export default function CampusAIChat() {
                 </div>
 
                 {/* 2. DR. DIVYANSHI SHARMA */}
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-teal-950/30 via-white/[0.04] to-white/[0.02] border border-teal-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-teal-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-teal-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                   <div className="w-full md:w-52 flex-shrink-0 flex flex-col gap-2.5">
                     <div className="w-full h-60 rounded-2xl bg-black/50 border border-white/10 overflow-hidden">
                       <img src={divyanshiPhotoTab === 'profile' ? '/divyanshi1.jpeg' : '/divyanshi2.jpeg'} alt="Dr. Divyanshi Sharma" className="w-full h-full object-cover" />
@@ -8602,7 +8645,7 @@ export default function CampusAIChat() {
                 </div>
 
                 {/* 3. PROF. SHIVAM MITTAL */}
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-950/40 via-white/[0.04] to-white/[0.02] border border-indigo-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-950/40 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-indigo-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                   <div className="w-full md:w-52 h-60 rounded-2xl bg-black/50 border border-white/10 overflow-hidden flex-shrink-0">
                     <img src="/shivam.jpeg" alt="Prof. Shivam Mittal" className="w-full h-full object-cover" />
                   </div>
@@ -8634,7 +8677,7 @@ export default function CampusAIChat() {
                 </div>
 
                 {/* 4. PROF. VIMAL SRIVASTAVA */}
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/40 via-white/[0.04] to-white/[0.02] border border-blue-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/40 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-blue-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                   <div className="w-full md:w-52 flex-shrink-0 flex flex-col gap-2.5">
                     <div className="w-full h-60 rounded-2xl bg-black/50 border border-white/10 overflow-hidden">
                       <img src={vimalPhotoTab === 'formal' ? '/vimal1.jpeg' : '/vimal2.jpeg'} alt="Prof. Vimal Srivastava" className="w-full h-full object-cover" />
@@ -8673,7 +8716,7 @@ export default function CampusAIChat() {
                 </div>
 
                 {/* 5. DR. KARTIKA MAHESHWARI */}
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-pink-950/30 via-white/[0.04] to-white/[0.02] border border-pink-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-pink-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-pink-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                   <div className="w-full md:w-52 h-60 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 overflow-hidden">
                     <img src="/kartika.jpeg" alt="Prof. Kartika Maheshwari" className="w-full h-full object-cover" />
                   </div>
@@ -8705,7 +8748,7 @@ export default function CampusAIChat() {
                 </div>
 
                 {/* 6. MS. SHAILJA VARSHNEY */}
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-950/30 via-white/[0.04] to-white/[0.02] border border-purple-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-purple-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                   <div className="w-full md:w-52 flex-shrink-0 flex flex-col gap-2.5">
                     <div className="w-full h-60 rounded-2xl bg-black/50 border border-white/10 overflow-hidden">
                       <img src={shailjaPhotoTab === 'campus' ? '/shailja1.jpeg' : '/shailja2.jpeg'} alt="Ms. Shailja Varshney" className="w-full h-full object-cover" />
@@ -8746,7 +8789,7 @@ export default function CampusAIChat() {
                 </div>
 
                 {/* 7. MR. RAHUL SINGH */}
-                <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/30 via-white/[0.04] to-white/[0.02] border border-blue-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/30 via-[#090d18]/90 to-[#060912]/92 glossy-accent-sheen border border-blue-500/30 shadow-2xl flex flex-col md:flex-row gap-6 items-start">
                   <div className="w-full md:w-52 h-60 rounded-2xl bg-black/40 border border-white/10 flex-shrink-0 overflow-hidden shadow-[0_0_15px_rgba(59,130,246,0.15)]">
                     <img src="/rahul_singh.jpeg" alt="Mr. Rahul Singh" className="w-full h-full object-cover object-top" />
                   </div>
@@ -8788,12 +8831,12 @@ export default function CampusAIChat() {
           {currentWindow === 'papers' && (
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-4 animate-in fade-in zoom-in-95 duration-200 pb-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-white/10 gap-3">
-                  <div><h3 className="font-bold text-sm text-white">Question Papers &amp; Solved MT-2 Answer Keys</h3><p className="text-[11px] text-gray-400">All 10 Subjects • Official MT-1 &amp; MT-2 Papers + Complete Solved Answer Keys</p></div>
-                  <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
-                    <button onClick={() => setSelectedTerm('both')} className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer ${selectedTerm === 'both' ? 'bg-red-600 text-white' : 'text-gray-400'}`}>Both</button>
-                    <button onClick={() => setSelectedTerm('mt1')} className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer ${selectedTerm === 'mt1' ? 'bg-blue-600 text-white' : 'text-gray-400'}`}>MT 1</button>
-                    <button onClick={() => setSelectedTerm('mt2')} className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer ${selectedTerm === 'mt2' ? 'bg-purple-600 text-white' : 'text-gray-400'}`}>MT 2</button>
+                <div className="glossy-tile flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl border border-white/20 gap-3">
+                  <div><h3 className="font-bold text-sm text-white">Question Papers &amp; Solved MT-2 Answer Keys</h3><p className="text-[11px] text-gray-200">All 10 Subjects • Official MT-1 &amp; MT-2 Papers + Complete Solved Answer Keys</p></div>
+                  <div className="flex items-center gap-1 bg-black/55 p-1 rounded-xl border border-white/15">
+                    <button onClick={() => setSelectedTerm('both')} className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer ${selectedTerm === 'both' ? 'bg-red-600 text-white' : 'text-gray-200'}`}>Both</button>
+                    <button onClick={() => setSelectedTerm('mt1')} className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer ${selectedTerm === 'mt1' ? 'bg-blue-600 text-white' : 'text-gray-200'}`}>MT 1</button>
+                    <button onClick={() => setSelectedTerm('mt2')} className={`px-3 py-1 rounded-lg text-xs font-medium cursor-pointer ${selectedTerm === 'mt2' ? 'bg-purple-600 text-white' : 'text-gray-200'}`}>MT 2</button>
                   </div>
                 </div>
                 <TileAttachments
@@ -8805,10 +8848,10 @@ export default function CampusAIChat() {
                   onDelete={handleDeleteUpload}
                   onOpenUploadModal={handleOpenUploadModal}
                 />
-                <input type="text" value={paperSearch} onChange={(e) => setPaperSearch(e.target.value)} placeholder="Search subject (e.g. Maths, Physics, C++, AI, BEE)..." className="w-full bg-black/30 border border-white/10 rounded-2xl px-4 py-3 text-xs text-gray-200 outline-none focus:border-red-500" />
+                <input type="text" value={paperSearch} onChange={(e) => setPaperSearch(e.target.value)} placeholder="Search subject (e.g. Maths, Physics, C++, AI, BEE)..." className="glossy-panel w-full border border-white/20 rounded-2xl px-4 py-3 text-xs text-white placeholder-gray-300 outline-none focus:border-red-500" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredPapers.map((paper) => (
-                    <div key={paper.id} className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex flex-col justify-between space-y-3">
+                    <div key={paper.id} className="glossy-tile p-4 rounded-2xl border border-white/20 flex flex-col justify-between space-y-3">
                       <div>
                         <div className="flex items-center justify-between"><span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">{paper.code}</span><span className="text-lg">{paper.icon}</span></div>
                         <h4 className="font-semibold text-sm text-white mt-2">{paper.name}</h4>
@@ -8863,7 +8906,7 @@ export default function CampusAIChat() {
                 {activeSession?.messages.map((msg, index) => (
                   <div key={index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     {msg.role === 'assistant' && <div className={`w-8 h-8 rounded-xl ${ikaRedBlackBox} flex-shrink-0 flex items-center justify-center text-[10px] font-black`}>ikA</div>}
-                    <div className={`max-w-[90%] md:max-w-[85%] rounded-3xl px-5 py-4 ${msg.role === 'user' ? `${accentBg} text-white rounded-tr-sm shadow-md border border-white/20` : 'bg-black/60 border border-white/10 text-gray-200 backdrop-blur-md'}`}>
+                    <div className={`max-w-[90%] md:max-w-[85%] rounded-3xl px-5 py-4 ${msg.role === 'user' ? `${accentBg} glossy-accent-sheen text-white rounded-tr-sm shadow-lg border border-white/25` : 'glossy-panel border border-white/20 text-gray-100'}`}>
                       {msg.role === 'user' ? (
                         <p className="text-sm">{msg.content}</p>
                       ) : (
@@ -8883,7 +8926,7 @@ export default function CampusAIChat() {
                 {streamingText && (
                   <div className="flex gap-4 justify-start">
                     <div className={`w-8 h-8 rounded-xl ${ikaRedBlackBox} flex-shrink-0 flex items-center justify-center text-[10px] font-black animate-pulse`}>ikA</div>
-                    <div className="max-w-[90%] md:max-w-[85%] rounded-3xl px-5 py-4 bg-black/60 border border-white/10 text-gray-200 backdrop-blur-md">
+                    <div className="glossy-panel max-w-[90%] md:max-w-[85%] rounded-3xl px-5 py-4 border border-white/20 text-gray-100">
                       <FormattedMessage
                         text={streamingText}
                         onSelectSuggestion={(q, fromSugg) => sendQuery(q, fromSugg)}
@@ -8919,7 +8962,7 @@ export default function CampusAIChat() {
                   onDelete={handleDeleteUpload}
                   onOpenUploadModal={handleOpenUploadModal}
                 />
-                <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-900/40 to-purple-900/40 border border-blue-500/30 shadow-lg flex flex-col md:flex-row gap-4 justify-between items-center">
+                <div className="glossy-accent-sheen p-5 rounded-2xl bg-gradient-to-r from-blue-950/75 via-[#090d1a]/88 to-purple-950/75 border border-blue-400/40 shadow-lg flex flex-col md:flex-row gap-4 justify-between items-center">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/20 text-blue-300">
@@ -8973,7 +9016,7 @@ export default function CampusAIChat() {
                 {/* WEEKLY CLASS TIME TABLE (SECTION ISOLATED) */}
                 {isCSE8 ? (
                   /* SECTION CSE-8 OFFICIAL TIME TABLE (w.e.f. 28.10.2026) */
-                  <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/30">
+                  <div className="glossy-panel overflow-x-auto rounded-2xl border border-white/20">
                     <table className="w-full text-left text-xs text-gray-300 min-w-[760px]">
                       <thead className="bg-white/[0.04] text-gray-400 uppercase text-[10px] font-semibold border-b border-white/10">
                         <tr>
@@ -9065,7 +9108,7 @@ export default function CampusAIChat() {
                   </div>
                 ) : (
                   /* SECTION CSE-2 TIME TABLE */
-                  <div className="overflow-x-auto rounded-2xl border border-white/10 bg-black/30">
+                  <div className="glossy-panel overflow-x-auto rounded-2xl border border-white/20">
                     <table className="w-full text-left text-xs text-gray-300">
                       <thead className="bg-white/[0.04] text-gray-400 uppercase text-[10px] font-semibold border-b border-white/10">
                         <tr><th className="p-3.5">Day</th><th className="p-3.5">08:50 - 10:30 AM</th><th className="p-3.5">10:40 - 12:20 PM</th><th className="p-3.5">12:20 - 01:10</th><th className="p-3.5">01:10 - 02:50 PM</th><th className="p-3.5">02:50 - 04:30 PM</th></tr>
@@ -9082,7 +9125,7 @@ export default function CampusAIChat() {
                 )}
 
                 {/* OFFICIAL MT-2 EXAMINATION DATESHEET (FOR CSE-2 & CSE-8) */}
-                <div className="p-5 rounded-3xl bg-gradient-to-br from-red-950/40 via-black to-amber-950/20 border border-red-500/40 shadow-xl space-y-4">
+                <div className="glossy-accent-sheen p-5 rounded-3xl bg-gradient-to-br from-red-950/70 via-[#0a0c16]/90 to-amber-950/50 border border-red-400/45 shadow-xl space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
                     <div>
                       <div className="flex items-center gap-2">
@@ -9164,13 +9207,13 @@ export default function CampusAIChat() {
                   </div>
 
                 {/* OFFICIAL PDF DOCUMENTS UNDER TIMETABLE (VIEW & DOWNLOAD) */}
-                <div className="p-5 rounded-3xl bg-white/[0.03] border border-white/10 space-y-4">
+                <div className="glossy-panel p-5 rounded-3xl border border-white/20 space-y-4">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                         <span>📂</span> Official ABES Documents &amp; Section {isCSE8 ? 'CSE-8' : 'CSE-2'} Files
                       </h4>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-200">
                         Click <strong>👁️ View</strong> to read the PDF right here, <strong>↗ Full Tab</strong> for fullscreen, or <strong>📥 Download</strong>!
                       </p>
                     </div>
@@ -9205,28 +9248,22 @@ export default function CampusAIChat() {
             </div>
           )}
 
-          {/* VIEW: DOC GUIDE */}
-          {currentWindow === 'docguide' && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
-              <div className="w-full max-w-4xl space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-10">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-blue-500/30 space-y-2"><span className="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">Step 1</span><h4 className="font-semibold text-sm text-white">OTR (One Time Reg)</h4><p className="text-xs text-gray-300">Go to <a href="https://scholarship.up.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">scholarship.up.gov.in</a> ➡️ click <strong>OTR</strong> ➡️ complete Aadhaar e-KYC.</p></div>
-                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-purple-500/30 space-y-2"><span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md">Step 2</span><h4 className="font-semibold text-sm text-white">New Registration</h4><p className="text-xs text-gray-300">Click <strong>Students</strong> ➡️ <strong>New Registration</strong>, enter OTR number, and save your Registration ID.</p></div>
-                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-emerald-500/30 space-y-2"><span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Step 3</span><h4 className="font-semibold text-sm text-white">Application &amp; Final Print</h4><p className="text-xs text-gray-300">Login Fresh, fill form, check preview print, and submit hardcopy with DigiLocker marksheets at ABES.</p></div>
-                </div>
-                <MoreComingSoonBanner sectionName="Scholarship & Document Guides" />
-              </div>
-            </div>
+          {/* VIEW: STUDENT MOOD SONG PLAYLISTS (REPLACES UP SCHOLARSHIP GUIDE) */}
+          {currentWindow === 'playlists' && (
+            <StudentMoodPlaylists
+              userName={currentUser?.name}
+              onBackToOverview={() => setCurrentWindow('home')}
+            />
           )}
 
           {/* VIEW: GLOBAL P2P MARKETPLACE */}
           {currentWindow === 'marketplace' && (
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full">
               <div className="w-full max-w-4xl space-y-6 animate-in fade-in zoom-in-95 duration-200 pb-10">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/10">
+                <div className="glossy-tile flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-white/20">
                   <div>
                     <h3 className="font-bold text-lg text-white">Live P2P Student Marketplace 🛒</h3>
-                    <p className="text-xs text-gray-400">Synced across Laptop &amp; Mobile! Type <span className="text-emerald-300 font-mono">&ldquo;I want to sell my drafter for 250 no. - 9811223344&rdquo;</span> or use form:</p>
+                    <p className="text-xs text-gray-200">Synced across Laptop &amp; Mobile! Type <span className="text-emerald-300 font-mono">&ldquo;I want to sell my drafter for 250 no. - 9811223344&rdquo;</span> or use form:</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button onClick={() => setShowSellForm(!showSellForm)} className={`px-4 py-2 rounded-xl ${accentBg} text-white text-xs font-semibold shadow cursor-pointer`}>{showSellForm ? '✕ Close Form' : '＋ List Item Form'}</button>
@@ -9366,8 +9403,8 @@ export default function CampusAIChat() {
       </main>
 
         {/* LOCKED BOTTOM CHAT BAR */}
-        <footer className={`flex-shrink-0 ${globalBgColor} border-t border-white/[0.08] p-3 sm:p-4 z-30 h-16 sm:h-20 flex items-center w-full`}>
-          <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto flex items-center bg-white/[0.05] border border-white/10 focus-within:border-red-500/70 rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 shadow-2xl transition">
+        <footer className={`flex-shrink-0 ${globalBgColor} border-t border-white/[0.12] p-3 sm:p-4 z-30 h-16 sm:h-20 flex items-center w-full`}>
+          <form onSubmit={handleSubmit} className="glossy-panel w-full max-w-4xl mx-auto flex items-center border border-white/20 focus-within:border-red-500/75 rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 shadow-2xl transition">
             <input
               type="text"
               aria-label="Ask ikA's Oracle anything"
@@ -9380,7 +9417,7 @@ export default function CampusAIChat() {
                     : `${currentUser.name.split(' ')[0]}, kuch bhi puch mere dost (e.g. Canteen menu, Safe bunk, MT2 solve ya koi bhi baat)...`
                   : 'Kuch bhi pucho dost...'
               }
-              className="flex-1 bg-transparent px-2 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-100 placeholder-gray-500 outline-none"
+              className="flex-1 bg-transparent px-2 py-1.5 sm:py-2 text-xs sm:text-sm text-white placeholder-gray-400 outline-none"
             />
             <button
               type="submit"

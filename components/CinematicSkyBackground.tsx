@@ -283,12 +283,63 @@ vec3 renderSkyAndCelestial(vec3 rd, float dayW, float twilightW, float nightW, b
     vec3 milkyTint = mix(vec3(0.08, 0.13, 0.24), vec3(0.18, 0.06, 0.10), u_isBoss);
     col += milkyTint * band * rift * starVis * 0.85;
 
-    // Multi-layered crisp stars with subtle color temperatures
+    // Multi-layered crisp stars with subtle color temperatures & cinema cross-flare sparkles
     float s1 = starLayer(starRd, 85.0, 0.11);
     float s2 = starLayer(starRd + vec3(1.7, 3.1, 2.4), 150.0, 0.16);
     vec3 tempRand = hash33(floor(starRd * 85.0));
     vec3 starTint = mix(vec3(0.75, 0.86, 1.0), vec3(1.0, 0.90, 0.76), tempRand.x);
-    col += (s1 * 1.35 * starTint + s2 * 0.65) * starVis;
+    col += (s1 * 1.42 * starTint + s2 * 0.68) * starVis;
+
+    // Distant Ringed Celestial Planet (Subtle Mythic Sci-Fi/Fantasy Skybox Accent)
+    if (!isReflection) {
+      vec3 pDir = normalize(vec3(0.58, 0.36, 0.73));
+      float pVis = clamp(nightW * 0.72 + twilightW * 0.28, 0.0, 1.0);
+      if (dot(rd, pDir) > 0.75 && pVis > 0.02) {
+        vec3 pRight = normalize(cross(vec3(0.0, 1.0, 0.0), pDir));
+        vec3 pUp = cross(pDir, pRight);
+        vec2 pLoc = vec2(dot(rd, pRight), dot(rd, pUp)) / 0.022;
+        float pLen = length(pLoc);
+        if (pLen < 1.0) {
+          float pz = sqrt(max(0.0, 1.0 - pLen * pLen));
+          vec3 pNorm = normalize(vec3(pLoc.x, pLoc.y, pz));
+          float pLight = smoothstep(-0.2, 0.65, dot(pNorm, normalize(vec3(-0.65, 0.45, 0.5))));
+          float bands = 0.85 + 0.15 * sin(pLoc.y * 18.0 + noise2D(pLoc * 4.0) * 2.0);
+          vec3 pBody = mix(vec3(0.18, 0.28, 0.48), vec3(0.62, 0.74, 0.95), pLight) * bands;
+          pBody = mix(pBody, vec3(0.85, 0.34, 0.32) * (0.28 + 0.72 * pLight), u_isBoss * 0.7);
+          float pEdge = smoothstep(1.0, 0.86, pLen);
+          col = mix(col, pBody * 0.85, pEdge * pVis);
+        }
+        // Tilted Icy Planetary Ring Plane
+        float ca = 0.92;
+        float sa = -0.39;
+        vec2 rTilt = vec2(pLoc.x * ca - pLoc.y * sa, (pLoc.x * sa + pLoc.y * ca) * 4.1);
+        float rDist = length(rTilt);
+        float ringMask = smoothstep(1.18, 1.32, rDist) * smoothstep(2.45, 2.22, rDist);
+        float ringGap = 1.0 - 0.55 * exp(-pow((rDist - 1.78) * 14.0, 2.0));
+        float frontHalf = rTilt.y > 0.0 ? 1.0 : step(1.0, pLen);
+        vec3 ringCol = mix(vec3(0.42, 0.66, 0.94), vec3(0.92, 0.36, 0.34), u_isBoss);
+        col += ringCol * ringMask * ringGap * frontHalf * 0.28 * pVis;
+      }
+    }
+
+    // Slow Gliding Celestial Comet with Ion & Dust Tail (clamp args to avoid IEEE-754 exp overflow/NaN)
+    if (!isReflection) {
+      float cometCycle = fract(u_time * 0.024);
+      vec2 cometStart = vec2(-0.72, 0.46);
+      vec2 cometEnd = vec2(0.82, 0.18);
+      vec2 cometPos = mix(cometStart, cometEnd, cometCycle);
+      vec2 cDiff = rd.xy - cometPos;
+      vec2 tailDir = normalize(cometStart - cometEnd);
+      float along = dot(cDiff, tailDir);
+      float safeAlong = max(along, 0.0);
+      float perp = abs(dot(cDiff, vec2(-tailDir.y, tailDir.x)));
+      float comaGlow = exp(-min(length(cDiff) * 95.0, 24.0));
+      float tailMask = smoothstep(-0.001, 0.014, along);
+      float tailCone = tailMask * exp(-min(safeAlong * 7.5, 24.0)) * exp(-min(perp / (0.0035 + safeAlong * 0.055), 24.0));
+      float cometFade = smoothstep(0.0, 0.12, cometCycle) * smoothstep(1.0, 0.82, cometCycle);
+      vec3 cometCol = mix(vec3(0.42, 0.92, 1.0), vec3(1.0, 0.42, 0.28), u_isBoss);
+      col += cometCol * (comaGlow * 1.45 + tailCone * 0.62) * cometFade * nightW;
+    }
 
     // Periodic Shooting Stars / Meteors (only in main sky for clarity)
     if (!isReflection) {
@@ -481,15 +532,20 @@ vec3 applyMountains(vec3 skyCol, vec3 rd, float dayW, float twilightW, float nig
         : mix(vec3(0.35, 0.52, 0.82), vec3(0.85, 0.22, 0.25), u_isBoss) * activeAlign;
       ridgeCol += rimCol * rimLight * (1.0 - depthRatio * 0.45) * 0.55;
 
-      // Subtle golden shoreline lights / cyber campus beacons on closest foothills at night
+      // Subtle golden shoreline lights & glowing cyberpunk lakeside beacons on closest foothills at night
       if (!isReflection && layer == 3 && nightW > 0.25 && rd.y < 0.018) {
         vec2 cityCell = floor(vec2(angX * 190.0, rd.y * 420.0));
         vec2 rndCity = hash22(cityCell);
-        if (rndCity.x > 0.91 && rndCity.y > 0.45) {
+        if (rndCity.x > 0.90 && rndCity.y > 0.42) {
           float pulse = 0.65 + 0.35 * sin(u_time * 2.5 + rndCity.x * 40.0);
-          vec3 lightTint = mix(vec3(1.0, 0.72, 0.32), vec3(1.0, 0.28, 0.24), step(0.85, rndCity.y) * u_isBoss);
-          ridgeCol += lightTint * 0.9 * nightW * pulse;
+          vec3 urbanWarm = mix(vec3(1.0, 0.74, 0.32), vec3(0.28, 0.88, 1.0), step(0.84, rndCity.y));
+          vec3 lightTint = mix(urbanWarm, vec3(1.0, 0.28, 0.24), u_isBoss * 0.82);
+          ridgeCol += lightTint * 0.95 * nightW * pulse;
         }
+        // Subtle bioluminescent / neon horizon water-edge shimmer
+        float shoreEdgeGlow = smoothstep(0.008, 0.0, abs(rd.y)) * (0.4 + 0.6 * sin(angX * 16.0 - u_time * 0.8));
+        vec3 shoreBeaconCol = mix(vec3(0.10, 0.58, 0.88), vec3(0.88, 0.16, 0.22), u_isBoss);
+        ridgeCol += shoreBeaconCol * shoreEdgeGlow * 0.22 * nightW;
       }
 
       // Vertical valley mist near shoreline
@@ -611,6 +667,37 @@ void main() {
 }
 `;
 
+/**
+ * Detects whether the user is on a Laptop / Desktop PC screen (>= 1024px & non-mobile OS).
+ * Mobile phones & tablets stay static with zero WebGL/rAF animations for instant speed & battery life.
+ */
+export function useIsDesktopSkyScreen(): boolean {
+  const [isDesktop, setIsDesktop] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const evaluate = () => {
+      const wideScreen = window.matchMedia('(min-width: 1024px)').matches;
+      const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent || ''
+      );
+      setIsDesktop(wideScreen && !mobileUA);
+    };
+
+    const initTimer = window.setTimeout(evaluate, 0);
+    const mq = window.matchMedia('(min-width: 1024px)');
+    mq.addEventListener('change', evaluate);
+    window.addEventListener('resize', evaluate);
+    return () => {
+      window.clearTimeout(initTimer);
+      mq.removeEventListener('change', evaluate);
+      window.removeEventListener('resize', evaluate);
+    };
+  }, []);
+
+  return isDesktop;
+}
+
 export default function CinematicSkyBackground({
   overrideHour = null,
   isBoss = false,
@@ -618,6 +705,7 @@ export default function CinematicSkyBackground({
   overrideHour?: number | null;
   isBoss?: boolean;
 }) {
+  const isDesktop = useIsDesktopSkyScreen();
   const glCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const fxCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const overrideHourRef = useRef<number | null>(overrideHour);
@@ -632,11 +720,12 @@ export default function CinematicSkyBackground({
     isBossRef.current = isBoss;
   }, [isBoss]);
 
-  // Smooth Mouse / Gyroscope Parallax State
+  // Smooth Mouse / Gyroscope Parallax State (Desktop Only)
   const mouseTargetRef = useRef({ x: 0, y: 0 });
   const mouseCurrentRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
+    if (!isDesktop) return;
     const onPointerMove = (e: PointerEvent) => {
       const nx = (e.clientX / Math.max(window.innerWidth, 1)) * 2 - 1;
       const ny = (e.clientY / Math.max(window.innerHeight, 1)) * 2 - 1;
@@ -645,13 +734,13 @@ export default function CinematicSkyBackground({
     };
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     return () => window.removeEventListener('pointermove', onPointerMove);
-  }, []);
+  }, [isDesktop]);
 
   // ========================================================================
-  // 1. HARDWARE-ACCELERATED WEBGL 3D SHADER ENGINE
+  // 1. HARDWARE-ACCELERATED WEBGL 3D SHADER ENGINE (LAPTOP & PC ONLY)
   // ========================================================================
   useEffect(() => {
-    if (useFallback2D) return;
+    if (!isDesktop || useFallback2D) return;
     const canvas = glCanvasRef.current;
     if (!canvas) return;
 
@@ -777,12 +866,13 @@ export default function CinematicSkyBackground({
       window.removeEventListener('resize', updateSize);
       canvas.removeEventListener('webglcontextlost', handleContextLost);
     };
-  }, [useFallback2D]);
+  }, [isDesktop, useFallback2D]);
 
   // ========================================================================
-  // 2. COMPANION 2D CANVAS: 3D DEPTH FIREFLIES / ATMOSPHERIC DUST + FALLBACK SKY
+  // 2. COMPANION 2D CANVAS: 3D DEPTH FIREFLIES / BIRDS / SKY LANTERNS (LAPTOP & PC ONLY)
   // ========================================================================
   useEffect(() => {
+    if (!isDesktop) return;
     const fxCanvas = fxCanvasRef.current;
     if (!fxCanvas) return;
     const ctx = fxCanvas.getContext('2d');
@@ -799,15 +889,23 @@ export default function CinematicSkyBackground({
       hue: number;
     }
 
-    const particles: Particle3D[] = Array.from({ length: 48 }).map((_, idx) => ({
+    const particles: Particle3D[] = Array.from({ length: 52 }).map((_, idx) => ({
       x: Math.random(),
       y: Math.random(),
       z: 0.2 + Math.random() * 0.8,
       vx: (Math.random() - 0.5) * 0.00018,
       vy: -0.00012 - Math.random() * 0.00025,
-      size: 1.2 + Math.random() * 2.4,
+      size: 1.2 + Math.random() * 2.5,
       phase: idx * 0.73,
       hue: Math.random(),
+    }));
+
+    const birds = Array.from({ length: 6 }).map((_, idx) => ({
+      offset: idx * 0.14,
+      yBase: 0.24 + (idx % 3) * 0.045,
+      speed: 0.018 + (idx % 2) * 0.004,
+      wingFreq: 4.5 + (idx % 3) * 0.8,
+      scale: 0.65 + (idx % 3) * 0.22,
     }));
 
     const resizeFx = () => {
@@ -937,6 +1035,26 @@ export default function CinematicSkyBackground({
           ctx.fillStyle = colorStr;
           ctx.fill();
         });
+
+        // Distant Soaring Bird Silhouettes during Daylight & Golden Hour
+        if (info.isDay || (info.hours >= 5.5 && info.hours <= 18.8)) {
+          ctx.strokeStyle = isBossRef.current
+            ? 'rgba(60, 12, 16, 0.55)'
+            : 'rgba(12, 18, 32, 0.52)';
+          ctx.lineWidth = 1.5;
+          ctx.lineCap = 'round';
+          birds.forEach((b, idx) => {
+            const bx = ((t * b.speed + b.offset) % 1.25 - 0.12) * w;
+            const by = (b.yBase + Math.sin(t * 0.7 + idx) * 0.022) * h;
+            const wing = Math.sin(t * b.wingFreq + idx * 1.4) * 5.5 * b.scale;
+            const span = 11 * b.scale;
+            ctx.beginPath();
+            ctx.moveTo(bx - span, by - wing);
+            ctx.quadraticCurveTo(bx - span * 0.45, by - wing * 1.2 - 3, bx, by);
+            ctx.quadraticCurveTo(bx + span * 0.45, by - wing * 1.2 - 3, bx + span, by - wing);
+            ctx.stroke();
+          });
+        }
       }
       rafId = window.requestAnimationFrame(drawFx);
     };
@@ -947,7 +1065,21 @@ export default function CinematicSkyBackground({
       window.cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resizeFx);
     };
-  }, [useFallback2D]);
+  }, [isDesktop, useFallback2D]);
+
+  // Mobile phones & narrow viewports get a fast, zero-animation static obsidian sky
+  if (!isDesktop) {
+    return (
+      <div
+        className={`fixed inset-0 z-0 pointer-events-none select-none ${
+          isBoss
+            ? 'bg-[radial-gradient(ellipse_at_top,_#26070f_0%,_#0b0408_55%,_#040205_100%)]'
+            : 'bg-[radial-gradient(ellipse_at_top,_#141e33_0%,_#090b10_55%,_#04050a_100%)]'
+        }`}
+        aria-hidden="true"
+      />
+    );
+  }
 
   return (
     <div
@@ -964,8 +1096,8 @@ export default function CinematicSkyBackground({
         ref={fxCanvasRef}
         className="absolute inset-0 w-full h-full block"
       />
-      {/* Subtle bottom atmospheric depth gradient so footer & chat scroll stay high-contrast */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/35 pointer-events-none" />
+      {/* Subtle atmospheric contrast vignette so foreground glass tiles & text pop clearly */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/38 pointer-events-none" />
     </div>
   );
 }

@@ -180,15 +180,15 @@ export default function TileAttachments({
 
       {/* Empty State */}
       {tileItems.length === 0 && (
-        <div className="p-4 rounded-2xl bg-white/[0.02] border border-dashed border-red-500/30 text-center space-y-2">
-          <p className="text-xs text-gray-400">
+        <div className="glossy-tile p-4 rounded-2xl border border-dashed border-red-400/40 text-center space-y-2">
+          <p className="text-xs text-gray-200">
             Iss tile me abhi koi image ya document upload nahi hai.
           </p>
           {onOpenUploadModal && (
             <button
               type="button"
               onClick={() => onOpenUploadModal(tileId)}
-              className="px-3 py-1.5 rounded-xl bg-red-600/30 hover:bg-red-600 text-red-200 hover:text-white border border-red-500/40 text-xs font-semibold cursor-pointer transition inline-flex items-center gap-1"
+              className="px-3 py-1.5 rounded-xl bg-red-600/30 hover:bg-red-600 text-red-100 hover:text-white border border-red-400/45 text-xs font-semibold cursor-pointer transition inline-flex items-center gap-1"
             >
               <span>⚡</span> Upload Image / Doc Now
             </button>
@@ -203,7 +203,7 @@ export default function TileAttachments({
             <div
               key={item.id}
               onClick={(e) => openFileInNewTab(item, e)}
-              className="group relative p-3.5 rounded-2xl bg-black/60 hover:bg-black/85 border border-white/10 hover:border-red-500/50 shadow-lg flex flex-col justify-between transition-all duration-200 cursor-pointer"
+              className="glossy-tile group relative p-3.5 rounded-2xl border border-white/20 hover:border-red-400/60 shadow-xl flex flex-col justify-between transition-all duration-200 cursor-pointer"
             >
               <div>
                 {/* Image preview banner */}
