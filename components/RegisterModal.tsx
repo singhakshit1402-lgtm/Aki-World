@@ -240,7 +240,7 @@ function parseEmailParts(cleanEmail: string): { isBoss: boolean; namePart: strin
 export default function RegisterModal({ onSuccess }: { onSuccess: (user: StudentUser) => void }) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [animationType, setAnimationType] = useState<'none' | 'popper' | 'flower' | 'boss'>('none');
+  const [animationType, setAnimationType] = useState<'none' | 'popper' | 'boss'>('none');
   const [matchedUser, setMatchedUser] = useState<StudentUser | null>(null);
   const loginTimerRef = useRef<number | null>(null);
 
@@ -344,8 +344,6 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
 
     if (foundAdmNo === '2026B01010274') {
       setAnimationType('boss');
-    } else if (foundAdmNo === '2026B01010219' || foundEntry.name === 'AGRIMA GUPTA') {
-      setAnimationType('flower');
     } else {
       setAnimationType('popper');
     }
@@ -393,39 +391,7 @@ export default function RegisterModal({ onSuccess }: { onSuccess: (user: Student
         </div>
       )}
 
-      {/* 🌸 FLOWER SHOWER FOR QUEEN AGRIMA GUPTA */}
-      {animationType === 'flower' && matchedUser && (
-        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden flex items-center justify-center">
-          {Array.from({ length: 42 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute text-2xl md:text-4xl animate-bounce"
-              style={{
-                top: `${(i * 17) % 92}%`,
-                left: `${(i * 23) % 96}%`,
-                animationDuration: `${1.1 + (i % 5) * 0.35}s`,
-                opacity: 0.9,
-              }}
-            >
-              {['🌸', '🌷', '🌺', '💐', '✨', '💖', '👑'][i % 7]}
-            </div>
-          ))}
-          <div className="relative z-10 p-8 md:p-10 rounded-3xl bg-gradient-to-br from-pink-950/95 via-rose-900/90 to-purple-950/95 border-2 border-pink-400/60 shadow-[0_0_80px_rgba(236,72,153,0.5)] text-center space-y-4 max-w-md mx-4 animate-in zoom-in-75 duration-300">
-            <div className="text-6xl animate-pulse">🌸👑🌸</div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-400/40 text-pink-200 text-xs font-bold uppercase tracking-widest">
-              Royal Queen Entry • Section CSE-2
-            </div>
-            <h3 className="text-2xl md:text-3xl font-black text-white leading-tight">
-              Our Boss wants to be your friend 💖✨
-            </h3>
-            <p className="text-sm text-pink-200 font-medium leading-relaxed">
-              Welcome <strong className="text-white">Queen {matchedUser.name}</strong>! Boss <strong className="text-red-400">ikA</strong> has unlocked the entire CSE-2 sanctum in royal pink just for you! 🌷
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* 🎉 PARTY POPPER FOR ALL OTHER CSE-2 STUDENTS */}
+      {/* 🎉 PARTY POPPER FOR STUDENTS */}
       {animationType === 'popper' && matchedUser && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden flex items-center justify-center">
           {Array.from({ length: 40 }).map((_, i) => (

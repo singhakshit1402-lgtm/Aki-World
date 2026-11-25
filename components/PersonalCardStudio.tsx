@@ -295,7 +295,7 @@ export default function PersonalCardStudio({ currentUser, onBackToOverview, isBo
   useEffect(() => {
     if (!currentUser) return;
     const adm = currentUser.admissionNo || '2026B01010274';
-    const isFemale = currentUser.gender === 'F' || currentUser.name.toLowerCase().includes('agrima');
+    const isFemale = currentUser.gender === 'F';
 
     // Default setup
     if (isFemale) {

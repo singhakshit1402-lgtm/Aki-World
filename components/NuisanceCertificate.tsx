@@ -598,10 +598,7 @@ export default function NuisanceCertificate({
   onBack,
   isBoss,
 }: NuisanceCertificateProps) {
-  const isFemale =
-    currentUser?.gender === 'F' ||
-    currentUser?.name?.toLowerCase().includes('agrima') ||
-    false;
+  const isFemale = currentUser?.gender === 'F';
 
   // Archetype pool based on gender
   const genderPool = useMemo(() => {

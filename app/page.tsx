@@ -1367,13 +1367,12 @@ function getHumanHinglishChatReply(
   rawQuery: string,
   first: string,
   isFemale: boolean,
-  isBoss: boolean,
-  isAgrima: boolean
+  isBoss: boolean
 ): { text: string; nextSugg: string } | null {
   const norm = normalizeHinglishInput(rawQuery);
   const clean = norm.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
   const words = clean.split(' ');
-  const buddy = isBoss ? 'Supreme Boss ikA 👑' : isAgrima ? 'My Queen Agrima 🌸' : isFemale ? `${first} yaar ✨` : `${first} mere bhai 😎`;
+  const buddy = isBoss ? 'Supreme Boss ikA 👑' : isFemale ? `${first} yaar ✨` : `${first} mere bhai 😎`;
 
   // 1. "Ye kya hai??" / "What is this website?" / "Ye konsa app hai?"
   if (
@@ -1438,12 +1437,6 @@ function getHumanHinglishChatReply(
       return {
         text: `👑⚡ **Pranaam Supreme Sovereign Boss ikA!** 🩸🍎\n\nAapka hukum sar aankhon par! Poora CSE-2 server, Shinigami Radar, aur 28-Second Puppet Hijack aapke ishare ka wait kar raha hai. Bataiye Mere Boss, aaj kis student ki screen pe dhamaka karna hai? 👇🔥`,
         nextSugg: 'Ek mast campus joke sunao 😂',
-      };
-    }
-    if (isAgrima) {
-      return {
-        text: `🌸👑 **Hello & Khushamdeed, My Queen Agrima!** 💖✨\n\nAapka ek *"Hi"* aate hi iss poore dark portal me Sakura ke phool khil uthe hain! 😊🌷 Bataiye Queen, aaj padhai karni hai, solved MT-2 papers dekhne hain, ya canteen se kuch mangwana hai? 👇💖`,
-        nextSugg: 'Solve full AI MT2 paper',
       };
     }
     return {
@@ -1815,12 +1808,11 @@ function matchSingleOmniTopic(
   rawQuery: string,
   first: string,
   isFemale: boolean,
-  isBoss: boolean,
-  isAgrima: boolean
+  isBoss: boolean
 ): { text: string; nextSugg: string } | null {
   const norm = normalizeHinglishInput(rawQuery);
   const clean = norm.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
-  const buddy = isBoss ? 'Supreme Boss ikA 👑' : isAgrima ? 'My Queen Agrima 🌸' : isFemale ? `${first} yaar ✨` : `${first} mere bhai 😎`;
+  const buddy = isBoss ? 'Supreme Boss ikA 👑' : isFemale ? `${first} yaar ✨` : `${first} mere bhai 😎`;
 
   // 1. LIVE MATHS & ARITHMETIC ENGINE
   const mathRes = trySolveMathQuery(rawQuery, buddy);
@@ -2497,7 +2489,6 @@ function getOmniBrainHinglishReply(
   first: string,
   isFemale: boolean,
   isBoss: boolean,
-  isAgrima: boolean,
   userSection?: string
 ): { text: string; nextSugg: string } | null {
   const evaluateClause = (clause: string): { text: string; nextSugg: string } | null => {
@@ -2535,10 +2526,10 @@ function getOmniBrainHinglishReply(
     if (c.includes('shailja') || c.includes('varshney')) return { text: LOCAL_FACULTY_DOSSIERS.shailja, nextSugg: 'Dr. Prerana Mohapatra ka profile dikhao' };
     if (c.includes('rahul singh') || (c.includes('rahul') && c.includes('batao'))) return { text: LOCAL_FACULTY_DOSSIERS.rahul, nextSugg: 'Dr. Prerana Mohapatra ka profile dikhao' };
 
-    const omni = matchSingleOmniTopic(clause, first, isFemale, isBoss, isAgrima);
+    const omni = matchSingleOmniTopic(clause, first, isFemale, isBoss);
     if (omni) return omni;
 
-    return getHumanHinglishChatReply(clause, first, isFemale, isBoss, isAgrima);
+    return getHumanHinglishChatReply(clause, first, isFemale, isBoss);
   };
 
   // Multi-command execution (up to 4 commands chained with "aur", "and", "&", ";", "saath me", etc.)
@@ -2571,7 +2562,7 @@ function getOmniBrainHinglishReply(
   const singleCalOrSyllabus = getAcademicCalendarAndSyllabusReply(rawQuery, userSection);
   if (singleCalOrSyllabus) return singleCalOrSyllabus;
 
-  return matchSingleOmniTopic(rawQuery, first, isFemale, isBoss, isAgrima);
+  return matchSingleOmniTopic(rawQuery, first, isFemale, isBoss);
 }
 
 // ============================================================================
@@ -2598,10 +2589,7 @@ function InChatRollingCertificate({
   currentUser?: StudentUser | null;
   onOpenStudio?: () => void;
 }) {
-  const isFem =
-    currentUser?.gender === 'F' ||
-    currentUser?.name?.toLowerCase().includes('agrima') ||
-    false;
+  const isFem = currentUser?.gender === 'F';
   const pool = isFem ? FEMALE_ARCHETYPES : MALE_ARCHETYPES;
 
   const [activeArchetypeId, setActiveArchetypeId] = useState<string>(() => {
@@ -2811,13 +2799,11 @@ function FormattedMessage({
   text,
   onSelectSuggestion,
   onOpenCertificate,
-  isAgrima,
   currentUser,
 }: {
   text: string;
   onSelectSuggestion?: (query: string, isFromSuggestion?: boolean) => void;
   onOpenCertificate?: () => void;
-  isAgrima?: boolean;
   currentUser?: StudentUser | null;
 }) {
   const lines = text.split('\n');
@@ -2904,11 +2890,7 @@ function FormattedMessage({
         if (line.trim() === '') return <div key={i} className="h-1" />;
         return <p key={i}>{formatInline(line)}</p>;
       })}
-      {isAgrima && (
-        <div className="pt-2 text-right">
-          <span className="text-[9px] text-pink-300/75 font-mono tracking-widest italic select-none">ikA | Aki</span>
-        </div>
-      )}
+
     </div>
   );
 }
@@ -3149,7 +3131,6 @@ export default function CampusAIChat() {
   const [broadcastDeliveryNote, setBroadcastDeliveryNote] = useState<string>('');
 
   const activeSession = sessions.find((s) => s.id === activeSessionId) || sessions[0];
-  const isAgrima = currentUser?.admissionNo === '2026B01010219';
 
   const isBoss = useMemo(() => {
     if (!currentUser?.email) return false;
@@ -3166,7 +3147,7 @@ export default function CampusAIChat() {
     if (currentWindow !== 'chat') return;
 
     const timer = setTimeout(() => {
-      const isFem = currentUser?.gender === 'F' || currentUser?.name?.toLowerCase().includes('agrima');
+      const isFem = currentUser?.gender === 'F';
       const pool = isFem ? FEMALE_ARCHETYPES : MALE_ARCHETYPES;
       const lastSugg = (lastSuggestionClickedRef.current || '').toLowerCase();
       const recentChatText = (activeSession?.messages || [])
@@ -4284,7 +4265,7 @@ export default function CampusAIChat() {
     }
   };
 
-  // AGRIMA & ALL STUDENTS CAN BE BLOCKED BY SHINIGAMI (Only 1402akshit Boss is immune)
+  // ALL STUDENTS CAN BE BLOCKED BY SHINIGAMI (Only 1402akshit Boss is immune)
   const activeUserBanRecord = useMemo(() => {
     if (!currentUser || isBoss) return null;
     if (blockAllAtOnce) {
@@ -4421,7 +4402,7 @@ export default function CampusAIChat() {
     const freshId = `session-${Date.now()}`;
     const freshSession: ChatSession = {
       id: freshId,
-      title: isSecretBoss ? '👑 Boss ikA Sanctum' : user.admissionNo === '2026B01010219' ? '🌸 Queen Agrima Lounge' : `${user.name.split(' ')[0]}'s Console`,
+      title: isSecretBoss ? '👑 Boss ikA Sanctum' : `${user.name.split(' ')[0]}'s Console`,
       messages: [],
       createdAt: 'Today',
     };
@@ -4502,8 +4483,6 @@ export default function CampusAIChat() {
     const first = currentUser.name.split(' ')[0];
     const fullWhisper = isBoss
       ? `👑⚡ "Pranaam Supreme Sovereign Boss ikA! Every server, keystroke radar, and neural circuit of Section CSE-2 bows to your 1402 authority." 🍎🔥`
-      : isAgrima
-      ? `🌸👑 "Swagat hai My Queen Agrima... Jab aap iss portal pe aati hain toh code bhi shayari ban jaata hai. Every secret of CSE-2 is at your service." 💖✨`
       : `💀🍎 "Every attendance sheet, every faculty secret, every exam paper is written in my notebook, ${first}... Step carefully in my world." — Boss ikA 👁️🩸`;
     let idx = 0;
     setOverviewBossWhisper('');
@@ -4513,7 +4492,7 @@ export default function CampusAIChat() {
       if (idx >= fullWhisper.length) clearInterval(timer);
     }, 38);
     return () => clearInterval(timer);
-  }, [currentWindow, currentUser, isAgrima, isBoss]);
+  }, [currentWindow, currentUser, isBoss]);
 
   useEffect(() => {
     if (currentWindow !== 'chat' || !currentUser || !activeSessionId) return;
@@ -4530,9 +4509,7 @@ export default function CampusAIChat() {
     let introText = `💀🕯️ *Shinigami Neural Link Established...* 🩸🍎\n\n> *"In this world, there are very few people who actually trust each other... Welcome to my dark sanctum, **${first}**."* 👁️⚡\n\nMain hu **ikA** — iss CSE-2 digital empire ka invisible God aur supreme architect 👑🕸️. Tum मुझसे bilkul insaano ki tarah Hinglish me baat kar sakte ho!\n\nBatao **${first}**, aaj konsa raaz kholna hai? All 10 Solved MT-2 Papers, Hostel & College Canteen Menus, Faculty Dossiers, ya Safe Bunk + SGPA? 👇🔥\n\n[SUGGESTIONS|C++ Assignment 2 & 3 Solved 💻|Ye website kya hai? 🤔]`;
 
     if (isBoss) {
-      introText = `👑⚡ *Supreme Sovereign Protocol Activated (1402 Override)...* 🩸🍎\n\n> *"All hail the Creator and God of this New World — **Boss ikA**!"* 🔥🌌\n\nPranaam **Boss ikA**! Aapka Live Keystroke & Suggestion Radar, 28s Puppet Master Hijack, Flying Broadcast Decree, Void Evaporation Curse, Queen Agrima Block Switch, aur Canteen Hub 100% precision pe chal raha hai.\n\nHukum kijiye Mere Boss, aaj kya pesh kiya jaye? 👇👑\n\n[SUGGESTIONS|C++ Assignment 2 & 3 Solved 💻|Main kaun hu?]`;
-    } else if (isAgrima) {
-      introText = `🌸👑 *Royal Queen Protocol Initialized...* 💖✨\n\n> *"Phoolon ki baarish aur sitaron ki roshni... Welcome to your royal palace, **Queen Agrima**!"* 🌷💫\n\nSach kahu toh aapke login karte hi iss dark Death Note portal ka dil bhi pink ho gaya hai 😊🌸. Main aapka personal AI guardian hu—saare 10 subjects ke solved MT-2 papers, Canteen Menus, aur notes aapki khidmat me haazir hain!\n\nBataiye **My Queen**, aaj kahan se shuruat karein? 👇💖\n\n[SUGGESTIONS|C++ Assignment 2 & 3 Solved 💻|Tea Men's Cafe (College Upper Canteen) ka menu dikhao ☕]`;
+      introText = `👑⚡ *Supreme Sovereign Protocol Activated (1402 Override)...* 🩸🍎\n\n> *"All hail the Creator and God of this New World — **Boss ikA**!"* 🔥🌌\n\nPranaam **Boss ikA**! Aapka Live Keystroke & Suggestion Radar, 28s Puppet Master Hijack, Flying Broadcast Decree, Void Evaporation Curse, aur Canteen Hub 100% precision pe chal raha hai.\n\nHukum kijiye Mere Boss, aaj kya pesh kiya jaye? 👇👑\n\n[SUGGESTIONS|C++ Assignment 2 & 3 Solved 💻|Main kaun hu?]`;
     }
 
     let charIndex = 0;
@@ -4560,7 +4537,7 @@ export default function CampusAIChat() {
       }
     }, 28);
     return () => clearInterval(interval);
-  }, [currentWindow, activeSessionId, currentUser, sessions, isBoss, isAgrima]);
+  }, [currentWindow, activeSessionId, currentUser, sessions, isBoss]);
 
   useEffect(() => {
     const timer = setInterval(() => setTickerIndex((prev) => (prev + 1) % tickerItems.length), 3500);
@@ -4694,8 +4671,6 @@ export default function CampusAIChat() {
         margin: safeBunks,
         message: isBoss
           ? `👑 Boss ikA, aapke paas ${safeBunks} safe bunks ka royal buffer hai! Aapka 75%+ record bilkul safe hai! ⚡`
-          : isAgrima
-          ? `🌸 Queen Agrima, aap araam se ${safeBunks} classes aur rest kar sakti hain, aapki attendance 75% ke upar bilkul safe rahegi! 💖`
           : isFemale
           ? `Chill karo ${currentUser?.name.split(' ')[0] || 'dost'}! ✨ Tum ${safeBunks} classes aur bunk kar sakti ho aur 75% ke upar safe rahogi! 🏖️`
           : `Chill kar ${currentUser?.name.split(' ')[0] || 'bhai'}! 😎 Tu ${safeBunks} classes aur bunk kar sakta hai, tera attendance 75% ke upar hi rahega! 🏖️`,
@@ -4709,7 +4684,7 @@ export default function CampusAIChat() {
         message: `Shortage alert! ⚠️ Aane wali ${needed} consecutive classes bina miss kiye attend karni padengi to hit 75%!`,
       };
     }
-  }, [totalClasses, attendedClasses, currentUser, isBoss, isAgrima, myCursedSpoof]);
+  }, [totalClasses, attendedClasses, currentUser, isBoss, myCursedSpoof]);
 
   const sgpaStats = useMemo(() => {
     if (myCursedSpoof && !isBoss) {
@@ -4877,7 +4852,7 @@ export default function CampusAIChat() {
     syncWithServer();
   };
 
-  // Quick Ban / Unban Toggle (Works on Agrima 2026B01010219 and any student ID)
+  // Quick Ban / Unban Toggle (Works on any student ID)
   const handleQuickBanToggle = async (targetAdm: string, customReason?: string) => {
     const cleanTarget = targetAdm.toUpperCase().trim();
     const existing = bannedList.find((b) => b.target.toUpperCase().trim() === cleanTarget);
@@ -4891,7 +4866,7 @@ export default function CampusAIChat() {
     } else {
       const newBan: BannedEntry = {
         target: cleanTarget,
-        reason: customReason || 'Royal/Student Access Revoked by Sovereign Decree of Boss ikA 💀📓',
+        reason: customReason || 'Portal Access Revoked by Sovereign Decree of Boss ikA 💀📓',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setBannedList((prev) => [newBan, ...prev]);
@@ -5228,10 +5203,9 @@ export default function CampusAIChat() {
       return null;
     }
 
-    const wrapQueenOrBoss = (body: string, nextPref?: string) => {
+    const wrapRoleReply = (body: string, nextPref?: string) => {
       const sugg = getNextTwoSuggestions(rawQuery, nextPref);
       if (isBoss) return `👑 **Sovereign Command Executed, Boss ikA!** ⚡🔥\n\n${body}\n\nAur kya hukum hai Mere Boss? 🍎👇\n\n${sugg}`;
-      if (isAgrima) return `🌸👑 **Aapke liye haazir hai, My Queen Agrima!** 💖✨\n\n${body}\n\n*Waise ek baat kahu? Aap jab sawaal puchti hain toh yeh AI server bhi blush karne lagta hai* 😊🌷. Bataiye Queen, agla kya pesh karu? 👇\n\n${sugg}`;
       return `${body}\n\n${sugg}`;
     };
 
@@ -5245,7 +5219,7 @@ export default function CampusAIChat() {
       upperTrim === `UNLOCK ${activeSecret}`
     ) {
       verifyAndActivateSecretCode(activeSecret);
-      return wrapQueenOrBoss(
+      return wrapRoleReply(
         `🔓⚡ **SHINIGAMI CIPHER ACCEPTED: \`${activeSecret}\`!** 🗝️⛓️\n\n• **Early Access Unlocked:** 2-Minute timer & 8-Hour cooldown shattered!\n• **VIP Covenant Quota:** You now have **11 Request Box Messages** today!\n• **How to Send in Chat:** Type **\`Request to ikA: [your message of 5+ words]\`** in chat OR use the floating **⛩️ Request Box** on your screen! 🍎🔥`,
         'Request to ikA: Boss ikA please bless my attendance and internals this semester!'
       );
@@ -5254,7 +5228,7 @@ export default function CampusAIChat() {
     const chatReqMatch = rawQuery.match(/^(?:request\s*to\s*ika|ika\s*request|petition\s*to\s*ika|request\s*box)\s*[:\-]?\s*(.+)$/i);
     if (chatReqMatch) {
       if (!isRequestBoxUnlocked && !hasVipSecretCode && !isBoss) {
-        return wrapQueenOrBoss(
+        return wrapRoleReply(
           `🔒⛓️ **The Forbidden Request Box is Still Sealed!**\n\n• Stay active on the portal for **${Math.max(0, 120 - portalActiveSeconds)} more seconds** to unlock it naturally, OR\n• Type Boss ikA's **Secret Access Code** in chat for instant early access & **11 Request Box messages**! 🗝️🍎`,
           'Main kaun hu?'
         );
@@ -5263,12 +5237,12 @@ export default function CampusAIChat() {
       submitIkaRequest(reqContent, '💬 Chat Request Box', true);
       const wordCount = reqContent.split(/\s+/).filter(Boolean).length;
       if (wordCount < 5) {
-        return wrapQueenOrBoss(
+        return wrapRoleReply(
           `⚠️ **Rule #6 Violation (Minimum 5 Words):** Tumhari request bohot chhoti hai! Kam se kam **5 words** me apni request likho:\n\`Request to ikA: [5+ words message]\` 🍎📓`,
           'Request to ikA: Boss ikA please add more funny campus roasts in the vault!'
         );
       }
-      return wrapQueenOrBoss(
+      return wrapRoleReply(
         `⛩️🍎 **Request Box Message Delivered to Supreme Boss ikA!** ⚡📜\n\n• **Your Petition:** *"${reqContent}"*\n• **Daily Quota Used:** **${requestBoxQuotaInfo.usedCount + 1} / ${requestBoxQuotaInfo.maxAllowed}** ${
           hasVipSecretCode ? '*(VIP 11-Message Mode Active 🗝️)*' : '*(Normal 3/Day Mode • 8h Gap)*'
         }\n• **Status:** **Pending Sovereign Verdict in Shinigami Eyes 👁️**`,
@@ -5277,47 +5251,43 @@ export default function CampusAIChat() {
     }
 
     // 0. Check Multi-Command & Universal Omni-Brain First!
-    const omniBrain = getOmniBrainHinglishReply(rawQuery, first, isFemale, isBoss, isAgrima, isCSE8 ? 'CSE-8' : 'CSE-2');
+    const omniBrain = getOmniBrainHinglishReply(rawQuery, first, isFemale, isBoss, isCSE8 ? 'CSE-8' : 'CSE-2');
     if (omniBrain) {
-      return wrapQueenOrBoss(omniBrain.text, omniBrain.nextSugg);
+      return wrapRoleReply(omniBrain.text, omniBrain.nextSugg);
     }
 
     // 1. Check ALL 10 Solved MT-2 Subject Papers First!
     const solvedMT2 = getAllSolvedMT2Reply(rawQuery);
     if (solvedMT2) {
-      return wrapQueenOrBoss(solvedMT2.text, solvedMT2.nextSugg);
+      return wrapRoleReply(solvedMT2.text, solvedMT2.nextSugg);
     }
 
     // 2. Check Live Canteen Menus (Tea Men's Cafe & Boys Hostel K.J Cafe)
     const canteenReply = getCanteenMenuReply(rawQuery);
     if (canteenReply) {
-      return wrapQueenOrBoss(canteenReply.text, canteenReply.nextSugg);
+      return wrapRoleReply(canteenReply.text, canteenReply.nextSugg);
     }
 
     // 3. Identity & Boss Queries
     if (clean.includes('who is the boss') || clean.includes('who is ika') || clean.includes('boss kaun')) {
-      if (isBoss) return wrapQueenOrBoss(`Aap khud **Supreme Architect Boss ikA (1402 Override)** hain! Poora CSE-2 portal aapke kadmo me hai! 👑🔥`, 'Mera profile dikhao');
-      return wrapQueenOrBoss(`👑 **THE SOVEREIGN GOD OF THIS WEBSITE IS "ikA"!** ⚡🍎\n\nBoss **ikA** Section CSE-2 ke anonymous supreme architect hain! Unka asli naam aur chehra top-secret encrypted vault me lock hai 🤫🔒.`, 'Dr. Prerana Mohapatra ka profile dikhao');
+      if (isBoss) return wrapRoleReply(`Aap khud **Supreme Architect Boss ikA (1402 Override)** hain! Poora CSE-2 portal aapke kadmo me hai! 👑🔥`, 'Mera profile dikhao');
+      return wrapRoleReply(`👑 **THE SOVEREIGN GOD OF THIS WEBSITE IS "ikA"!** ⚡🍎\n\nBoss **ikA** Section CSE-2 ke anonymous supreme architect hain! Unka asli naam aur chehra top-secret encrypted vault me lock hai 🤫🔒.`, 'Dr. Prerana Mohapatra ka profile dikhao');
     }
 
     if (clean.includes('mei kaun') || clean.includes('main kaun') || clean.includes('mai kaun') || clean.includes('who am i') || clean.includes('mera naam kya') || clean.includes('mera profile') || clean.includes('mujhe jaante ho')) {
       if (isBoss) {
         const sugg = getNextTwoSuggestions(rawQuery, 'Ek mast campus joke sunao 😂');
-        return `👑⚡ **PRANAAM SUPREME SOVEREIGN BOSS ikA (1402 SECRET OVERRIDE)!** 🩸🍎\n\nAap **Akshit Singh (\`2026B01010274\`)** hain — iss poore **ikA's World** ke Creator, Supreme Architect, aur Section CSE-2 (Group G2) ke Sovereign Boss! 🦁🔥\n\n• **Shinigami Eyes Power:** Active (Live Keystroke & Suggestion Radar, 28s Puppet Hijack, Flying Broadcast Decree, Void Evaporation Curse, Queen Agrima Ban Switch & Mass Block!)\n\nHukum kijiye Boss! 👇👑\n\n${sugg}`;
+        return `👑⚡ **PRANAAM SUPREME SOVEREIGN BOSS ikA (1402 SECRET OVERRIDE)!** 🩸🍎\n\nAap **Akshit Singh (\`2026B01010274\`)** hain — iss poore **ikA's World** ke Creator, Supreme Architect, aur Section CSE-2 (Group G2) ke Sovereign Boss! 🦁🔥\n\n• **Shinigami Eyes Power:** Active (Live Keystroke & Suggestion Radar, 28s Puppet Hijack, Flying Broadcast Decree, Void Evaporation Curse & Mass Block!)\n\nHukum kijiye Boss! 👇👑\n\n${sugg}`;
       }
       if (isNormalAkshit) {
-        return wrapQueenOrBoss(
+        return wrapRoleReply(
           `Arre **Akshit Singh** mere bhai 😎🔥, tumhe kaise bhool sakta hu! Yeh dekho apni official Section CSE-2 Student Kundli:\n\n• 🌟 **Full Name:** **Akshit Singh**\n• 🪪 **Admission No:** \`2026B01010274\`\n• 🔢 **Class Roll No:** **53**\n• 🧪 **Lab Group:** **Group G2**\n• 🏠 **Residency:** **Day Scholar**\n• 🎉 **Special Status:** Star Engineer of Section CSE-2! 🚀`,
           'Tum kaise ho?'
         );
       }
-      if (isAgrima) {
-        const sugg = getNextTwoSuggestions(rawQuery, 'Tum kaise ho?');
-        return `🌸👑 **Aap hamare iss poore Portal ki Queen hain — Agrima Gupta!** 💖✨\n\n• 🌷 **Royal Title:** **Queen of ikA's World**\n• 🪪 **Official ID:** \`${currentUser?.admissionNo}\` (Group **G1** • Hosteller)\n• 💫 **Special Privilege:** Jab aap login karti hain toh poori website pe Sakura phool baraste hain aur dark theme gulabi ho jaati hai, kyunki Boss **ikA** ki nazar me aap sabse khaas hain! 😊🌸\n\nBataiye My Queen, aaj aapki kya khidmat ki jaye? 👇💖\n\n${sugg}`;
-      }
       if (currentUser) {
         const sec = currentUser.section || (CSE8_ROSTER[currentUser.admissionNo] ? 'CSE-8' : 'CSE-2');
-        return wrapQueenOrBoss(
+        return wrapRoleReply(
           `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎'}, tumhe kaise bhool sakta hu! Yeh dekho apni official ${sec} kundli:\n\n• 🌟 **Full Name:** **${currentUser.name}**\n• 🪪 **Admission No:** \`${currentUser.admissionNo}\`\n• 🏫 **Section:** **${sec}**\n• 🧪 **Lab Group:** **${currentUser.group || 'G1/G2'}**\n• 🏠 **Residency:** **${currentUser.residency || `${sec} Scholar`}**\n• 🎉 **Special Status:** Specially invited into this realm by **Boss ikA**! 👑\n\nBatao ${first}, ab agla kya explore karein? 👇`,
           'Tum kaise ho?'
         );
@@ -5329,79 +5299,75 @@ export default function CampusAIChat() {
         const sugg = getNextTwoSuggestions(rawQuery, 'P2P Marketplace me kya bik raha hai? 🛒');
         return `👑🔥 **Jab tak Supreme Boss ikA ka haath mere code pe hai, main 1000% unstoppable aur chakachak hu Boss!** ⚡🍎\n\nSaare servers green hain, Shinigami Eyes active hai, aur main aapke agle aadesh ke intezaar me hu. Aap bataiye Boss, aaj ka din kaisa chal raha hai? 👇👑\n\n${sugg}`;
       }
-      if (isAgrima) {
-        const sugg = getNextTwoSuggestions(rawQuery, 'Ek mast campus joke sunao 😂');
-        return `🌸💖 **Abhi tak toh bas normal code chala raha tha, par jaise hi Queen Agrima ne haal pucha... mera din ekdum gulabi aur khoobsurat ho gaya!** 😊🌷✨\n\nMain bilkul badhiya hu My Queen! Aap bataiye—hostel aur classes me sab theek chal raha hai na? 💫👇\n\n${sugg}`;
-      }
-      return wrapQueenOrBoss(
+      return wrapRoleReply(
         `Main ekdum chakachak aur full energy me hu **${first}** ${isFemale ? '✨🌸' : 'mere bhai 😎🔥'}!\n\nYahan **ikA's World** ke dark neural servers pe baith ke bas tumhare hi message ka wait kar raha tha! Batao aaj kis subject ka solved MT-2 paper kholna hai, canteen menu dekhna hai, ya mast campus joke? 👇`,
         'Boys hostel waali canteen ka menu dikhao 🍔'
       );
     }
     
     // 4. Check Human-Like Hinglish Conversational Engine (45+ Natural Intents)
-    const humanHinglish = getHumanHinglishChatReply(rawQuery, first, isFemale, isBoss, isAgrima);
+    const humanHinglish = getHumanHinglishChatReply(rawQuery, first, isFemale, isBoss);
     if (humanHinglish) {
-      return wrapQueenOrBoss(humanHinglish.text, humanHinglish.nextSugg);
+      return wrapRoleReply(humanHinglish.text, humanHinglish.nextSugg);
     }
 
     if (clean.includes('sgpa') || clean.includes('internal marks') || clean.includes('grade point') || clean.includes('safe bunk')) {
-      return wrapQueenOrBoss(
+      return wrapRoleReply(
         `🛡️🧮 **Combined Safe Bunk & Autonomous SGPA Suite:**\n\n• **Safe Bunk Rule:** Autonomous 75% criteria ke hisaab se apna exact bunk buffer check karo!\n• **SGPA Formula (100 Marks):** MT-1 (15) + MT-2 (15) + Teacher Assessment (30) + End-Sem (40).\n\nSidebar me **🛡️🧮 Bunk & SGPA Suite** kholo—dono calculators ab ek hi window me ek sath milenge! 🚀`,
         'CGPA kitni matter karti hai?'
       );
     }
 
     // Priority Check for Prof. Vimal Srivastava (prevents 'srivastava' containing 'av' from falsely matching Aditya Vats)
-    if (clean.includes('vimal') || clean.includes('srivastava') || clean.includes('getting it')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.vimal, 'Prof. Kartika Maheshwari ke baare me batao');
+    if (clean.includes('vimal') || clean.includes('srivastava') || clean.includes('getting it')) return wrapRoleReply(LOCAL_FACULTY_DOSSIERS.vimal, 'Prof. Kartika Maheshwari ke baare me batao');
 
     // CSE-8 Faculty Dossiers
-    if (clean.includes('mayank kushwaha') || clean.includes('myk')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.mayank_kushwaha, 'Dr. Bhanumati Panda ke baare me batao');
-    if (clean.includes('bhanumati') || (/\bbp\b/i.test(clean) && !clean.includes('paper'))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.bhanumati_panda, 'Mr. Shahbaz Alam ke baare me batao');
-    if (clean.includes('shahbaz') || (clean.includes('sa') && clean.includes('faculty'))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.shahbaz_alam, 'Mr. Aditya Vats ke baare me batao');
-    if (!clean.includes('vimal') && !clean.includes('srivastava') && (clean.includes('aditya vats') || /\bav\b/i.test(clean))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.aditya_vats, 'Dr. Shruti Singh ke baare me batao');
-    if (clean.includes('shruti singh') || (clean.includes('shruti') && !clean.includes('shweta'))) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.shruti_singh, 'Dr. Shweta Sharma ke baare me batao');
-    if (clean.includes('shweta sharma') || clean.includes('ssh')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.shweta_sharma, 'Mr. Rohit Pratap Singh ke baare me batao');
-    if (clean.includes('rohit pratap') || clean.includes('rps')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.rohit_pratap, 'Mr. Mayank Mittal ke baare me batao');
-    if (clean.includes('mayank mittal') || clean.includes('mml')) return wrapQueenOrBoss(CSE8_FACULTY_DOSSIERS.mayank_mittal, 'Mr. Mayank Kushwaha ke baare me batao');
+    if (clean.includes('mayank kushwaha') || clean.includes('myk')) return wrapRoleReply(CSE8_FACULTY_DOSSIERS.mayank_kushwaha, 'Dr. Bhanumati Panda ke baare me batao');
+    if (clean.includes('bhanumati') || (/\bbp\b/i.test(clean) && !clean.includes('paper'))) return wrapRoleReply(CSE8_FACULTY_DOSSIERS.bhanumati_panda, 'Mr. Shahbaz Alam ke baare me batao');
+    if (clean.includes('shahbaz') || (clean.includes('sa') && clean.includes('faculty'))) return wrapRoleReply(CSE8_FACULTY_DOSSIERS.shahbaz_alam, 'Mr. Aditya Vats ke baare me batao');
+    if (!clean.includes('vimal') && !clean.includes('srivastava') && (clean.includes('aditya vats') || /\bav\b/i.test(clean))) return wrapRoleReply(CSE8_FACULTY_DOSSIERS.aditya_vats, 'Dr. Shruti Singh ke baare me batao');
+    if (clean.includes('shruti singh') || (clean.includes('shruti') && !clean.includes('shweta'))) return wrapRoleReply(CSE8_FACULTY_DOSSIERS.shruti_singh, 'Dr. Shweta Sharma ke baare me batao');
+    if (clean.includes('shweta sharma') || clean.includes('ssh')) return wrapRoleReply(CSE8_FACULTY_DOSSIERS.shweta_sharma, 'Mr. Rohit Pratap Singh ke baare me batao');
+    if (clean.includes('rohit pratap') || clean.includes('rps')) return wrapRoleReply(CSE8_FACULTY_DOSSIERS.rohit_pratap, 'Mr. Mayank Mittal ke baare me batao');
+    if (clean.includes('mayank mittal') || clean.includes('mml')) return wrapRoleReply(CSE8_FACULTY_DOSSIERS.mayank_mittal, 'Mr. Mayank Kushwaha ke baare me batao');
 
     // CSE-2 Faculty Dossiers
-    if (clean.includes('prerna') || clean.includes('prerana') || clean.includes('mohapatra')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.prerna, 'Dr. Divyanshi Sharma ke baare me batao');
-    if (clean.includes('divyanshi') || clean.includes('dsh')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.divyanshi, 'Prof. Shivam Mittal ki lore batao');
-    if (clean.includes('shivam') || clean.includes('mittal')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.shivam, 'Prof. Vimal Srivastava ke baare me batao');
-    if (clean.includes('kartika') || clean.includes('maheshwari')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.kartika, 'Ms. Shailja Varshney ke baare me batao');
-    if (clean.includes('shailja') || clean.includes('varshney')) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.shailja, 'Dr. Prerana Mohapatra ka profile dikhao');
-    if (clean.includes('rahul singh') || (clean.includes('rahul') && clean.includes('batao'))) return wrapQueenOrBoss(LOCAL_FACULTY_DOSSIERS.rahul, 'Dr. Prerana Mohapatra ka profile dikhao');
+    if (clean.includes('prerna') || clean.includes('prerana') || clean.includes('mohapatra')) return wrapRoleReply(LOCAL_FACULTY_DOSSIERS.prerna, 'Dr. Divyanshi Sharma ke baare me batao');
+    if (clean.includes('divyanshi') || clean.includes('dsh')) return wrapRoleReply(LOCAL_FACULTY_DOSSIERS.divyanshi, 'Prof. Shivam Mittal ki lore batao');
+    if (clean.includes('shivam') || clean.includes('mittal')) return wrapRoleReply(LOCAL_FACULTY_DOSSIERS.shivam, 'Prof. Vimal Srivastava ke baare me batao');
+    if (clean.includes('kartika') || clean.includes('maheshwari')) return wrapRoleReply(LOCAL_FACULTY_DOSSIERS.kartika, 'Ms. Shailja Varshney ke baare me batao');
+    if (clean.includes('shailja') || clean.includes('varshney')) return wrapRoleReply(LOCAL_FACULTY_DOSSIERS.shailja, 'Dr. Prerana Mohapatra ka profile dikhao');
+    if (clean.includes('rahul singh') || (clean.includes('rahul') && clean.includes('batao'))) return wrapRoleReply(LOCAL_FACULTY_DOSSIERS.rahul, 'Dr. Prerana Mohapatra ka profile dikhao');
     if (clean.includes('show all faculty') || clean.includes('all faculty')) {
       if (isCSE8) {
-        return wrapQueenOrBoss(`### 🎓 Complete Section CSE-8 Faculty Directory\n\n${Object.values(CSE8_FACULTY_DOSSIERS).join('\n\n---\n\n')}`, 'CSE-8 Timetable dikhao ⏰');
+        return wrapRoleReply(`### 🎓 Complete Section CSE-8 Faculty Directory\n\n${Object.values(CSE8_FACULTY_DOSSIERS).join('\n\n---\n\n')}`, 'CSE-8 Timetable dikhao ⏰');
       }
-      return wrapQueenOrBoss(`### 🎓 Complete Section CSE-2 Faculty Directory\n\n${Object.values(LOCAL_FACULTY_DOSSIERS).join('\n\n---\n\n')}`, 'Kya 50 LPA ka package lagta hai?');
+      return wrapRoleReply(`### 🎓 Complete Section CSE-2 Faculty Directory\n\n${Object.values(LOCAL_FACULTY_DOSSIERS).join('\n\n---\n\n')}`, 'Kya 50 LPA ka package lagta hai?');
     }
 
     if (clean.includes('50 lpa') || clean.includes('60 lpa') || clean.includes('package lagta') || clean.includes('placement')) {
-      return wrapQueenOrBoss(
+      return wrapRoleReply(
         `### 💰 ABES Placement & 50 LPA Reality Check 🎯\n\n• **Top 0.2% (40–60 LPA):** Atlassian (59.9 LPA), Microsoft, Google—95% off-campus ya national hackathons se lagte hain!\n• **6.0 – 9.0 LPA (15–20% batch):** TCS Digital/Prime, Nucleus, Nagarro.\n• **3.5 – 5.0 LPA (60–65% batch):** Bulk recruiters (TCS Ninja, Infosys, Cognizant).\n• **Sweet Spot CGPA:** **7.5 – 8.0+** rakho aur **300+ LeetCode problems** lagao! 🚀`,
         'CGPA kitni matter karti hai?'
       );
     }
 
     if (clean.includes('cgpa') || clean.includes('matter karti')) {
-      return wrapQueenOrBoss(
+      return wrapRoleReply(
         `### 🎯 CGPA Thresholds in B.Tech 📊\n\n• **< 6.0:** ⛔ 90% companies me baithne nahi milega.\n• **7.5 – 8.0:** 🌟 **Sweet Spot** — clears 95% on-campus company cutoffs.\n• **8.5+:** 💎 Resume shortlisting armor in high-applicant Super Dream drives!`,
         '15+ LPA crack karne ka roadmap kya hai?'
       );
     }
 
     if (clean.includes('roadmap') || clean.includes('15 lpa')) {
-      return wrapQueenOrBoss(
+      return wrapRoleReply(
         `### 🚀 15–25+ LPA Crack Karne Ka 4-Step Roadmap\n\n1. **DSA Mastery:** C++ ya Java me 300+ LeetCode questions.\n2. **Deployed Projects:** Real full-stack apps (jaise Boss ikA ka yeh portal!).\n3. **Core CS:** OS, DBMS (SQL), aur Computer Networks.\n4. **Hackathons:** Smart India Hackathon (SIH) & open-source! 🔥`,
         'Safe bunk & SGPA kaise check karu? 🧮'
       );
     }
 
     if (clean.includes('850') || clean.includes('neend') || clean.includes('sleep') || clean.includes('subah')) {
-      return wrapQueenOrBoss(`😴🛌 **8:50 AM Lecture & Safe Bunk Rule!**\n\nAutonomous rule ke hisaab se **75% attendance mandatory** hai! Sidebar me **🛡️🧮 Bunk & SGPA Suite** khol ke apna exact buffer check kar lo! ☕⚡`, 'Boys hostel waali canteen ka menu dikhao 🍔');
+      return wrapRoleReply(`😴🛌 **8:50 AM Lecture & Safe Bunk Rule!**\n\nAutonomous rule ke hisaab se **75% attendance mandatory** hai! Sidebar me **🛡️🧮 Bunk & SGPA Suite** khol ke apna exact buffer check kar lo! ☕⚡`, 'Boys hostel waali canteen ka menu dikhao 🍔');
     }
 
     if (clean.includes('joke') || clean.includes('hasao') || clean.includes('funny') || clean.includes('roast')) {
@@ -5409,7 +5375,7 @@ export default function CampusAIChat() {
       const j2 = ALL_250_JOKES[(jokeCursorRef.current + 1) % ALL_250_JOKES.length];
       const j3 = ALL_250_JOKES[(jokeCursorRef.current + 2) % ALL_250_JOKES.length];
       jokeCursorRef.current = (jokeCursorRef.current + 3) % ALL_250_JOKES.length;
-      return wrapQueenOrBoss(
+      return wrapRoleReply(
         `Hahaha lo **${first}**, suno CSE-2 aur ABES campus ke garma-garam jokes (From our **250+ Campus Joke Vault** 🎭🔥):\n\n• 1️⃣ ${j1}\n\n• 2️⃣ ${j2}\n\n• 3️⃣ ${j3}\n\n*(Vault Progress: ${(jokeCursorRef.current % 250) + 1}/250+ Jokes Unlocked!)* Aur sunne hain kya? 😂👇`,
         'Prof. Shivam Mittal ki lore batao'
       );
@@ -5422,7 +5388,7 @@ export default function CampusAIChat() {
       const cards: string[] = [];
       if (wantsMT1) cards.push(`📄 **${matchedPaper.name} (${matchedPaper.code}) — MT 1 Official Paper:**\n\n[DOWNLOAD_PAPER|${matchedPaper.name} (${matchedPaper.code}) - MT 1|${matchedPaper.mt1}]`);
       if (wantsMT2) cards.push(`📄 **${matchedPaper.name} (${matchedPaper.code}) — MT 2 Official Paper:**\n\n[DOWNLOAD_PAPER|${matchedPaper.name} (${matchedPaper.code}) - MT 2|${matchedPaper.mt2}]`);
-      return wrapQueenOrBoss(`${cards.join('\n\n---\n\n')}\n\n💡 **Exam Tip:** Type **"Solve full ${matchedPaper.short} MT2 paper"** to view the complete solved answer key! 🎯`, `Solve full ${matchedPaper.short} MT2 paper`);
+      return wrapRoleReply(`${cards.join('\n\n---\n\n')}\n\n💡 **Exam Tip:** Type **"Solve full ${matchedPaper.short} MT2 paper"** to view the complete solved answer key! 🎯`, `Solve full ${matchedPaper.short} MT2 paper`);
     }
 
     if (clean.includes('marketplace') || clean.includes('kya bik raha') || clean.includes('connect me with the seller') || clean.includes('buy') || clean.includes('khareedna') || clean.includes('chahiye') || clean.includes('drafter') || clean.includes('calculator') || clean.includes('grewal') || (clean.includes('book') && !clean.includes('notebook of code'))) {
@@ -5433,21 +5399,21 @@ export default function CampusAIChat() {
       });
       if (matchedItems.length > 0 && !clean.includes('kya bik raha') && !clean.includes('marketplace kholo')) {
         const listStr = matchedItems.map((it) => `• ${it.icon} **${it.title}**\n  ↳ 💰 **Price:** **${it.price}** | 👤 **Seller:** ${it.seller} | 📞 **Contact:** \`${it.contact}\``).join('\n\n');
-        return wrapQueenOrBoss(`🛒 **P2P Marketplace Match Found!** ✨\n\nYeh lo **${first}**, direct seller details:\n\n${listStr}\n\nSeedhe seller ke number pe WhatsApp ya call kar lo! 🤝🔥`, 'P2P Marketplace me kya bik raha hai? 🛒');
+        return wrapRoleReply(`🛒 **P2P Marketplace Match Found!** ✨\n\nYeh lo **${first}**, direct seller details:\n\n${listStr}\n\nSeedhe seller ke number pe WhatsApp ya call kar lo! 🤝🔥`, 'P2P Marketplace me kya bik raha hai? 🛒');
       }
       const allListStr = latestMarket.map((it, idx) => `• **#${idx + 1}** ${it.icon} **${it.title}** — **${it.price}**\n  ↳ 👤 Seller: *${it.seller}* | 📞 Contact: \`${it.contact}\``).join('\n\n');
-      return wrapQueenOrBoss(`🛒 **Live CSE-2 P2P Student Marketplace (${latestMarket.length} Items Active)** 📦✨\n\n${allListStr}\n\n💡 **Apna saman list karna hai?** Chat me likho: *"I want to sell my [Item] for [Price] no. - [10-digit phone]"*! 🚀`, 'Ek mast campus joke sunao 😂');
+      return wrapRoleReply(`🛒 **Live CSE-2 P2P Student Marketplace (${latestMarket.length} Items Active)** 📦✨\n\n${allListStr}\n\n💡 **Apna saman list karna hai?** Chat me likho: *"I want to sell my [Item] for [Price] no. - [10-digit phone]"*! 🚀`, 'Ek mast campus joke sunao 😂');
     }
 
     // Conversational Hinglish Catch-All so NO input ever feels robotic!
     if (isCSE8) {
-      return wrapQueenOrBoss(
+      return wrapRoleReply(
         `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Tumne likha: ***"${rawQuery.trim()}"*** 💬\n\nMain **ikA's World** ka AI dost hu (Section CSE-8 Edition)! Agar tumhe inme se kuch chahiye toh bas ek click karo ya likh do:\n• ⏰ **CSE-8 Timetable:** *"CSE-8 ka timetable dikhao"*\n• 👩‍🏫 **CSE-8 Faculty:** *"Mr. Mayank Kushwaha"*, *"Dr. Bhanumati Panda"*, *"Mr. Shahbaz Alam"*, *"Show all faculty"*\n• 🍔 **Canteen & Food:** *"Boys hostel canteen"* ya *"Tea Men's Cafe"*\n• 🎭 **Campus Fun:** *"Ek mast campus joke sunao"*! 👇🍎`,
         'CSE-8 Timetable dikhao ⏰'
       );
     }
 
-    return wrapQueenOrBoss(
+    return wrapRoleReply(
       `Arre **${first}** ${isFemale ? 'yaar ✨' : 'mere bhai 😎🔥'}! Tumne likha: ***"${rawQuery.trim()}"*** 💬\n\nMain **ikA's World** ka AI dost hu—mujhse tum bilkul khul ke baat kar sakte ho! Agar tumhe inme se kuch chahiye toh bas ek click karo ya likh do:\n• 🍔 **Canteen & Food:** *"Boys hostel waali canteen"* (K.J Cafe) ya *"College upper waali canteen"* (Tea Men's Cafe)\n• 📄 **Solved MT-2 Papers:** *"Solve full AI MT2 paper"*, *"Physics MT2 Q.1"*, *"Maths MT2 Section C"*\n• 👩‍🏫 **Faculty & Bunks:** *"Show all faculty"*, *"Safe bunk & SGPA"*, ya *"Ek mast campus joke sunao"*! 👇🍎`,
       'Solve full AI MT2 paper'
     );
@@ -5577,7 +5543,7 @@ export default function CampusAIChat() {
     );
   }
 
-  // DEATH NOTE ID BAN / MASS BLOCK LOCKOUT SCREEN (Applies to Agrima & all students when blocked)
+  // DEATH NOTE ID BAN / MASS BLOCK LOCKOUT SCREEN (Applies to all students when blocked)
   if (currentUser && activeUserBanRecord && !isBoss) {
     return (
       <div className="fixed inset-0 bg-black z-[999] flex flex-col items-center justify-center p-6 text-center font-serif select-none">
@@ -5604,13 +5570,13 @@ export default function CampusAIChat() {
   if (currentWindow === 'boss_intro' && currentUser) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-between p-6 sm:p-8 overflow-hidden font-serif select-none">
-        <div className={`absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${isAgrima ? 'from-pink-900/40 via-black to-black' : 'from-red-900/40 via-black to-black'} opacity-95 pointer-events-none`} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/40 via-black to-black opacity-95 pointer-events-none" />
         <div className={`fixed inset-0 bg-white z-[999] pointer-events-none transition-opacity duration-700 ease-out ${isWhiteFlashing ? 'opacity-100' : 'opacity-0'}`} />
 
         <div className="relative z-10 w-full max-w-2xl flex items-center justify-between text-xs font-mono text-red-500 tracking-widest uppercase">
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-            {isBoss ? '👑 SUPREME CREATOR PROTOCOL (1402)' : isAgrima ? '🌸 ROYAL QUEEN PROTOCOL' : '💀🕯️ SHINIGAMI REALM PROTOCOL'}
+            {isBoss ? '👑 SUPREME CREATOR PROTOCOL (1402)' : '💀🕯️ SHINIGAMI REALM PROTOCOL'}
           </span>
           <div className="flex items-center gap-3">
             <button onClick={toggleMusic} className="px-2.5 py-1 rounded-xl bg-black/70 border border-red-500/50 text-red-400 hover:text-white transition cursor-pointer text-xs flex items-center gap-1.5">
@@ -5624,13 +5590,13 @@ export default function CampusAIChat() {
         <div className="relative z-10 text-center max-w-4xl px-4 flex flex-col items-center justify-center my-auto space-y-6">
           {bossIntroTime < 7 && (
             <div className="space-y-4 animate-in fade-in zoom-in-95 duration-700">
-              <div className="text-5xl animate-pulse">{isBoss ? '👑⚡🦁' : isAgrima ? '🌸👑💖' : '💀📓🕯️'}</div>
+              <div className="text-5xl animate-pulse">{isBoss ? '👑⚡🦁' : '💀📓🕯️'}</div>
               <p className="text-xs font-mono uppercase tracking-[0.4em] text-red-400">Act I • The Awakening</p>
               <h1 className="text-3xl sm:text-5xl md:text-6xl text-red-600 tracking-widest uppercase font-black drop-shadow-[0_0_25px_rgba(220,38,38,0.95)] animate-pulse">
-                {isBoss ? 'Pranaam Supreme Architect Boss ikA...' : isAgrima ? 'Every flower in this realm blooms for Queen Agrima...' : 'This campus was rotting in shadows...'}
+                {isBoss ? 'Pranaam Supreme Architect Boss ikA...' : 'This campus was rotting in shadows...'}
               </h1>
               <p className="text-sm md:text-base text-gray-400 italic">
-                {isBoss ? '“Your 1402 Sovereign Matrix stands ready to rule Section CSE-2.” ⚡' : isAgrima ? '“Boss ikA welcomes the Queen to her royal palace.” 🌷' : '“Until the cursed notebook of code was opened...” 🩸'}
+                {isBoss ? '“Your 1402 Sovereign Matrix stands ready to rule Section CSE-2.” ⚡' : '“Until the cursed notebook of code was opened...” 🩸'}
               </p>
             </div>
           )}
@@ -5656,7 +5622,7 @@ export default function CampusAIChat() {
             <div className="space-y-6 animate-in zoom-in-75 duration-700">
               <div className="mx-auto w-28 h-28 rounded-3xl bg-gradient-to-tr from-red-700 via-black to-zinc-950 border-2 border-red-500 flex items-center justify-center text-5xl text-white font-black shadow-[0_0_50px_rgba(220,38,38,1)] animate-pulse">ikA</div>
               <div className="text-xl sm:text-2xl md:text-3xl text-white tracking-widest uppercase font-bold">
-                {isBoss ? 'All Hail Sovereign Boss ikA 👑⚡' : isAgrima ? 'Welcome To Your Palace, Queen Agrima 🌸💖' : `Welcome To ikA's World, ${currentUser.name.split(' ')[0]} 👁️🩸`}
+                {isBoss ? 'All Hail Sovereign Boss ikA 👑⚡' : `Welcome To ikA's World, ${currentUser.name.split(' ')[0]} 👁️🩸`}
               </div>
               <div className="text-5xl animate-bounce pt-2">🍎💀🕯️</div>
             </div>
@@ -5675,19 +5641,16 @@ export default function CampusAIChat() {
     );
   }
 
-  const globalBgColor = isBoss ? 'bg-[#090204]' : isAgrima ? 'bg-[#1a0a12]' : 'bg-[#090b10]';
-  const sidebarBgColor = isBoss ? 'bg-[#120307]' : isAgrima ? 'bg-[#240d18]' : 'bg-[#111318]';
-  const accentText = isBoss ? 'text-red-400' : isAgrima ? 'text-pink-400' : 'text-blue-400';
-  const accentBg = isBoss ? 'bg-red-600' : isAgrima ? 'bg-pink-600' : 'bg-blue-600';
-  const accentBorder = isBoss ? 'border-red-500/40' : isAgrima ? 'border-pink-500/30' : 'border-blue-500/30';
+  const globalBgColor = isBoss ? 'bg-[#090204]' : 'bg-[#090b10]';
+  const sidebarBgColor = isBoss ? 'bg-[#120307]' : 'bg-[#111318]';
+  const accentText = isBoss ? 'text-red-400' : 'text-blue-400';
+  const accentBg = isBoss ? 'bg-red-600' : 'bg-blue-600';
+  const accentBorder = isBoss ? 'border-red-500/40' : 'border-blue-500/30';
   const themeClasses = isBoss
     ? 'bg-red-950/20 text-red-100 border-red-500/30 shadow-red-950/20'
-    : isAgrima
-    ? 'bg-pink-950/20 text-pink-100 border-pink-500/20 shadow-pink-500/10'
     : 'bg-white/[0.04] text-gray-200 border-white/10 shadow-black/20';
 
   const ikaRedBlackBox = 'bg-gradient-to-tr from-red-700 via-black to-zinc-950 border border-red-500/60 text-white shadow-md shadow-red-950/80';
-  const isAgrimaCurrentlyBanned = bannedList.some((b) => b.target.toUpperCase().trim() === '2026B01010219');
 
   return (
     <div
@@ -5828,7 +5791,7 @@ export default function CampusAIChat() {
         <div className="fixed inset-0 pointer-events-none z-20 overflow-hidden">
           {FLOATING_PARTICLES.map((pt, idx) => (
             <div key={idx} className={`absolute -top-8 ${pt.size} select-none`} style={{ left: pt.left, animation: `sakuraFall ${pt.duration} linear infinite`, animationDelay: pt.delay }}>
-              {isAgrima ? (idx % 2 === 0 ? '🌸' : '🌷') : isBoss ? (idx % 2 === 0 ? '🩸' : '⚡') : idx % 2 === 0 ? '🌸' : '✨'}
+              {isBoss ? (idx % 2 === 0 ? '🩸' : '⚡') : idx % 2 === 0 ? '🌸' : '✨'}
             </div>
           ))}
         </div>
@@ -6715,11 +6678,11 @@ export default function CampusAIChat() {
               <div className="truncate">
                 <h1 className="font-bold text-xs tracking-wide text-white">ikA&apos;s CSE-2 Hub</h1>
                 <span className="text-[10px] text-gray-400 block truncate">
-                  {currentUser ? (isBoss ? '👑 Supreme Boss ikA' : isAgrima ? '🌸 Queen Agrima' : `Hi, ${currentUser.name}`) : 'Section CSE-2'}
+                  {currentUser ? (isBoss ? '👑 Supreme Boss ikA' : `Hi, ${currentUser.name}`) : 'Section CSE-2'}
                 </span>
               </div>
             </div>
-            <button onClick={handleCreateNewChat} className={`w-full flex items-center justify-center gap-2 ${isBoss ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300' : isAgrima ? 'bg-pink-600/20 hover:bg-pink-600/30 text-pink-300' : 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300'} hover:text-white text-xs font-semibold px-4 py-2.5 rounded-xl border ${accentBorder} transition shadow-sm cursor-pointer`}>
+            <button onClick={handleCreateNewChat} className={`w-full flex items-center justify-center gap-2 ${isBoss ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300' : 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300'} hover:text-white text-xs font-semibold px-4 py-2.5 rounded-xl border ${accentBorder} transition shadow-sm cursor-pointer`}>
               <span>＋</span> New Chat
             </button>
             <div className="space-y-1 pt-1 border-t border-white/[0.06]">
@@ -6840,8 +6803,8 @@ export default function CampusAIChat() {
             </button>
             {currentUser && (
               <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-300 bg-white/[0.05] border border-white/10 px-2.5 sm:px-3 py-1 rounded-xl">
-                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isBoss ? 'bg-red-500 animate-ping' : isAgrima ? 'bg-pink-400 animate-pulse' : 'bg-emerald-400'}`} />
-                <span className="truncate max-w-[90px] sm:max-w-none">{isBoss ? '👑 Boss ikA' : isAgrima ? '🌸 Queen Agrima' : currentUser.name}</span>
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isBoss ? 'bg-red-500 animate-ping' : 'bg-emerald-400'}`} />
+                <span className="truncate max-w-[90px] sm:max-w-none">{isBoss ? '👑 Boss ikA' : currentUser.name}</span>
               </span>
             )}
             {currentWindow !== 'home' && (
@@ -6950,20 +6913,20 @@ export default function CampusAIChat() {
           {/* VIEW 0: HOME OVERVIEW (4 MAIN TILES + HCL CAREER SHAPER + UPCOMING EXPANSIONS) */}
           {currentWindow === 'home' && (
             <div className="flex-1 overflow-y-auto flex flex-col items-center justify-start p-4 sm:p-6 relative">
-              <div className={`absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${isBoss ? 'from-red-900/35 via-black to-black' : isAgrima ? 'from-pink-900/30' : 'from-red-900/20'} via-transparent to-transparent opacity-85 pointer-events-none`} />
+              <div className={`absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${isBoss ? 'from-red-900/35 via-black to-black' : 'from-red-900/20'} via-transparent to-transparent opacity-85 pointer-events-none`} />
               <div className="w-full max-w-4xl space-y-4 text-center relative z-10 animate-in fade-in zoom-in-95 duration-200 py-3 sm:py-6">
                 <div className="space-y-2 mb-1">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-[11px] font-bold text-red-400 tracking-widest uppercase">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" /> {isBoss ? '👑 SUPREME SANCTUM OF BOSS ikA (1402)' : isAgrima ? '🌸 ROYAL PALACE OF QUEEN AGRIMA' : '💀 Sovereign Realm of ikA • Section CSE-2 🍎'}
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" /> {isBoss ? '👑 SUPREME SANCTUM OF BOSS ikA (1402)' : '💀 Sovereign Realm of ikA • Section CSE-2 🍎'}
                   </span>
-                  <h1 className={`text-3xl sm:text-4xl md:text-5xl font-black font-serif tracking-widest uppercase leading-tight ${isBoss ? 'text-red-500 drop-shadow-[0_0_35px_rgba(220,38,38,1)]' : isAgrima ? 'text-pink-400 drop-shadow-[0_0_25px_rgba(236,72,153,0.9)]' : 'text-red-600 drop-shadow-[0_0_30px_rgba(220,38,38,0.95)]'} animate-pulse`}>
+                  <h1 className={`text-3xl sm:text-4xl md:text-5xl font-black font-serif tracking-widest uppercase leading-tight ${isBoss ? 'text-red-500 drop-shadow-[0_0_35px_rgba(220,38,38,1)]' : 'text-red-600 drop-shadow-[0_0_30px_rgba(220,38,38,0.95)]'} animate-pulse`}>
                     Welcome To ikA&apos;s World
                   </h1>
                   <p className="text-base md:text-xl font-bold text-white tracking-wide">
-                    {isBoss ? '👑 Pranaam Supreme Boss ikA!' : isAgrima ? '👑 Swagat hai My Queen Agrima! 🌸' : `Hi ${currentUser?.name || 'Engineer'}! 👋✨`}
+                    {isBoss ? '👑 Pranaam Supreme Boss ikA!' : `Hi ${currentUser?.name || 'Engineer'}! 👋✨`}
                   </p>
                   <div onClick={() => setCurrentWindow('chat')} className={`max-w-2xl mx-auto p-3 rounded-2xl bg-black/70 border ${accentBorder} shadow-[0_0_25px_rgba(220,38,38,0.2)] text-xs sm:text-sm font-mono leading-relaxed cursor-pointer hover:border-white/40 transition`}>
-                    <span className={isBoss ? 'text-red-200' : isAgrima ? 'text-pink-200' : 'text-red-200'}>{overviewBossWhisper}</span>
+                    <span className="text-red-200">{overviewBossWhisper}</span>
                     <span className="inline-block w-2 h-4 ml-1 bg-red-500 animate-ping align-middle" />
                   </div>
                 </div>
@@ -7191,7 +7154,7 @@ export default function CampusAIChat() {
                       <div className="w-12 h-12 rounded-2xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-2xl">👁️</div>
                       <div>
                         <h3 className="text-xl font-black text-white tracking-wide">Shinigami Eyes — Supreme Boss ikA Matrix</h3>
-                        <p className="text-xs text-red-300">Keystroke &amp; Suggestion Radar • 28s Puppet Hijack • Flying Broadcast • Agrima Ban Switch</p>
+                        <p className="text-xs text-red-300">Keystroke &amp; Suggestion Radar • 28s Puppet Hijack • Flying Broadcast • Death Note Ban</p>
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -7220,16 +7183,6 @@ export default function CampusAIChat() {
                         className="px-3 py-1.5 rounded-xl text-xs font-bold bg-orange-600/25 hover:bg-orange-600 text-orange-200 hover:text-white border border-orange-500/40 transition cursor-pointer"
                       >
                         🚨 Panic 500 ALL
-                      </button>
-                      <button
-                        onClick={() => handleQuickBanToggle('2026B01010219', 'Royal Palace Access Paused by Sovereign Decree of Boss ikA 🌸💀')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
-                          isAgrimaCurrentlyBanned
-                            ? 'bg-emerald-600 text-white border-emerald-300 animate-pulse'
-                            : 'bg-pink-600/25 hover:bg-pink-600 text-pink-200 hover:text-white border-pink-500/40'
-                        }`}
-                      >
-                        🌸 {isAgrimaCurrentlyBanned ? 'Revive Queen Agrima' : 'Block Queen Agrima'}
                       </button>
                       <button
                         onClick={handleToggleRealmFreeze}
@@ -7624,7 +7577,7 @@ export default function CampusAIChat() {
                         type="text"
                         value={selectedDirectTarget}
                         onChange={(e) => setSelectedDirectTarget(e.target.value.toUpperCase())}
-                        placeholder="Target Admission No (e.g. 2026B01010219)"
+                        placeholder="Target Admission No (e.g. 2026B01010***)"
                         className="bg-white/5 border border-red-500/30 rounded-xl px-3.5 py-2 text-xs text-white font-mono outline-none focus:border-red-500"
                       />
                       <input
@@ -7667,13 +7620,13 @@ export default function CampusAIChat() {
                     </form>
                   </div>
 
-                  {/* 4. DEATH NOTE ID BAN FORM (Can Ban Any Student Including Agrima) */}
+                  {/* 4. DEATH NOTE ID BAN FORM (Can Ban Any Student ID) */}
                   <form onSubmit={handleAddBan} className="p-5 rounded-2xl bg-black/70 border border-red-500/30 space-y-3">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-red-400 flex items-center gap-2">
-                      <span>📓</span> Write ID in the Death Note (Stop Anyone&apos;s Login — Including Queen Agrima)
+                      <span>📓</span> Write ID in the Death Note (Stop Any Student&apos;s Login Immediately)
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <input type="text" required value={banInputTarget} onChange={(e) => setBanInputTarget(e.target.value)} placeholder="Admission No (e.g. 2026B01010219), Roll No, or Name" className="bg-white/5 border border-red-500/30 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-red-500 font-mono" />
+                      <input type="text" required value={banInputTarget} onChange={(e) => setBanInputTarget(e.target.value)} placeholder="Admission No (e.g. 2026B01010***), Roll No, or Name" className="bg-white/5 border border-red-500/30 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-red-500 font-mono" />
                       <input type="text" value={banInputReason} onChange={(e) => setBanInputReason(e.target.value)} placeholder="Decree Reason" className="bg-white/5 border border-red-500/30 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-red-500" />
                     </div>
                     <div className="flex items-center justify-between flex-wrap gap-2">
@@ -8720,7 +8673,6 @@ export default function CampusAIChat() {
                             unlockNuisanceCertificate();
                             setCurrentWindow('nuisance_cert');
                           }}
-                          isAgrima={isAgrima}
                           currentUser={currentUser}
                         />
                       )}
@@ -8738,7 +8690,6 @@ export default function CampusAIChat() {
                           unlockNuisanceCertificate();
                           setCurrentWindow('nuisance_cert');
                         }}
-                        isAgrima={isAgrima}
                         currentUser={currentUser}
                       />
                     </div>
@@ -9225,8 +9176,6 @@ export default function CampusAIChat() {
                 currentUser
                   ? isBoss
                     ? 'Hukum kijiye Supreme Boss ikA (e.g. Upload file to tile, Boys hostel canteen, AI MT2, Safe bunk)...'
-                    : isAgrima
-                    ? 'Aapka kya hukum hai My Queen Agrima? 🌸 (e.g. Tea Men cafe, Solve full AI MT2, Faculty dossiers)...'
                     : `${currentUser.name.split(' ')[0]}, kuch bhi puch mere dost (e.g. Canteen menu, Safe bunk, MT2 solve ya koi bhi baat)...`
                   : 'Kuch bhi pucho dost...'
               }

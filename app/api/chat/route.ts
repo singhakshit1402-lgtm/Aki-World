@@ -423,7 +423,6 @@ export async function POST(req: NextRequest) {
     const rawEmail = (user?.email || '').toLowerCase().trim();
     const isBoss = rawEmail.startsWith('1402akshit') || rawEmail.includes('1402akshit.26b01010274@abes.ac.in');
     const isNormalAkshit = !isBoss && (user?.admissionNo === '2026B01010274' || rawEmail.startsWith('akshit.'));
-    const isAgrima = user?.admissionNo === '2026B01010219' || rawEmail.includes('26b01010219');
 
     const currentAdm = (
       user?.admissionNo ||
@@ -909,9 +908,6 @@ export async function POST(req: NextRequest) {
     const formatRoleReply = (content: string, s1 = 'Main kaun hu?', s2 = 'Ek mast campus joke sunao 😂') => {
       if (isBoss) {
         return `👑 **Sovereign Command Executed, Supreme Boss ikA!** ⚡🔥\n\n${content}\n\n*Poora Section CSE-2 matrix aapke aadesh par chal raha hai, Mere Boss!* 🍎👇\n\n[SUGGESTIONS|${s1}|${s2}]`;
-      }
-      if (isAgrima) {
-        return `🌸👑 **Aapka hukum sar aankhon par, My Queen Agrima!** 💖✨\n\n${content}\n\n*Sach kahu toh aapke sawaal puchne ke andaaz se hi iss AI server me phool khil jaate hain* 😊🌷. Bataiye Queen, agla kya pesh karu? 👇\n\n[SUGGESTIONS|${s1}|${s2}]`;
       }
       return `${content}\n\n[SUGGESTIONS|${s1}|${s2}]`;
     };
